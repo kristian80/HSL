@@ -29,18 +29,33 @@ public:
 	int myEnableSlingMenu = 0;
 	XPLMMenuID myPluginMenuID = 0;
 
-	std::string myWinchPath = "pm_library/Tennis_Ball.obj";
-	std::string myRopePath = "pm_library/Tennis_Ball.obj";
+	XPLMCommandRef myCmdRefWinchUp = NULL;
+	XPLMCommandRef myCmdRefWinchDown = NULL;
+	XPLMCommandRef myCmdRefWinchStop = NULL;
+
+	XPLMCommandRef myCmdRefEnable = NULL;
+	XPLMCommandRef myCmdRefDisable = NULL;
+	XPLMCommandRef myCmdRefReset = NULL;
+	XPLMCommandRef myCmdRefConnectLoad = NULL;
+	XPLMCommandRef myCmdRefReleaseLoad = NULL;
+	XPLMCommandRef myCmdRefUpdateParameters = NULL;
+
+
+	std::string myWinchPath = "hsl/Sphere_1.obj";
+	std::string myRopePath = "hsl/Sphere_2.obj";
+	std::string myHookPath = "hsl/Sphere_1.obj";
 	std::string myCargoPath = "swisscreations/oggetti_eli/benna_beton_fissa.obj";
 
 	XPLMObjectRef myWinchObjectRef = NULL;
 	XPLMObjectRef myRopeObjectRef = NULL;
+	XPLMObjectRef myHookObjectRef = NULL;
 	XPLMObjectRef myCargoObjectRef = NULL;
 	XPLMInstanceRef myWinchInstanceRef = NULL;
 	XPLMProbeRef myGroundProbe = NULL;
 	float myDummyAngle = 0;
 
 	std::vector<vector<float>> myRopePoints;
+	HSL::WinchDirection myWinchDirection = HSL::Stop;
 
 	/////////////////////////////////////////////////////////
 	// Sling Variables
@@ -65,14 +80,28 @@ public:
 	float myRopeLengthNormal = 2.2f;
 	float myRopeDamping = 0.03f;
 	float myRopeK = 55000.0f;
+
 	float myObjectMass = 75; //kg
 	float myObjectCrossSection = 1.1f; //m2
 	float myObjectCWFront = 0.9; //cube
 	float myObjectFrictionGlide = 0.35;
 	float myObjectFrictionStatic = 0.65;
 	float myObjectSpeedStaticFriction = 0.3;
-	float myGravitation = -9.8;
 	float myObjectHeight = 0.0f;
+
+	float myGravitation = -9.8;
+
+	float myHookHeight = 0.1;
+	float myHookWeight = 5.0f;
+
+
+	float myCargoHeight = 1.52;
+	float myCargoWeight = 75.0f;
+	
+	float myWinchSpeed = 0.5f;
+	
+	
+	bool  myCargoConnected = false;
 
 	float myCurrentRopeLength = 2.2f;
 
@@ -86,6 +115,9 @@ public:
 	float myDefaultObjectFrictionStatic = 0.65;
 	float myDefaultObjectSpeedStaticFriction = 0.3;
 	float myDefaultObjectHeight = -0.7f;
+	float myDefaultWinchSpeed = 0.5f;
+	float myDefaultHookWeight = 5.0f;
+	float myDefaultCargoWeight = 75.0f;
 
 	vector<float> myVectorDefaultWinchPosition = vector<float>(3);
 
@@ -188,6 +220,21 @@ public:
 	void SlingEnable();
 	void SlingDisable();
 	void SlingReset();
+	void SlingConnect();
+	void SlingRelease();
+	void UpdateParameters();
+	void UpdateObjects();
+
+	int WinchUpCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+	int WinchDownCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+	int WinchStopCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+	int EnableCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+	int DisableCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+	int ResetCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+	int ConnectLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+	int ReleaseLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+	int UpdateParametersCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+
 
 	vector<float> HSL_PlugIn::TurnWorldToAircraft(vector<float> coordsAircraft);
 	vector<float> AircraftToWorld(vector<float> coordsAircraft);

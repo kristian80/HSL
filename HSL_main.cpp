@@ -119,6 +119,52 @@ int WrapDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inRefcon)
 	return pHSL->DrawCallback(inPhase, inIsBefore, inRefcon);
 }
 
+
+int WrapWinchUpCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	return pHSL->WinchUpCallback(cmd, phase, refcon);
+}
+
+int WrapWinchDownCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	return pHSL->WinchDownCallback(cmd, phase, refcon);
+}
+
+int WrapWinchStopCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	return pHSL->WinchStopCallback(cmd, phase, refcon);
+}
+
+int WrapEnableCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	return pHSL->EnableCallback(cmd, phase, refcon);
+}
+
+int WrapDisableCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	return pHSL->DisableCallback(cmd, phase, refcon);
+}
+
+int WrapResetCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	return pHSL->ResetCallback(cmd, phase, refcon);
+}
+
+int WrapConnectLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	return pHSL->ConnectLoadCallback(cmd, phase, refcon);
+}
+
+int WrapReleaseLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	return pHSL->ReleaseLoadCallback(cmd, phase, refcon);
+}
+
+int WrapUpdateParametersCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	return pHSL->UpdateParametersCallback(cmd, phase, refcon);
+}
+
 /*
 int WrapHRMVSpeedHandler(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t inParam1, intptr_t inParam2)
 {
@@ -138,10 +184,7 @@ void WrapHRMDrawOutputWindow(XPLMWindowID in_window_id, void * in_refcon)
 	return pHSL->HRMDrawOutputWindow(in_window_id,in_refcon);
 }
 
-int WrapSayBaroCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void *refcon)
-{
-	return pHSL->SayBaroCallback(cmd,phase,refcon);
-}
+
 int WrapSayWindCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void *refcon)
 {
 	return pHSL->SayWindCallback(cmd,phase,refcon);

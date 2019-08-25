@@ -204,6 +204,14 @@ namespace HRM
 
 }
 
+namespace HSL {
+	enum WinchDirection
+	{
+		Up,
+		Down,
+		Stop
+	};
+}
 double calc_distance_m(double lat1, double long1, double lat2, double long2);
 double calc_distance_nm(double lat1, double long1, double lat2, double long2);
 
@@ -220,6 +228,18 @@ int WrapSayWindCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void *refcon
 int WrapAnnouncementCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void *refcon);
 int WrapResetHRMCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void *refcon);
 int WrapToogleWindowCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void *refcon);
+
+
+
+int WrapWinchUpCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+int WrapWinchDownCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+int WrapWinchStopCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+int WrapEnableCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+int WrapDisableCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+int WrapResetCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+int WrapConnectLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+int WrapReleaseLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+int WrapUpdateParametersCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 
 int WrapDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inRefcon);
 

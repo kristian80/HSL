@@ -14,7 +14,7 @@ HSLImguiWidget::HSLImguiWidget(HSL_PlugIn *pHSLNew, int left, int top, int right
 	ImgWindow(left, top, right, bot, decoration)
 { 
 	pHSL = pHSLNew;
-	SetWindowTitle("Helicopter Sling Load");
+	SetWindowTitle("Helicopter Sling Line");
 	SetVisible(false);
 	configureImguiContext();
 }
@@ -76,17 +76,21 @@ void HSLImguiWidget::buildInterface()
 	ImGui::Text("Test1");
 	ImGui::PushItemWidth(100);
 
-	ImGui::InputFloat("Rope Length Normal", &(pHSL->myRopeLengthNormal), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Rope Length Normal [m]", &(pHSL->myRopeLengthNormal), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Rope Damping", &(pHSL->myRopeDamping), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Rope K", &(pHSL->myRopeK), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Object Mass", &(pHSL->myObjectMass), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Object Cross Section", &(pHSL->myObjectCrossSection), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Hook Mass [kg]", &(pHSL->myHookWeight), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Hook Height [m]", &(pHSL->myHookHeight), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Cargo Mass [kg]", &(pHSL->myCargoWeight), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Cargo Height [m]", &(pHSL->myCargoHeight), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Object Mass [kg]", &(pHSL->myObjectMass), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Object Height [m]", &(pHSL->myObjectHeight), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Object Cross Section [m^2]", &(pHSL->myObjectCrossSection), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Object CW Front", &(pHSL->myObjectCWFront), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Object Friction Glide", &(pHSL->myObjectFrictionGlide), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Object Friction Static", &(pHSL->myObjectFrictionStatic), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Object Speed Static Friction", &(pHSL->myObjectSpeedStaticFriction), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Object Height", &(pHSL->myObjectHeight), 0.01, 0.01, 3, 0);
-
+	
+	ImGui::InputFloat("Winch Speed", &(pHSL->myWinchSpeed), 0.01, 0.01, 3, 0);
 
 	InputVector(pHSL->myVectorWinchPosition, "Winch Position");
 	InputVector(pHSL->myVectorObjectOffset, "Object Offset");
@@ -127,8 +131,38 @@ void HSLImguiWidget::buildInterface()
 	ImGui::Text("CorrectedD:         %.3f", pHSL->myRopeCorrectedD);
 	ImGui::Text("AirSpeed:           %.3f", pHSL->myAirSpeed);
 	ImGui::Text("AirResistance:      %.3f", pHSL->myAirResistance);
-	
+	ImGui::Text("SpeedStaticFriction:%.3f", pHSL->myObjectSpeedStaticFriction);
 
+	ImGui::NextColumn();
+	
+	if (ImGui::Button("Enable")) pHSL->SlingEnable();
+	if (ImGui::Button("Disable")) pHSL->SlingDisable();
+	if (ImGui::Button("Reset")) pHSL->SlingReset();
+	if (ImGui::Button("Connect Load")) pHSL->SlingConnect();
+	if (ImGui::Button("Release Load")) pHSL->SlingRelease();
+	
+	ImGui::InputText("WinchObject", &(pHSL->myWinchPath));
+	ImGui::InputText("RopeObject", &(pHSL->myRopePath));
+	ImGui::InputText("HookObject", &(pHSL->myHookPath));
+	ImGui::InputText("CargoObject", &(pHSL->myCargoPath));
+	
+	
+	if (ImGui::Button("Update Objects")) pHSL->UpdateObjects();
+
+	if (pHSL->mySlingLineEnabled == true)
+	{
+		ImVec4 col = ImColor(0, 255, 0);
+		ImGui::PushStyleColor(ImGuiCol_Text, col);
+		ImGui::Text("Sling Line Enabled");
+		ImGui::PopStyleColor();
+	}
+	else
+	{
+		ImVec4 col = ImColor(255, 0, 0);
+		ImGui::PushStyleColor(ImGuiCol_Text, col);
+		ImGui::Text("Sling Line Disabled");
+		ImGui::PopStyleColor();
+	}
 
 /*
 	ImGui::InputInt("Scenery N r", &(pHRM->m_scenery_number), 1, 1);
