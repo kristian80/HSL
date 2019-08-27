@@ -31,6 +31,7 @@
 #include "XPStandardWidgets.h"
 #include "XPWidgetUtils.h"
 #include "XPLMInstance.h"
+#include "XPLMPlanes.h"
 
 #include "ImgWindow.h"
 #include "imgui.h"
@@ -41,6 +42,10 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/io.hpp> 
+using namespace boost::numeric::ublas;
+
 
 // OS X: we use this to convert our file path.
 #if APL
@@ -63,6 +68,9 @@
 #define VERT_AXIS 1
 
 #define HSL_ROPE_POINTS_MAX 2000
+#define MAX_OBJ_SPEED 300.0f // ~sonic speed
+
+#define MSG_ADD_DATAREF 0x01000000
 
 
 
@@ -86,6 +94,95 @@ inline void HSLDebugString(std::string output)
 {
 	hsl_output_file << output << std::endl;
 	hsl_output_file.flush();
+}
+
+inline void check_nan(float& f)
+{
+	if (isnan(f)) f = 0;
+}
+
+inline void check_nan(vector<float>& vec)
+{
+	for (int i = 0; i < vec.size(); i++) check_nan(vec(i));
+}
+
+inline void limit_max(vector<float>& vec, float max_value)
+{
+	for (int i = 0; i < vec.size(); i++)
+	{
+		if (vec(i) > max_value) vec(1) = max_value;
+	}
+}
+
+inline void DrawInstanceCreate(XPLMInstanceRef &instanceIn, XPLMObjectRef &objectIn)
+{
+	if (objectIn == NULL)
+	{
+		instanceIn = NULL;
+	}
+	else if (instanceIn == NULL)
+	{
+		const char* drefs[] = { NULL, NULL };
+		instanceIn = XPLMCreateInstance(objectIn, drefs);
+	}
+}
+
+inline void DrawInstanceDestroy(XPLMInstanceRef& instanceIn)
+{
+	if (instanceIn != NULL)
+	{
+		XPLMDestroyInstance(instanceIn);
+		instanceIn = NULL;
+	}
+}
+
+inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, vector<float> &positionInVec)
+{
+	if (instanceIn != NULL)
+	{
+		check_nan(positionInVec);
+
+		XPLMDrawInfo_t		drawInfo;
+		drawInfo.structSize = sizeof(drawInfo);
+		drawInfo.x = positionInVec(0);
+		drawInfo.y = positionInVec(1);
+		drawInfo.z = positionInVec(2);
+		drawInfo.pitch = 0;
+		drawInfo.heading = 0;
+		drawInfo.roll = 0;
+		try
+		{
+			XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
+		}
+		catch (...)
+		{
+
+		}
+	}
+}
+
+inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, vector<float>& positionInVec, vector<float>& angleInVec)
+{
+	if (instanceIn != NULL)
+	{
+		XPLMDrawInfo_t		drawInfo;
+		drawInfo.structSize = sizeof(drawInfo);
+		drawInfo.x = positionInVec(0);
+		drawInfo.y = positionInVec(1);
+		drawInfo.z = positionInVec(2);
+		drawInfo.pitch = angleInVec(0);
+		drawInfo.heading = angleInVec(1);
+		drawInfo.roll = angleInVec(2);
+
+		try
+		{
+			XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
+		}
+		catch (...)
+		{
+
+		}
+	}
 }
 
 static void load_cb(const char * real_path, void * ref)
@@ -228,7 +325,35 @@ int WrapSayWindCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void *refcon
 int WrapAnnouncementCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void *refcon);
 int WrapResetHRMCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void *refcon);
 int WrapToogleWindowCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void *refcon);
+int WrapUpdateObjectCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 
+float WrapReadFloatCallback(void* inRefcon);
+void WrapWriteFloatCallback(void* inRefcon, float inValue);
+
+int WrapReadIntCallback(void* inRefcon);
+void WrapWriteIntCallback(void* inRefcon, int inValue);
+int WrapReadStringCallback(
+	void* inRefcon,
+	void* outValue,    /* Can be NULL */
+	int                  inOffset,
+	int                  inMaxLength);
+
+void WrapWriteStringCallback(
+	void* inRefcon,
+	void* inValue,
+	int                  inOffset,
+	int                  inLength);
+
+int WrapReadVectorFloatCallback(
+	void* inRefcon,
+	float* outValues,    /* Can be NULL */
+	int                  inOffset,
+	int                  inMax);
+void WrapWriteVectorFloatCallback(
+	void* inRefcon,
+	float* inValues,
+	int                  inOffset,
+	int                  inCount);
 
 
 int WrapWinchUpCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
@@ -239,7 +364,7 @@ int WrapDisableCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon
 int WrapResetCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 int WrapConnectLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 int WrapReleaseLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
-int WrapUpdateParametersCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+int WrapToggleControlWindowCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 
 int WrapDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inRefcon);
 

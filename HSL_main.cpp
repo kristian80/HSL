@@ -160,10 +160,93 @@ int WrapReleaseLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* re
 	return pHSL->ReleaseLoadCallback(cmd, phase, refcon);
 }
 
-int WrapUpdateParametersCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+int WrapToggleControlWindowCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
 {
-	return pHSL->UpdateParametersCallback(cmd, phase, refcon);
+	return pHSL->ToggleControlWindowCallback(cmd, phase, refcon);
 }
+
+int WrapUpdateObjectCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	return pHSL->UpdateObjectsCallback(cmd, phase, refcon);
+}
+
+float WrapReadFloatCallback(void* inRefcon)
+{
+	return *((float*)inRefcon);
+}
+
+void WrapWriteFloatCallback(void* inRefcon, float inValue)
+{
+	*((float*)inRefcon) = inValue;
+}
+
+int WrapReadVectorFloatCallback(
+	void* inRefcon,
+	float* outValues,    /* Can be NULL */
+	int                  inOffset,
+	int                  inMax)
+{
+	if (inMax < 3) return 0;
+	vector<float>* pVector = (vector<float>*) inRefcon;
+	outValues[0] = (*pVector)(0);
+	outValues[1] = (*pVector)(1);
+	outValues[2] = (*pVector)(2);
+	return 1;
+}
+
+void WrapWriteVectorFloatCallback(
+	void* inRefcon,
+	float* inValues,
+	int                  inOffset,
+	int                  inCount)
+{
+	if (inCount < 3) return;
+	vector<float>* pVector = (vector<float>*) inRefcon;
+
+	(*pVector)(0) = inValues[0];
+	(*pVector)(1) = inValues[1];
+	(*pVector)(2) = inValues[2];
+
+}
+
+int WrapReadIntCallback(void* inRefcon)
+{
+	return (int) (*((bool*)inRefcon));
+}
+
+void WrapWriteIntCallback(void* inRefcon, int inValue)
+{
+	*((int*)inRefcon) = inValue;
+}
+
+int WrapReadStringCallback(
+	void* inRefcon,
+	void* outValue,    /* Can be NULL */
+	int                  inOffset,
+	int                  inMaxLength)
+{
+	std::string* pStr = (std::string*) inRefcon;
+
+	if (pStr->size() < inMaxLength)
+	{
+		strcpy((char*)outValue, pStr->c_str());
+		return 1;
+	}
+	return 0;
+
+}
+
+void WrapWriteStringCallback(
+	void* inRefcon,
+	void* inValue,
+	int                  inOffset,
+	int                  inLength)
+{
+	std::string* pStr = (std::string*) inRefcon;
+	*pStr = (char*)inValue;
+}
+
+
 
 /*
 int WrapHRMVSpeedHandler(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t inParam1, intptr_t inParam2)

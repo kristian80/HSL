@@ -73,33 +73,59 @@ void HSLImguiWidget::buildInterface()
 
 	ImGui::Columns(4, 0, false);
 
-	ImGui::Text("Test1");
+	
 	ImGui::PushItemWidth(100);
+	
+	ImGui::Text("Winch:");
+	InputVector(pHSL->myVectorWinchPosition, "Winch Position");
+	if (ImGui::Button("Write Aircraft Ini File")) pHSL->AircraftConfigSave();
 
-	ImGui::InputFloat("Rope Length Normal [m]", &(pHSL->myRopeLengthNormal), 0.01, 0.01, 3, 0);
+	ImGui::Text("Rope Parameters:");
+	ImGui::InputFloat("Rope Length Start [m]", &(pHSL->myRopeLengthStart), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Rope Length [m]", &(pHSL->myRopeLengthNormal), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Rope Rupture Force [N]", &(pHSL->myRopeRuptureForce), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Rope Damping", &(pHSL->myRopeDamping), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Rope K", &(pHSL->myRopeK), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Hook Mass [kg]", &(pHSL->myHookWeight), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("MaxRopeAcc", &(pHSL->myMaxAccRopeFactor), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Winch Speed [m/s]", &(pHSL->myWinchSpeed), 0.01, 0.01, 3, 0);
+
+	ImGui::Text("Hook Parameters:");
+	ImGui::InputFloat("Hook Mass [kg]", &(pHSL->myHookMass), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Hook Height [m]", &(pHSL->myHookHeight), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Cargo Mass [kg]", &(pHSL->myCargoWeight), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Hook Cross Section [m^2]", &(pHSL->myHookCrossSection), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Hook CW Front", &(pHSL->myHookCWFront), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Hook Friction Glide", &(pHSL->myHookFrictionGlide), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Hook Friction Static", &(pHSL->myHookFrictionStatic), 0.01, 0.01, 3, 0);
+
+	ImGui::Text("Cargo Parameters:");
+	ImGui::InputFloat("Cargo Mass [kg]", &(pHSL->myCargoMass), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Cargo Height [m]", &(pHSL->myCargoHeight), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Cargo Cross Section [m^2]", &(pHSL->myCargoCrossSection), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Cargo CW Front", &(pHSL->myCargoCWFront), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Cargo Friction Glide", &(pHSL->myCargoFrictionGlide), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Cargo Friction Static", &(pHSL->myCargoFrictionStatic), 0.01, 0.01, 3, 0);
+	InputVector(pHSL->myVectorCargoOffset, "Cargo Offset");
+
+
+	ImGui::Text("Object Parameters:");
 	ImGui::InputFloat("Object Mass [kg]", &(pHSL->myObjectMass), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Object Height [m]", &(pHSL->myObjectHeight), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Object Cross Section [m^2]", &(pHSL->myObjectCrossSection), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Object CW Front", &(pHSL->myObjectCWFront), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Object Friction Glide", &(pHSL->myObjectFrictionGlide), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Object Friction Static", &(pHSL->myObjectFrictionStatic), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Static Friction Speed [FPS]", &(pHSL->myObjectSpeedStaticFriction), 0.01, 0.01, 3, 0);
 	
-	ImGui::InputFloat("Winch Speed", &(pHSL->myWinchSpeed), 0.01, 0.01, 3, 0);
 
-	InputVector(pHSL->myVectorWinchPosition, "Winch Position");
-	InputVector(pHSL->myVectorObjectOffset, "Object Offset");
-	InputVector(pHSL->myVectorCargoAngle, "Cargo Angle");
-	InputVector(pHSL->myVectorCargoOffset, "Cargo Offset");
+	
+	
 
 	ImGui::NextColumn();
 	OutputVector(pHSL->myVectorHookPosition, "Hook Pos");
 
+	OutputVector(pHSL->myVectorObjectDisplayOffset, "Object Offset");
+	OutputVector(pHSL->myVectorObjectDisplayAngle, "Object Angle");
+	OutputVector(pHSL->myVectorObjectDisplayOffset, "Object Offset");
 	OutputVector(pHSL->myVectorHookVelocity, "HookVelocity");
 	OutputVector(pHSL->myVectorForceGravity, "ForceGravity");
 	OutputVector(pHSL->myVectorWindVelocity, "WindVelocity");
@@ -132,6 +158,27 @@ void HSLImguiWidget::buildInterface()
 	ImGui::Text("AirSpeed:           %.3f", pHSL->myAirSpeed);
 	ImGui::Text("AirResistance:      %.3f", pHSL->myAirResistance);
 	ImGui::Text("SpeedStaticFriction:%.3f", pHSL->myObjectSpeedStaticFriction);
+	ImGui::Text("RopeRupture         %d",   pHSL->myRopeRuptured);
+
+	ImGui::Text("Debug1              %f", pHSL->myDebugValue1);
+	ImGui::Text("Debug2              %f", pHSL->myDebugValue2);
+	ImGui::Text("Debug3              %f", pHSL->myDebugValue3);
+	ImGui::Text("Debug4              %f", pHSL->myDebugValue4);
+
+	if (pHSL->myDebugStatement == true)
+	{
+		ImVec4 col = ImColor(0, 255, 0);
+		ImGui::PushStyleColor(ImGuiCol_Text, col);
+		ImGui::Text("Debug True");
+		ImGui::PopStyleColor();
+	}
+	else
+	{
+		ImVec4 col = ImColor(255, 0, 0);
+		ImGui::PushStyleColor(ImGuiCol_Text, col);
+		ImGui::Text("Debug False");
+		ImGui::PopStyleColor();
+	}
 
 	ImGui::NextColumn();
 	
@@ -140,6 +187,9 @@ void HSLImguiWidget::buildInterface()
 	if (ImGui::Button("Reset")) pHSL->SlingReset();
 	if (ImGui::Button("Connect Load")) pHSL->SlingConnect();
 	if (ImGui::Button("Release Load")) pHSL->SlingRelease();
+	if (ImGui::Button("Cut Rope")) pHSL->myRopeRuptured = true;
+
+	
 	
 	ImGui::InputText("WinchObject", &(pHSL->myWinchPath));
 	ImGui::InputText("RopeObject", &(pHSL->myRopePath));

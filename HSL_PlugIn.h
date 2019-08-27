@@ -3,9 +3,7 @@
 
 #include "HSL.h"
 #include "HSLImguiWidget.h"
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp> 
-using namespace boost::numeric::ublas;
+
 
 class HSL_PlugIn
 {
@@ -14,12 +12,17 @@ public:
 	std::string mySystemPath = "";
 	std::string myConfigPath = "";
 	std::string myAircraftPath = "";
+	std::string myAircraftIniFile = "HSLAircraft.ini";
+	std::string myConfigIniFile = "HSL.ini";
 
 	std::shared_ptr<HSLImguiWidget> imguiPtr;
 
 	bool myInitialized = false;
 	int myPluginEnabled = 0;
 	int myAircraftLoaded = 0;
+
+	XPLMPluginID myDataRefEditorPluginID = XPLM_NO_PLUGIN_ID;
+	std::vector<XPLMDataRef> myRegisteredDatarefs;
 
 	bool mySlingLineEnabled = false;
 
@@ -38,23 +41,30 @@ public:
 	XPLMCommandRef myCmdRefReset = NULL;
 	XPLMCommandRef myCmdRefConnectLoad = NULL;
 	XPLMCommandRef myCmdRefReleaseLoad = NULL;
-	XPLMCommandRef myCmdRefUpdateParameters = NULL;
+	XPLMCommandRef myCmdRefToggleControlWindow = NULL;
+	XPLMCommandRef myCmdRefUpdateObjects = NULL;
 
 
 	std::string myWinchPath = "hsl/Sphere_1.obj";
 	std::string myRopePath = "hsl/Sphere_2.obj";
 	std::string myHookPath = "hsl/Sphere_1.obj";
-	std::string myCargoPath = "swisscreations/oggetti_eli/benna_beton_fissa.obj";
+	std::string myCargoPath = "RescueX/objects/Bergwacht_Luftrettungssack.obj";
 
 	XPLMObjectRef myWinchObjectRef = NULL;
 	XPLMObjectRef myRopeObjectRef = NULL;
 	XPLMObjectRef myHookObjectRef = NULL;
 	XPLMObjectRef myCargoObjectRef = NULL;
+	
 	XPLMInstanceRef myWinchInstanceRef = NULL;
+	XPLMInstanceRef myHookInstanceRef = NULL;
+	XPLMInstanceRef myCargoInstanceRef = NULL;
+	
 	XPLMProbeRef myGroundProbe = NULL;
+	
 	float myDummyAngle = 0;
 
 	std::vector<vector<float>> myRopePoints;
+	XPLMInstanceRef myRopeInstances[HSL_ROPE_POINTS_MAX];
 	HSL::WinchDirection myWinchDirection = HSL::Stop;
 
 	/////////////////////////////////////////////////////////
@@ -66,86 +76,94 @@ public:
 	vector<float> myVectorForceGravity = vector<float>(3);
 	vector<float> myVectorWindVelocity = vector<float>(3);
 	vector<float> myVectorWinchPosition = vector<float>(3);
-	vector<float> myVectorObjectOffset = vector<float>(3);
+	vector<float> myVectorCargoOffset = vector<float>(3);
 	vector<float> myVectorZeroVector = vector<float>(3);
 
-	vector<float> myVectorCargoOffset = vector<float>(3);
-	vector<float> myVectorCargoAngle = vector<float>(3);
+	vector<float> myVectorObjectDisplayOffset = vector<float>(3);
+	vector<float> myVectorObjectDisplayAngle = vector<float>(3);
 
 	vector<float> myVectorRotationTest = vector<float>(3);
 
-	float myFrameTime;
-	float myObjectTerrainLevel;
+	float myFrameTime = 0;
+	float myObjectTerrainLevel = 0;
 
+	// Rope 
+	float myRopeLengthStart = 2.0f;
 	float myRopeLengthNormal = 2.2f;
 	float myRopeDamping = 0.03f;
 	float myRopeK = 55000.0f;
+	float myRopeRuptureForce = 100000.0f; //10t max
+	bool  myRopeRuptured = false;
 
+	float myMaxAccRopeFactor = 2.0f; 
+
+	// Loaded Object
+	float myObjectHeight = 0.0f;
 	float myObjectMass = 75; //kg
 	float myObjectCrossSection = 1.1f; //m2
 	float myObjectCWFront = 0.9; //cube
 	float myObjectFrictionGlide = 0.35;
 	float myObjectFrictionStatic = 0.65;
-	float myObjectSpeedStaticFriction = 0.3;
-	float myObjectHeight = 0.0f;
 
-	float myGravitation = -9.8;
-
+	float myObjectSpeedStaticFriction = 0.3; //This is independed of the actual load
+	
+	// Hook 
 	float myHookHeight = 0.1;
-	float myHookWeight = 5.0f;
+	float myHookMass = 5.0f;
+	float myHookCrossSection = 1.1f; //m2
+	float myHookCWFront = 0.9; //cube
+	float myHookFrictionGlide = 0.35;
+	float myHookFrictionStatic = 0.65;
 
-
-	float myCargoHeight = 1.52;
-	float myCargoWeight = 75.0f;
+	// Cargo
+	float myCargoHeight = 0.9;
+	float myCargoMass = 75.0f;
+	float myCargoCrossSection = 1.1f; //m2
+	float myCargoCWFront = 0.9; //cube
+	float myCargoFrictionGlide = 0.35;
+	float myCargoFrictionStatic = 0.65;
 	
 	float myWinchSpeed = 0.5f;
-	
-	
 	bool  myCargoConnected = false;
-
 	float myCurrentRopeLength = 2.2f;
 
-	float myDefaultRopeLengthNormal = 2.0f;
-	float myDefaultRopeDamping = 0.03f;
-	float myDefaultRopeK = 55000.0f;
-	float myDefaultObjectMass = 75; //kg
-	float myDefaultObjectCrossSection = 1.1f; //m2
-	float myDefaultObjectCWFront = 0.9; //cube
-	float myDefaultObjectFrictionGlide = 0.35;
-	float myDefaultObjectFrictionStatic = 0.65;
-	float myDefaultObjectSpeedStaticFriction = 0.3;
-	float myDefaultObjectHeight = -0.7f;
-	float myDefaultWinchSpeed = 0.5f;
-	float myDefaultHookWeight = 5.0f;
-	float myDefaultCargoWeight = 75.0f;
+
+	float myDebugValue1 = 0.0f;
+	float myDebugValue2 = 0.0f;
+	float myDebugValue3 = 0.0f;
+	float myDebugValue4 = 0.0f;
+	bool myDebugStatement = true;
 
 	vector<float> myVectorDefaultWinchPosition = vector<float>(3);
 
 
 	bool myTerrainHit = false;
-	vector<float> myVectorRope;
+	
 	float myNewRopeLength = 0;
-	float myRopeStretchRelative;
-	float myRopeForceScalar;
-	float myRopeLengthDelta;
-	float myRopeStretchSpeed;
-	float myRopeCorrectedD;
-	vector<float> myVectorForceRope;
-	vector<float> myVectorAirVelocity;
-	float myAirSpeed;
-	float myAirResistance;
-	vector<float> myVectorForceAir;
-	vector<float> myVectorForceTotal;
-	vector<float> myVectorHorizontalVelocity;
-	vector<float> myVectorForceFriction;
-	vector<float> myVectorAccTotal;
-	vector<float> myVectorVelocityDelta;
-	vector<float> myVectorForceChopper;
-	vector<float> myVectorMomentumChopper;
+	float myRopeStretchRelative = 0;
+	float myRopeForceScalar = 0;
+	float myRopeLengthDelta = 0;
+	float myRopeStretchSpeed = 0;
+	float myRopeCorrectedD = 0;
+	
+	float myAirSpeed = 0;
+	float myAirResistance = 0;
+
+	vector<float> myVectorRope = vector<float>(3);
+	vector<float> myVectorForceRope = vector<float>(3);
+	vector<float> myVectorAirVelocity = vector<float>(3);
+	vector<float> myVectorForceAir = vector<float>(3);
+	vector<float> myVectorForceTotal = vector<float>(3);
+	vector<float> myVectorHorizontalVelocity = vector<float>(3);
+	vector<float> myVectorForceFriction = vector<float>(3);
+	vector<float> myVectorAccTotal = vector<float>(3);
+	vector<float> myVectorVelocityDelta = vector<float>(3);
+	vector<float> myVectorForceChopper = vector<float>(3);
+	vector<float> myVectorMomentumChopper = vector<float>(3);
 
 
 	///////////////////////////////////////////////////
-	// DataRefs
+	// DataRefs X-Plane
 
 	XPLMDataRef myDrLocalX;
 	XPLMDataRef myDrLocalY;
@@ -167,34 +185,45 @@ public:
 	XPLMDataRef myDrMomentumY;
 	XPLMDataRef myDrMomentumZ;
 
+	XPLMDataRef myDrAirDensity;
+	XPLMDataRef myDrGravitation;
+
 	///////////////////////////////////////////////////
-	// DataRefs Local Copies
+	// DataRefs X-Plane Local Copies
 
-	double myLdLocalX;
-	double myLdLocalY;
-	double myLdLocalZ;
+	double myLdLocalX = 0;
+	double myLdLocalY = 0;
+	double myLdLocalZ = 0;
 
-	double myLastLocalX;
-	double myLastLocalY;
-	double myLastLocalZ;
+	double myLastLocalX = 0;
+	double myLastLocalY = 0;
+	double myLastLocalZ = 0;
 
-	float myLfLocalPhi;
-	float myLfLocalPsi;
-	float myLfLocalTheta;
+	float myLfLocalPhi = 0;
+	float myLfLocalPsi = 0;
+	float myLfLocalTheta = 0;
 
-	int myLiPause;
-	float myLfWindDirection;
-	float myLfWindSpeed;
+	int myLiPause = 0;
+	float myLfWindDirection = 0;
+	float myLfWindSpeed = 0;
 
-	float myLfForceX;
-	float myLfForceY;
-	float myLfForceZ;
+	float myLfForceX = 0;
+	float myLfForceY = 0;
+	float myLfForceZ = 0;
 
-	float myLfMomentumX;
-	float myLfMomentumY;
-	float myLfMomentumZ;
+	float myLfMomentumX = 0;
+	float myLfMomentumY = 0;
+	float myLfMomentumZ = 0;
+
+	float myLfGravitation = 0;
+	float myLfAirDensity = 0;
+
+	///////////////////////////////////////////////////
+	// DataRef Shared Data
 
 
+	///////////////////////////////////////////////////
+	// Methods
 
 	HSL_PlugIn();
 	~HSL_PlugIn();
@@ -217,6 +246,13 @@ public:
 	void ConfigSave();
 	void ConfigRead();
 
+	void AircraftConfigSave();
+	void AircraftConfigRead();
+	void ConfigWriteVector(boost::property_tree::ptree &pt, vector<float> &vectorIn, std::string nameIn);
+	void ConfigReadVector(boost::property_tree::ptree& pt, vector<float> &vectorOut, std::string nameIn);
+	void ConfigReadFloat(boost::property_tree::ptree& pt, std::string nameIn, float& floatOut);
+	void ConfigReadString(boost::property_tree::ptree& pt, std::string nameIn, std::string& stringOut);
+
 	void SlingEnable();
 	void SlingDisable();
 	void SlingReset();
@@ -233,7 +269,14 @@ public:
 	int ResetCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 	int ConnectLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 	int ReleaseLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
-	int UpdateParametersCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+	int ToggleControlWindowCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+	int UpdateObjectsCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+
+	void RegisterFloatDataref(float &valueIn, std::string nameIn);
+	void RegisterVectorDataref(vector<float> & vectorIn, std::string nameIn);
+
+	void RegisterIntDataref(bool& valueIn, std::string nameIn);
+	void RegisterStringDataref(std::string& valueIn, std::string nameIn);
 
 
 	vector<float> HSL_PlugIn::TurnWorldToAircraft(vector<float> coordsAircraft);
