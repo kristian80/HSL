@@ -663,9 +663,9 @@ void HSL_PlugIn::SlingReset()
 
 	//////////////////////////////////////// DEBUG
 
-	myVectorCargoOffset(0) = 0.0f;
-	myVectorCargoOffset(1) = 0.9f;
-	myVectorCargoOffset(2) =  0.2f;
+	//myVectorCargoOffset(0) = 0.0f;
+	//myVectorCargoOffset(1) = 0.9f;
+	//myVectorCargoOffset(2) =  0.2f;
 
 	AircraftConfigRead();
 
@@ -687,6 +687,10 @@ void HSL_PlugIn::SlingConnect()
 	myCargoConnected = true;
 	myObjectMass = myCargoMass;
 	myObjectHeight = myCargoHeight;
+	myObjectCrossSection = myCargoCrossSection;
+	myObjectCWFront = myCargoCWFront;
+	myObjectFrictionGlide = myCargoFrictionGlide;
+	myObjectFrictionStatic = myCargoFrictionStatic;
 }
 
 void HSL_PlugIn::SlingRelease()
@@ -694,6 +698,10 @@ void HSL_PlugIn::SlingRelease()
 	myCargoConnected = false;
 	myObjectMass = myHookMass;
 	myObjectHeight = myHookHeight;
+	myObjectCrossSection = myHookCrossSection;
+	myObjectCWFront = myHookCWFront;
+	myObjectFrictionGlide = myHookFrictionGlide;
+	myObjectFrictionStatic = myHookFrictionStatic;
 }
 
 void HSL_PlugIn::UpdateParameters()
@@ -1021,7 +1029,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 	auto time_start = std::chrono::steady_clock::now();
 	
 
-	if ((mySlingLineEnabled == true) /*&& (myLiPause == 0)*/)
+	if ((mySlingLineEnabled == true) && (myLiPause == 0))
 	{
 		myDebugStatement = true;
 		myFrameTime = elapsedMe;

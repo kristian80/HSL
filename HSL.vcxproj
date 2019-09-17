@@ -49,6 +49,7 @@
     <TargetExt>.xpl</TargetExt>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>win</TargetName>
+    <IncludePath>E:\Docs\Games\X-Plane\Ivy\imgui_tabs;E:\Docs\Games\X-Plane\IvyGit\Client_CPP\Ivy\SDK\CHeaders\Wrappers;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include\;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include;E:\Docs\Games\X-Plane\Ivy\imgui;E:\Docs\Games\X-Plane\Ivy\xsb_public;E:\Docs\Games\X-Plane\Ivy\boost_1_55_0\boost_1_55_0\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>.\Debug\plugins\$(TargetName)\64\</OutDir>
