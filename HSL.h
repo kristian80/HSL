@@ -114,6 +114,54 @@ inline void limit_max(vector<float>& vec, float max_value)
 	}
 }
 
+inline vector<float> OpenGLCartToSphere(vector<float>& cart)
+{
+	// Opengl to sphere coordinates																																																																		
+	//r = sqrt(x * x + y * y + z * z);
+	//theta = atan2(y, x);
+	//phi = atan2(sqrt(x * x + y * y), z);
+
+	vector<float> sphere(3);
+
+	/*
+	// Using Heading
+	sphere(0) = sqrt((cart(0) * cart(0)) + (cart(1) * cart(1)) + (cart(2) * cart(2)));
+	sphere(1) = atan2(cart(2), cart(0));
+	sphere(2) = acos(cart(1) / sphere(0));
+
+	*/
+
+	// Using Pitch/Roll
+	sphere(0) = sqrt((cart(0) * cart(0)) + (cart(1) * cart(1)) + (cart(2) * cart(2)));
+
+	if (sphere(0) == 0.0f)
+	{
+		sphere(1) = 0;
+		sphere(2) = 0;
+	}
+	else
+	{
+		sphere(1) = atan2(cart(2), cart(1));// - M_PI / 2.0f); // pitch
+		sphere(2) = asin(cart(0) / sphere(0));
+	}
+	return sphere;
+}
+
+inline vector<float> OpenGLSphereToCart(vector<float>& sphere)
+{
+	//_pos[0] = _r* sin_theta * cos_phi;
+	//_pos[1] = _r* sin_theta * sin_phi;
+	//_pos[2] = _r* cos_theta;
+
+	vector<float> cart(3);
+
+	cart(1) = sphere(0) * sin(sphere(1)) * cos(sphere(2));
+	cart(2) = sphere(0) * sin(sphere(1)) * sin(sphere(2));
+	cart(0) = sphere(0) * cos(sphere(1));
+
+	return cart;
+}
+
 inline void DrawInstanceCreate(XPLMInstanceRef &instanceIn, XPLMObjectRef &objectIn)
 {
 	if (objectIn == NULL)
@@ -171,8 +219,9 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, vector<float>& 
 		drawInfo.y = positionInVec(1);
 		drawInfo.z = positionInVec(2);
 		drawInfo.pitch = angleInVec(0);
-		drawInfo.heading = angleInVec(1);
-		drawInfo.roll = angleInVec(2);
+		drawInfo.roll = angleInVec(1);
+		drawInfo.heading = angleInVec(2);
+		
 
 		try
 		{
@@ -184,6 +233,17 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, vector<float>& 
 		}
 	}
 }
+/*
+inline vector<float> AdjustFrameMovement(vector<float> coordsAircraft)
+{
+	vector<float> world_coords = coordsAircraft;
+
+	//world_coords(0) += myLdLocalX - myLastLocalX;
+	//world_coords(1) += myLdLocalY - myLastLocalY;
+	//world_coords(2) += myLdLocalZ - myLastLocalZ;
+
+	return world_coords;
+}*/
 
 static void load_cb(const char * real_path, void * ref)
 {

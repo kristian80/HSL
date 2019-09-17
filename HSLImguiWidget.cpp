@@ -73,8 +73,17 @@ void HSLImguiWidget::buildInterface()
 
 	ImGui::Columns(4, 0, false);
 
+
 	
 	ImGui::PushItemWidth(100);
+
+	ImGui::Checkbox("Physics Enabled", &(pHSL->myPhysicsEnabled));
+
+	if (pHSL->myPhysicsEnabled == false)
+	{
+		ImGui::Text("Object:");
+		InputVector(pHSL->myVectorHookPosition, "Object Position");
+	}
 	
 	ImGui::Text("Winch:");
 	InputVector(pHSL->myVectorWinchPosition, "Winch Position");
@@ -145,8 +154,12 @@ void HSLImguiWidget::buildInterface()
 
 	ImGui::NextColumn();
 
+
 	ImGui::Text("TerrainHit:         %d", pHSL->myTerrainHit);
-	ImGui::Text("FrameTime:          %.3f", pHSL->myFrameTime);
+	ImGui::Text("FrameTime [s]:      %.3f", pHSL->myFrameTime);
+	ImGui::Text("FlightLoopTime [us]:%d", pHSL->myProcessingTimeFlightLoop);
+	ImGui::Text("DrawTime [us]:      %d", pHSL->myProcessingTimeDrawRoutine);
+
 	ImGui::Text("ObjectTerrainLevel: %.3f", pHSL->myObjectTerrainLevel);
 	ImGui::Text("CurrentRopeLength:  %.3f", pHSL->myCurrentRopeLength);
 	ImGui::Text("RopeLength:         %.3f", pHSL->myNewRopeLength);

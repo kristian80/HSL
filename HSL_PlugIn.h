@@ -25,6 +25,7 @@ public:
 	std::vector<XPLMDataRef> myRegisteredDatarefs;
 
 	bool mySlingLineEnabled = false;
+	bool myPhysicsEnabled = true;
 
 	float myDataRate = -1;
 
@@ -60,6 +61,7 @@ public:
 	XPLMInstanceRef myCargoInstanceRef = NULL;
 	
 	XPLMProbeRef myGroundProbe = NULL;
+	XPLMFlightLoopID myFlightLoopID = NULL;
 	
 	float myDummyAngle = 0;
 
@@ -86,6 +88,9 @@ public:
 
 	float myFrameTime = 0;
 	float myObjectTerrainLevel = 0;
+
+	int myProcessingTimeFlightLoop = 0;
+	int myProcessingTimeDrawRoutine = 0;
 
 	// Rope 
 	float myRopeLengthStart = 2.0f;
