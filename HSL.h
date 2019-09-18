@@ -71,6 +71,7 @@ using namespace boost::numeric::ublas;
 #define MAX_OBJ_SPEED 300.0f // ~sonic speed
 
 #define MSG_ADD_DATAREF 0x01000000
+#define USE_INSTANCED_DRAWING 0
 
 
 
@@ -114,7 +115,7 @@ inline void limit_max(vector<float>& vec, float max_value)
 	}
 }
 
-inline vector<float> OpenGLCartToSphere(vector<float>& cart)
+inline vector<float> XPlaneCartToSphere(vector<float>& cart)
 {
 	// Opengl to sphere coordinates																																																																		
 	//r = sqrt(x * x + y * y + z * z);
@@ -147,7 +148,7 @@ inline vector<float> OpenGLCartToSphere(vector<float>& cart)
 	return sphere;
 }
 
-inline vector<float> OpenGLSphereToCart(vector<float>& sphere)
+inline vector<float> XPlaneSphereToCart(vector<float>& sphere)
 {
 	//_pos[0] = _r* sin_theta * cos_phi;
 	//_pos[1] = _r* sin_theta * sin_phi;
@@ -155,16 +156,17 @@ inline vector<float> OpenGLSphereToCart(vector<float>& sphere)
 
 	vector<float> cart(3);
 
-	cart(1) = sphere(0) * sin(sphere(1)) * cos(sphere(2));
-	cart(2) = sphere(0) * sin(sphere(1)) * sin(sphere(2));
-	cart(0) = sphere(0) * cos(sphere(1));
+	cart(0) = sphere(0) * cos(sphere(2));
+	cart(1) = sphere(0) * cos(sphere(1)) * cos(sphere(2));
+	cart(2) = sphere(0) * sin(sphere(1)) * cos(sphere(2));
+	
 
 	return cart;
 }
 
 inline void DrawInstanceCreate(XPLMInstanceRef &instanceIn, XPLMObjectRef &objectIn)
 {
-	if (objectIn == NULL)
+	if ((objectIn == NULL) || (USE_INSTANCED_DRAWING == 0))
 	{
 		instanceIn = NULL;
 	}
@@ -184,9 +186,9 @@ inline void DrawInstanceDestroy(XPLMInstanceRef& instanceIn)
 	}
 }
 
-inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, vector<float> &positionInVec)
+inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef &objectIn, vector<float> &positionInVec)
 {
-	if (instanceIn != NULL)
+	if ((instanceIn != NULL) || (USE_INSTANCED_DRAWING == 0))
 	{
 		check_nan(positionInVec);
 
@@ -200,7 +202,8 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, vector<float> &
 		drawInfo.roll = 0;
 		try
 		{
-			XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
+			if (USE_INSTANCED_DRAWING > 0)	XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
+			else XPLMDrawObjects(objectIn, 1, &drawInfo, 0, 0);
 		}
 		catch (...)
 		{
@@ -209,9 +212,9 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, vector<float> &
 	}
 }
 
-inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, vector<float>& positionInVec, vector<float>& angleInVec)
+inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef& objectIn, vector<float>& positionInVec, vector<float>& angleInVec)
 {
-	if (instanceIn != NULL)
+	if ((instanceIn != NULL) || (USE_INSTANCED_DRAWING == 0))
 	{
 		XPLMDrawInfo_t		drawInfo;
 		drawInfo.structSize = sizeof(drawInfo);
@@ -225,7 +228,8 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, vector<float>& 
 
 		try
 		{
-			XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
+			if (USE_INSTANCED_DRAWING > 0)	XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
+			else XPLMDrawObjects(objectIn, 1, &drawInfo, 0, 0);
 		}
 		catch (...)
 		{

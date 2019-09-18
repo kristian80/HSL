@@ -386,7 +386,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 		vector<float> vectorWinchWorld = AdjustFrameMovement(myVectorHelicopterPosition);
 		//vector<float> vectorWinchWorld = myVectorHelicopterPosition;
 		DrawInstanceCreate(myWinchInstanceRef, myWinchObjectRef);
-		DrawInstanceSetPosition(myWinchInstanceRef, vectorWinchWorld);
+		DrawInstanceSetPosition(myWinchInstanceRef, myWinchObjectRef, vectorWinchWorld);
 
 		int index;
 
@@ -396,7 +396,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			{
 				vector<float> vectorRopePointOpenGL = AdjustFrameMovement(myRopePoints[index]);
 				DrawInstanceCreate(myRopeInstances[index], myRopeObjectRef);
-				DrawInstanceSetPosition(myRopeInstances[index], vectorRopePointOpenGL);
+				DrawInstanceSetPosition(myRopeInstances[index], myRopeObjectRef, vectorRopePointOpenGL);
 			}
 			else
 			{
@@ -412,7 +412,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			vectorCargoPointOpenGL -= myVectorObjectDisplayOffset;
 
 			DrawInstanceCreate(myCargoInstanceRef, myCargoObjectRef);
-			DrawInstanceSetPosition(myCargoInstanceRef, vectorCargoPointOpenGL, myVectorObjectDisplayAngle);
+			DrawInstanceSetPosition(myCargoInstanceRef, myCargoObjectRef, vectorCargoPointOpenGL, myVectorObjectDisplayAngle);
 			
 
 		}
@@ -421,7 +421,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			DrawInstanceDestroy(myCargoInstanceRef);
 
 			DrawInstanceCreate(myHookInstanceRef, myHookObjectRef);
-			DrawInstanceSetPosition(myHookInstanceRef, vectorCargoPointOpenGL);
+			DrawInstanceSetPosition(myHookInstanceRef, myHookObjectRef, vectorCargoPointOpenGL);
 		}
 	}
 
@@ -765,6 +765,12 @@ void HSL_PlugIn::UpdateObjects()
 		XPLMLookupObjects(myRopePath.c_str(), 0, 0, load_cb, &myRopeObjectRef);
 		XPLMLookupObjects(myHookPath.c_str(), 0, 0, load_cb, &myHookObjectRef);
 		XPLMLookupObjects(myCargoPath.c_str(), 0, 0, load_cb, &myCargoObjectRef);
+
+		if (myCargoObjectRef == NULL)	myCargoObjectRef = XPLMLoadObject(myCargoPath.c_str());
+		if (myHookObjectRef == NULL)	myHookObjectRef  = XPLMLoadObject(myHookPath.c_str());
+		if (myRopeObjectRef == NULL)	myRopeObjectRef  = XPLMLoadObject(myRopePath.c_str());
+		if (myWinchObjectRef == NULL)	myWinchObjectRef = XPLMLoadObject(myWinchPath.c_str());
+
 
 		myGroundProbe = XPLMCreateProbe(xplm_ProbeY);
 		HSLDebugString("Reset: Winch Object Lookup Finished");
@@ -1369,15 +1375,15 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 			normalPosition(1) = 1;
 			normalPosition(2) = 0;
 
-			vector<float> normalPositionSphere = OpenGLCartToSphere(normalPosition);
-			vector<float> ropeUnitSphere = OpenGLCartToSphere(vectorRopeUnit);
+			vector<float> normalPositionSphere = XPlaneCartToSphere(normalPosition);
+			vector<float> ropeUnitSphere = XPlaneCartToSphere(vectorRopeUnit);
 
 			normalPositionSphere(1) = ropeUnitSphere(1) - normalPositionSphere(1);
 			normalPositionSphere(2) = ropeUnitSphere(2) - normalPositionSphere(2);
 
 			/*if (scalarObjectOffset > 0)
 			{
-				vector<float> vectorObjectOffsetSphere = OpenGLCartToSphere(myVectorCargoOffset);
+				vector<float> vectorObjectOffsetSphere = XPlaneCartToSphere(myVectorCargoOffset);
 
 				if (myTerrainHit == false)
 				{
@@ -1385,7 +1391,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 					vectorObjectOffsetSphere(2) += ropeUnitSphere(2);
 
 				}
-				myVectorObjectDisplayOffset = OpenGLSphereToCart(vectorObjectOffsetSphere);
+				myVectorObjectDisplayOffset = XPlaneSphereToCart(vectorObjectOffsetSphere);
 
 				myDebugValue1 = myVectorObjectDisplayOffset(0);
 				myDebugValue2 = myVectorObjectDisplayOffset(1);
@@ -1424,6 +1430,35 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 				myVectorObjectDisplayAngle(1) = 0;
 				myVectorObjectDisplayAngle(2) = 0;
 			}
+
+			
+
+			/*// Object Offset
+			if (scalarObjectOffset > 0)
+			{
+
+				vector<float> myVectorCargoOffsetRotated = myVectorCargoOffset;
+
+				float length = sqrt((myVectorCargoOffset(0) * myVectorCargoOffset(0)) + (myVectorCargoOffset(2) * myVectorCargoOffset(2)));
+				float angle = atan2(myVectorCargoOffset(2), myVectorCargoOffset(0));
+
+				angle += myVectorObjectDisplayAngle(2) * M_PI / 180.0f;
+
+				myVectorCargoOffsetRotated(0) = length * cos(angle);
+				myVectorCargoOffsetRotated(2) = length * sin(angle);
+
+				vector<float> vectorObjectOffsetSphere = XPlaneCartToSphere(myVectorCargoOffsetRotated);
+
+				vectorObjectOffsetSphere(1) += ropeUnitSphere(1);
+				vectorObjectOffsetSphere(2) += ropeUnitSphere(2);
+
+				myVectorObjectDisplayOffset = XPlaneSphereToCart(vectorObjectOffsetSphere);
+			}
+			else
+			{
+				myVectorObjectDisplayOffset = myVectorZeroVector;
+			}*/
+
 		}
 
 		if (myRopeRuptured == false)
