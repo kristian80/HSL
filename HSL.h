@@ -71,7 +71,7 @@ using namespace boost::numeric::ublas;
 #define MAX_OBJ_SPEED 300.0f // ~sonic speed
 
 #define MSG_ADD_DATAREF 0x01000000
-#define USE_INSTANCED_DRAWING 0
+//#define USE_INSTANCED_DRAWING 0
 
 
 
@@ -156,7 +156,7 @@ inline vector<float> XPlaneSphereToCart(vector<float>& sphere)
 
 	vector<float> cart(3);
 
-	cart(0) = sphere(0) * cos(sphere(2));
+	cart(0) = sphere(0) * sin(sphere(2));
 	cart(1) = sphere(0) * cos(sphere(1)) * cos(sphere(2));
 	cart(2) = sphere(0) * sin(sphere(1)) * cos(sphere(2));
 	
@@ -166,7 +166,7 @@ inline vector<float> XPlaneSphereToCart(vector<float>& sphere)
 
 inline void DrawInstanceCreate(XPLMInstanceRef &instanceIn, XPLMObjectRef &objectIn)
 {
-	if ((objectIn == NULL) || (USE_INSTANCED_DRAWING == 0))
+	if (objectIn == NULL)
 	{
 		instanceIn = NULL;
 	}
@@ -186,9 +186,9 @@ inline void DrawInstanceDestroy(XPLMInstanceRef& instanceIn)
 	}
 }
 
-inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef &objectIn, vector<float> &positionInVec)
+inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef &objectIn, vector<float> &positionInVec, bool instanced_drawing)
 {
-	if ((instanceIn != NULL) || (USE_INSTANCED_DRAWING == 0))
+	if ((instanceIn != NULL) || (instanced_drawing == 0))
 	{
 		check_nan(positionInVec);
 
@@ -202,7 +202,7 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef &
 		drawInfo.roll = 0;
 		try
 		{
-			if (USE_INSTANCED_DRAWING > 0)	XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
+			if (instanced_drawing > 0)	XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
 			else XPLMDrawObjects(objectIn, 1, &drawInfo, 0, 0);
 		}
 		catch (...)
@@ -212,9 +212,9 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef &
 	}
 }
 
-inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef& objectIn, vector<float>& positionInVec, vector<float>& angleInVec)
+inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef& objectIn, vector<float>& positionInVec, vector<float>& angleInVec, bool instanced_drawing)
 {
-	if ((instanceIn != NULL) || (USE_INSTANCED_DRAWING == 0))
+	if ((instanceIn != NULL) || (instanced_drawing == 0))
 	{
 		XPLMDrawInfo_t		drawInfo;
 		drawInfo.structSize = sizeof(drawInfo);
@@ -228,7 +228,7 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef& 
 
 		try
 		{
-			if (USE_INSTANCED_DRAWING > 0)	XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
+			if (instanced_drawing > 0)	XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
 			else XPLMDrawObjects(objectIn, 1, &drawInfo, 0, 0);
 		}
 		catch (...)
