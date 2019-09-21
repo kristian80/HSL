@@ -11,6 +11,12 @@ CargoObject::CargoObject(HSL_PlugIn& HSLNew) :
 	myVectorWindVelocity = myVectorZeroVector;
 	myVectorCargoOffset = myVectorZeroVector;
 	myVectorCargoRotation = myVectorZeroVector;
+	myVectorWaterVelocity = myVectorZeroVector;
+
+
+	myVectorSize = myVectorZeroVector;
+	myVectorCrossSection = myVectorZeroVector;
+	myVectorCW = myVectorZeroVector;
 
 	myVectorDisplayOffset = myVectorZeroVector;
 	myVectorDisplayAngle = myVectorZeroVector;
@@ -18,6 +24,7 @@ CargoObject::CargoObject(HSL_PlugIn& HSLNew) :
 	myVectorForceRope = myVectorZeroVector;
 	myVectorAirVelocity = myVectorZeroVector;
 	myVectorForceAir = myVectorZeroVector;
+	myVectorForceWater = myVectorZeroVector;
 	myVectorForceTotal = myVectorZeroVector;
 	myVectorHorizontalVelocity = myVectorZeroVector;
 	myVectorForceFriction = myVectorZeroVector;
@@ -25,6 +32,13 @@ CargoObject::CargoObject(HSL_PlugIn& HSLNew) :
 	myVectorVelocityDelta = myVectorZeroVector;
 	myVectorForceChopper = myVectorZeroVector;
 	myVectorMomentumChopper = myVectorZeroVector;
+	myVectorForceSwim = myVectorZeroVector;
+
+	myVectorSize(0) = 1;
+	myVectorSize(1) = 1;
+	myVectorSize(2) = 1;
+
+	myVectorCW = myVectorSize * 0.9; //0.9 == Cube
 }
 
 CargoObject::~CargoObject()
@@ -34,6 +48,12 @@ CargoObject::~CargoObject()
 void CargoObject::CalculatePhysics()
 {
 	if (HSL.myFrameTime == 0) return;
+
+	myVectorCrossSection(0) = myVectorSize(1) * myVectorSize(2); // Front
+	myVectorCrossSection(2) = myVectorSize(0) * myVectorSize(2); // Side
+	myVectorCrossSection(1) = myVectorSize(0) * myVectorSize(1); // Top
+
+	myVolume = myVectorSize(0) * myVectorSize(1) * myVectorSize(2);
 
 	if ((myFollowOnly == true) && (myRopeConnected == true))
 	{
@@ -45,13 +65,14 @@ void CargoObject::CalculatePhysics()
 
 	// Check if load is on the ground
 	myTerrainHit = false;
+	myWaterLevel = 0;
 	XPLMProbeInfo_t info;
 	info.structSize = sizeof(info);
 	XPLMProbeResult	result = XPLMProbeTerrainXYZ(HSL.myGroundProbe, myVectorPosition(0), myVectorPosition(1), myVectorPosition(2), &info);
 	myObjectTerrainLevel = info.locationY + myHeight;
 
 	// If we are below the ground, correct vertical position and velocity
-	if (myVectorPosition(VERT_AXIS) <= myObjectTerrainLevel)
+	if ((myVectorPosition(VERT_AXIS) <= myObjectTerrainLevel) && (info.is_wet == false))
 	{
 		myTerrainHit = true;
 
@@ -59,6 +80,15 @@ void CargoObject::CalculatePhysics()
 		if (myVectorVelocity(VERT_AXIS) < 0) myVectorVelocity(VERT_AXIS) = 0; //no velocity targeting below ground
 
 	}
+	else if ((myVectorPosition(VERT_AXIS) <= myObjectTerrainLevel) && (info.is_wet == true))
+	{
+		if (myVectorSize(2) == 0) return;
+
+		float sink = myObjectTerrainLevel - myVectorPosition(VERT_AXIS);
+		myWaterLevel = sink / myVectorSize(2);
+		if (myWaterLevel > 1) myWaterLevel = 1;
+	}
+
 
 	// Get the rope vector and length. Store length in 2nd variable, as we need old+new values to compute the rope stretch speed for the damping factor
 	
@@ -171,16 +201,44 @@ void CargoObject::CalculatePhysics()
 	myVectorAirVelocity = -1 * (myVectorVelocity - myVectorWindVelocity);
 	myAirSpeed = norm_2(myVectorAirVelocity);
 
+	
+
 	// Get the force of the air
-	myAirResistance = HSL.myLfAirDensity * myCWFront * myCrossSection * myAirSpeed * myAirSpeed / 2.0; // If we are in the water, we would just need to correct for the density (+ split into air and water part).
-	myVectorForceAir = get_unit_vector(myVectorAirVelocity) * myAirResistance;
+	//myAirResistance = HSL.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * myAirSpeed * myAirSpeed / 2.0; // If we are in the water, we would just need to correct for the density (+ split into air and water part).
+	//myVectorForceAir = get_unit_vector(myVectorAirVelocity) * myAirResistance;
+
+
+	
+	myVectorForceAir(0) = (1.0f - myWaterLevel) * HSL.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * myVectorAirVelocity(0) * myVectorAirVelocity(0) / 2.0;
+	myVectorForceAir(1) = (1.0f - myWaterLevel) * HSL.myLfAirDensity * myVectorCW(1) * myVectorCrossSection(1) * myVectorAirVelocity(1) * myVectorAirVelocity(1) / 2.0;
+	myVectorForceAir(2) = (1.0f - myWaterLevel) * HSL.myLfAirDensity * myVectorCW(2) * myVectorCrossSection(2) * myVectorAirVelocity(2) * myVectorAirVelocity(2) / 2.0;
+
+	if (myVectorAirVelocity(0) < 0) myVectorForceAir(0) *= -1;
+	if (myVectorAirVelocity(1) < 0) myVectorForceAir(1) *= -1;
+	if (myVectorAirVelocity(2) < 0) myVectorForceAir(2) *= -1;
+
+	myAirResistance = norm_2(myVectorForceAir);
+
+	myVectorWaterVelocity = -1 * myVectorVelocity;
+
+	myVectorForceWater(0) = myWaterLevel * HSL_Data::density_water * myVectorCW(0) * myVectorCrossSection(0) * myVectorWaterVelocity(0) * myVectorWaterVelocity(0) / 2.0;
+	myVectorForceWater(1) = myWaterLevel * HSL_Data::density_water * myVectorCW(1) * myVectorCrossSection(1) * myVectorWaterVelocity(1) * myVectorWaterVelocity(1) / 2.0;
+	myVectorForceWater(2) = myWaterLevel * HSL_Data::density_water * myVectorCW(2) * myVectorCrossSection(2) * myVectorWaterVelocity(2) * myVectorWaterVelocity(2) / 2.0;
+
+	if (myVectorWaterVelocity(0) < 0) myVectorForceWater(0) *= -1;
+	if (myVectorWaterVelocity(1) < 0) myVectorForceWater(1) *= -1;
+	if (myVectorWaterVelocity(2) < 0) myVectorForceWater(2) *= -1;
+
+	float waterResistance = norm_2(myVectorForceWater);
+
+	myVectorForceSwim(VERT_AXIS) = -1 * HSL_Data::density_water * myVolume * myWaterLevel * HSL.myLfGravitation;
 
 	// Get the force of the gravity
 	myVectorForceGravity(VERT_AXIS) = HSL.myLfGravitation * myMass;
 
 
 	// Sum up the forces
-	myVectorForceTotal = myVectorForceRope + myVectorForceAir + myVectorForceGravity;
+	myVectorForceTotal = myVectorForceRope + myVectorForceAir + myVectorForceGravity + myVectorForceWater + myVectorForceSwim;
 
 	// If we are on the ground and not pulled up, we need to compute the friction
 	if (myTerrainHit == true)

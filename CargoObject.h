@@ -18,14 +18,19 @@ public:
 	vector<float> myVectorDisplayOffset = vector<float>(3);
 	vector<float> myVectorDisplayAngle = vector<float>(3);
 
+	vector<float> myVectorSize = vector<float>(3); //Length / Width / Height
+	vector<float> myVectorCrossSection = vector<float>(3);
+	vector<float> myVectorCW = vector<float>(3);
+
 	bool myRopeConnected = false;
 	bool myFollowOnly = false;
 	bool myDrawingEnabled = false;
 
+	float myWaterLevel = 0;
+	float myVolume = 0;
+
 	float myHeight = 0.1;
 	float myMass = 5.0f;
-	float myCrossSection = 1.1f; //m2
-	float myCWFront = 0.9; //cube
 	float myFrictionGlide = 0.35;
 	float myFrictionStatic = 0.65;
 
@@ -37,7 +42,10 @@ public:
 
 	vector<float> myVectorForceRope = vector<float>(3);
 	vector<float> myVectorAirVelocity = vector<float>(3);
+	vector<float> myVectorWaterVelocity = vector<float>(3);
 	vector<float> myVectorForceAir = vector<float>(3);
+	vector<float> myVectorForceWater = vector<float>(3);
+	vector<float> myVectorForceSwim = vector<float>(3);
 	vector<float> myVectorForceTotal = vector<float>(3);
 	vector<float> myVectorHorizontalVelocity = vector<float>(3);
 	vector<float> myVectorForceFriction = vector<float>(3);

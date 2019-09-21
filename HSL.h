@@ -276,7 +276,7 @@ static void load_cb(const char * real_path, void * ref)
 	}
 }
 
-namespace HRM
+namespace HSL_Data
 {
 	const int wp_code = 28;
 	const int max_scenery = 100;
@@ -377,6 +377,8 @@ namespace HRM
 	const float eval_flight1_nominal_speed = 120;
 	const float eval_flight2_nominal_speed = 120;
 	const float eval_flight2_sling_nominal_speed = 50;
+
+	const float density_water = 997;
 
 
 

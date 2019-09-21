@@ -10,15 +10,11 @@ HSL_PlugIn::HSL_PlugIn() :
 {
 	myCargo.myHeight = 0.9;
 	myCargo.myMass = 75.0f;
-	myCargo.myCrossSection = 1.1f; //m2
-	myCargo.myCWFront = 0.9; //cube
 	myCargo.myFrictionGlide = 0.35;
 	myCargo.myFrictionStatic = 0.65;
 
 	myHook.myHeight = 0.1;
 	myHook.myMass = 5.0f;
-	myHook.myCrossSection = 1.1f; //m2
-	myHook.myCWFront = 0.9; //cube
 	myHook.myFrictionGlide = 0.35;
 	myHook.myFrictionStatic = 0.65;
 
@@ -128,16 +124,16 @@ void HSL_PlugIn::PluginStart()
 	// Hook 
 	RegisterFloatDataref(myHook.myHeight, "HSL/HookHeight");
 	RegisterFloatDataref(myHook.myMass, "HSL/HookMass");
-	RegisterFloatDataref(myHook.myCrossSection, "HSL/HookCrossSection");
-	RegisterFloatDataref(myHook.myCWFront, "HSL/HookCWFront");
+	RegisterVectorDataref(myHook.myVectorSize, "HSL/HookSize");
+	RegisterVectorDataref(myHook.myVectorCW, "HSL/HookCW");
 	RegisterFloatDataref(myHook.myFrictionGlide, "HSL/HookFrictionGlide");
 	RegisterFloatDataref(myHook.myFrictionStatic, "HSL/HookFrictionStatic");
 
 	// Cargo
 	RegisterFloatDataref(myCargo.myHeight, "HSL/CargoHeight");
 	RegisterFloatDataref(myCargo.myMass, "HSL/CargoMass");
-	RegisterFloatDataref(myCargo.myCrossSection, "HSL/CargoCrossSection");
-	RegisterFloatDataref(myCargo.myCWFront, "HSL/CargoCWFront");
+	RegisterVectorDataref(myCargo.myVectorSize, "HSL/CargoCrossSection");
+	RegisterVectorDataref(myCargo.myVectorCW, "HSL/CargoCWFront");
 	RegisterFloatDataref(myCargo.myFrictionGlide, "HSL/CargoFrictionGlide");
 	RegisterFloatDataref(myCargo.myFrictionStatic, "HSL/CargoFrictionStatic");
 
@@ -475,16 +471,20 @@ void HSL_PlugIn::ConfigSave()
 			pt.put("Hook.library_object", myHookPath);
 			pt.put("Hook.height", myHook.myHeight);
 			pt.put("Hook.mass", myHook.myMass);
-			pt.put("Hook.cross_section_front", myHook.myCrossSection);
-			pt.put("Hook.cw_front", myHook.myCWFront);
+
+			ConfigWriteVector(pt, myHook.myVectorSize, "Hook.size");
+			ConfigWriteVector(pt, myHook.myVectorCW, "Hook.CW");
+
 			pt.put("Hook.friction_glide", myHook.myFrictionGlide);
 			pt.put("Hook.friction_static", myHook.myFrictionStatic);
 
 			pt.put("Cargo.library_object", myCargoPath);
 			pt.put("Cargo.height", myCargo.myHeight);
 			pt.put("Cargo.mass", myCargo.myMass);
-			pt.put("Cargo.cross_section_front", myCargo.myCrossSection);
-			pt.put("Cargo.cw_front", myCargo.myCWFront);
+
+			ConfigWriteVector(pt, myCargo.myVectorSize, "Cargo.size");
+			ConfigWriteVector(pt, myCargo.myVectorCW, "Cargo.CW");
+
 			pt.put("Cargo.friction_glide", myCargo.myFrictionGlide);
 			pt.put("Cargo.friction_static", myCargo.myFrictionStatic);
 			ConfigWriteVector(pt, myCargo.myVectorCargoOffset, "Cargo.offset");
@@ -520,16 +520,19 @@ void HSL_PlugIn::ConfigRead()
 		ConfigReadString(pt, "Hook.library_object", myHookPath);
 		ConfigReadFloat(pt, "Hook.height", myHook.myHeight);
 		ConfigReadFloat(pt, "Hook.mass", myHook.myMass);
-		ConfigReadFloat(pt, "Hook.cross_section_front", myHook.myCrossSection);
-		ConfigReadFloat(pt, "Hook.cw_front", myHook.myCWFront);
+
+		ConfigReadVector(pt, myHook.myVectorSize, "Hook.size");
+		ConfigReadVector(pt, myHook.myVectorCW, "Hook.CW");
+
 		ConfigReadFloat(pt, "Hook.friction_glide", myHook.myFrictionGlide);
 		ConfigReadFloat(pt, "Hook.friction_static", myHook.myFrictionStatic);
+
+		ConfigReadVector(pt, myCargo.myVectorSize, "Cargo.size");
+		ConfigReadVector(pt, myCargo.myVectorCW, "Cargo.CW");
 
 		ConfigReadString(pt, "Cargo.library_object", myCargoPath);
 		ConfigReadFloat(pt, "Cargo.height", myCargo.myHeight);
 		ConfigReadFloat(pt, "Cargo.mass", myCargo.myMass);
-		ConfigReadFloat(pt, "Cargo.cross_section_front", myCargo.myCrossSection);
-		ConfigReadFloat(pt, "Cargo.cw_front", myCargo.myCWFront);
 		ConfigReadFloat(pt, "Cargo.friction_glide", myCargo.myFrictionGlide);
 		ConfigReadFloat(pt, "Cargo.friction_static", myCargo.myFrictionStatic);
 		ConfigReadVector(pt, myCargo.myVectorCargoOffset, "Cargo.offset");
