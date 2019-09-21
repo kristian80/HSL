@@ -79,6 +79,24 @@ class HSL_PlugIn;
 extern HSL_PlugIn* pHSL;
 extern std::ofstream hsl_output_file;
 
+inline vector<float> get_unit_vector(vector<float>& v_in)
+{
+	vector<float> ret = v_in;
+	float length = norm_2(v_in);
+	if (length != 0) ret = v_in / length;
+	return ret;
+}
+
+inline vector<float> cross_product(vector<float>& a, vector<float>& b)
+{
+	vector<float> ret(3);
+
+	ret(0) = a(1) * b(2) - a(2) * b(1);
+	ret(1) = a(2) * b(0) - a(0) * b(2);
+	ret(2) = a(0) * b(1) - a(1) * b(0);
+	return ret;
+}
+
 inline bool file_exists(const std::string& name) 
 {
 	struct stat buffer;
@@ -202,7 +220,7 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef &
 		drawInfo.roll = 0;
 		try
 		{
-			if (instanced_drawing > 0)	XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
+			if (instanced_drawing == true)	XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
 			else XPLMDrawObjects(objectIn, 1, &drawInfo, 0, 0);
 		}
 		catch (...)
@@ -228,7 +246,7 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef& 
 
 		try
 		{
-			if (instanced_drawing > 0)	XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
+			if (instanced_drawing == true)	XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
 			else XPLMDrawObjects(objectIn, 1, &drawInfo, 0, 0);
 		}
 		catch (...)

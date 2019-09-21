@@ -1,5 +1,7 @@
 #include "HSLImguiWidget.h"
 #include "HSL_PlugIn.h"
+#include "LoadBaseObject.h"
+#include "CargoObject.h"
 #include <boost/range/adaptor/reversed.hpp>
 
 //#include "MyIvyConfigAircraft.h"
@@ -99,68 +101,69 @@ void HSLImguiWidget::buildInterface()
 	ImGui::InputFloat("Winch Speed [m/s]", &(pHSL->myWinchSpeed), 0.01, 0.01, 3, 0);
 
 	ImGui::Text("Hook Parameters:");
-	ImGui::InputFloat("Hook Mass [kg]", &(pHSL->myHookMass), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Hook Height [m]", &(pHSL->myHookHeight), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Hook Cross Section [m^2]", &(pHSL->myHookCrossSection), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Hook CW Front", &(pHSL->myHookCWFront), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Hook Friction Glide", &(pHSL->myHookFrictionGlide), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Hook Friction Static", &(pHSL->myHookFrictionStatic), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Hook Mass [kg]", &(pHSL->myHook.myMass), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Hook Height [m]", &(pHSL->myHook.myHeight), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Hook Cross Section [m^2]", &(pHSL->myHook.myCrossSection), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Hook CW Front", &(pHSL->myHook.myCWFront), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Hook Friction Glide", &(pHSL->myHook.myFrictionGlide), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Hook Friction Static", &(pHSL->myHook.myFrictionStatic), 0.01, 0.01, 3, 0);
 
 	ImGui::Text("Cargo Parameters:");
-	ImGui::InputFloat("Cargo Mass [kg]", &(pHSL->myCargoMass), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Cargo Height [m]", &(pHSL->myCargoHeight), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Cargo Cross Section [m^2]", &(pHSL->myCargoCrossSection), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Cargo CW Front", &(pHSL->myCargoCWFront), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Cargo Friction Glide", &(pHSL->myCargoFrictionGlide), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Cargo Friction Static", &(pHSL->myCargoFrictionStatic), 0.01, 0.01, 3, 0);
-	InputVector(pHSL->myVectorCargoOffset, "Cargo Offset");
-
-
-	ImGui::Text("Object Parameters:");
-	ImGui::InputFloat("Object Mass [kg]", &(pHSL->myObjectMass), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Object Height [m]", &(pHSL->myObjectHeight), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Object Cross Section [m^2]", &(pHSL->myObjectCrossSection), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Object CW Front", &(pHSL->myObjectCWFront), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Object Friction Glide", &(pHSL->myObjectFrictionGlide), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Object Friction Static", &(pHSL->myObjectFrictionStatic), 0.01, 0.01, 3, 0);
-	ImGui::InputFloat("Static Friction Speed [FPS]", &(pHSL->myObjectSpeedStaticFriction), 0.01, 0.01, 3, 0);
-	
-
-	
-	
+	ImGui::InputFloat("Cargo Mass [kg]", &(pHSL->myCargo.myMass), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Cargo Height [m]", &(pHSL->myCargo.myHeight), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Cargo Cross Section [m^2]", &(pHSL->myCargo.myCrossSection), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Cargo CW Front", &(pHSL->myCargo.myCWFront), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Cargo Friction Glide", &(pHSL->myCargo.myFrictionGlide), 0.01, 0.01, 3, 0);
+	ImGui::InputFloat("Cargo Friction Static", &(pHSL->myCargo.myFrictionStatic), 0.01, 0.01, 3, 0);
+	InputVector(pHSL->myCargo.myVectorCargoOffset, "Cargo Offset");	
 
 	ImGui::NextColumn();
 	OutputVector(pHSL->myVectorHookPosition, "Hook Pos");
-
-	OutputVector(pHSL->myVectorObjectDisplayOffset, "Object Offset");
-	OutputVector(pHSL->myVectorObjectDisplayAngle, "Object Angle");
-	OutputVector(pHSL->myVectorObjectDisplayOffset, "Object Offset");
-	OutputVector(pHSL->myVectorHookVelocity, "HookVelocity");
-	OutputVector(pHSL->myVectorForceGravity, "ForceGravity");
-	OutputVector(pHSL->myVectorWindVelocity, "WindVelocity");
-	OutputVector(pHSL->myVectorWinchPosition, "WinchPosition");
 	OutputVector(pHSL->myVectorRope, "Rope");
-	OutputVector(pHSL->myVectorForceRope, "ForceRope");
-	OutputVector(pHSL->myVectorAirVelocity, "AirVelocity");
-	OutputVector(pHSL->myVectorForceAir, "ForceAir");
-	OutputVector(pHSL->myVectorForceTotal, "ForceTotal");
-	OutputVector(pHSL->myVectorHorizontalVelocity, "HorizontalVelocity");
-	OutputVector(pHSL->myVectorForceFriction, "ForceFriction");
-	OutputVector(pHSL->myVectorAccTotal, "AccTotal");
-	OutputVector(pHSL->myVectorVelocityDelta, "VelocityDelta");
-	OutputVector(pHSL->myVectorForceChopper, "ForceChopper");
-	OutputVector(pHSL->myVectorMomentumChopper, "MomentumChopper");
-	OutputVector(pHSL->myVectorRotationTest, "RotationTest");
+	OutputVector(pHSL->myVectorWinchPosition, "WinchPosition");
+
+	OutputVector(pHSL->myCargo.myVectorDisplayOffset, "Cargo:Object Offset");
+	OutputVector(pHSL->myCargo.myVectorDisplayAngle, "Cargo:Object Angle");
+	OutputVector(pHSL->myCargo.myVectorVelocity, "Cargo:HookVelocity");
+	OutputVector(pHSL->myCargo.myVectorForceGravity, "Cargo:ForceGravity");
+	OutputVector(pHSL->myCargo.myVectorWindVelocity, "Cargo:WindVelocity");
+	OutputVector(pHSL->myCargo.myVectorForceRope, "Cargo:ForceRope");
+	OutputVector(pHSL->myCargo.myVectorAirVelocity, "Cargo:AirVelocity");
+	OutputVector(pHSL->myCargo.myVectorForceAir, "Cargo:ForceAir");
+	OutputVector(pHSL->myCargo.myVectorForceTotal, "Cargo:ForceTotal");
+	OutputVector(pHSL->myCargo.myVectorHorizontalVelocity, "Cargo:HorizontalVelocity");
+	OutputVector(pHSL->myCargo.myVectorForceFriction, "Cargo:ForceFriction");
+	OutputVector(pHSL->myCargo.myVectorAccTotal, "Cargo:AccTotal");
+	OutputVector(pHSL->myCargo.myVectorVelocityDelta, "Cargo:VelocityDelta");
+	OutputVector(pHSL->myCargo.myVectorForceChopper, "Cargo:ForceChopper");
+	OutputVector(pHSL->myCargo.myVectorMomentumChopper, "Cargo:MomentumChopper");
+
+	OutputVector(pHSL->myHook.myVectorDisplayOffset, "Hook:Object Offset");
+	OutputVector(pHSL->myHook.myVectorDisplayAngle, "Hook:Object Angle");
+	OutputVector(pHSL->myHook.myVectorVelocity, "Hook:HookVelocity");
+	OutputVector(pHSL->myHook.myVectorForceGravity, "Hook:ForceGravity");
+	OutputVector(pHSL->myHook.myVectorWindVelocity, "Hook:WindVelocity");
+	OutputVector(pHSL->myHook.myVectorForceRope, "Hook:ForceRope");
+	OutputVector(pHSL->myHook.myVectorAirVelocity, "Hook:AirVelocity");
+	OutputVector(pHSL->myHook.myVectorForceAir, "Hook:ForceAir");
+	OutputVector(pHSL->myHook.myVectorForceTotal, "Hook:ForceTotal");
+	OutputVector(pHSL->myHook.myVectorHorizontalVelocity, "Hook:HorizontalVelocity");
+	OutputVector(pHSL->myHook.myVectorForceFriction, "Hook:ForceFriction");
+	OutputVector(pHSL->myHook.myVectorAccTotal, "Hook:AccTotal");
+	OutputVector(pHSL->myHook.myVectorVelocityDelta, "Hook:VelocityDelta");
+	OutputVector(pHSL->myHook.myVectorForceChopper, "Hook:ForceChopper");
+	OutputVector(pHSL->myHook.myVectorMomentumChopper, "Hook:MomentumChopper");
+
 
 	ImGui::NextColumn();
 
 
-	ImGui::Text("TerrainHit:         %d", pHSL->myTerrainHit);
+	
 	ImGui::Text("FrameTime [s]:      %.3f", pHSL->myFrameTime);
 	ImGui::Text("FlightLoopTime [us]:%d", pHSL->myProcessingTimeFlightLoop);
 	ImGui::Text("DrawTime [us]:      %d", pHSL->myProcessingTimeDrawRoutine);
 
-	ImGui::Text("ObjectTerrainLevel: %.3f", pHSL->myObjectTerrainLevel);
+
 	ImGui::Text("CurrentRopeLength:  %.3f", pHSL->myCurrentRopeLength);
 	ImGui::Text("RopeLength:         %.3f", pHSL->myNewRopeLength);
 	ImGui::Text("StretchRelative:    %.3f", pHSL->myRopeStretchRelative);
@@ -168,10 +171,20 @@ void HSLImguiWidget::buildInterface()
 	ImGui::Text("LengthDelta:        %.3f", pHSL->myRopeLengthDelta);
 	ImGui::Text("StretchSpeed:       %.3f", pHSL->myRopeStretchSpeed);
 	ImGui::Text("CorrectedD:         %.3f", pHSL->myRopeCorrectedD);
-	ImGui::Text("AirSpeed:           %.3f", pHSL->myAirSpeed);
-	ImGui::Text("AirResistance:      %.3f", pHSL->myAirResistance);
-	ImGui::Text("SpeedStaticFriction:%.3f", pHSL->myObjectSpeedStaticFriction);
+
 	ImGui::Text("RopeRupture         %d",   pHSL->myRopeRuptured);
+
+	ImGui::Text("Cargo:TerrainHit:         %d", pHSL->myCargo.myTerrainHit);
+	ImGui::Text("Cargo:ObjectTerrainLevel: %.3f", pHSL->myCargo.myObjectTerrainLevel);
+	ImGui::Text("Cargo:AirSpeed:           %.3f", pHSL->myCargo.myAirSpeed);
+	ImGui::Text("Cargo:AirResistance:      %.3f", pHSL->myCargo.myAirResistance);
+	ImGui::Text("Cargo:SpeedStaticFriction:%.3f", pHSL->myCargo.mySpeedStaticFriction);
+
+	ImGui::Text("Hook:TerrainHit:         %d", pHSL->myHook.myTerrainHit);
+	ImGui::Text("Hook:ObjectTerrainLevel: %.3f", pHSL->myHook.myObjectTerrainLevel);
+	ImGui::Text("Hook:AirSpeed:           %.3f", pHSL->myHook.myAirSpeed);
+	ImGui::Text("Hook:AirResistance:      %.3f", pHSL->myHook.myAirResistance);
+	ImGui::Text("Hook:SpeedStaticFriction:%.3f", pHSL->myHook.mySpeedStaticFriction);
 
 	ImGui::Text("Debug1              %f", pHSL->myDebugValue1);
 	ImGui::Text("Debug2              %f", pHSL->myDebugValue2);

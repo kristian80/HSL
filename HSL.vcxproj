@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CargoObject.cpp" />
     <ClCompile Include="E:\Docs\Games\X-Plane\Ivy\imgui\imgui.cpp" />
     <ClCompile Include="E:\Docs\Games\X-Plane\Ivy\imgui\imgui_draw.cpp" />
     <ClCompile Include="E:\Docs\Games\X-Plane\Ivy\imgui\imgui_widgets.cpp" />
@@ -161,6 +162,8 @@
     <ClCompile Include="HSL_PlugIn.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CargoObject.h" />
+    <ClInclude Include="LoadBaseObject.h" />
     <ClInclude Include="HSL.h" />
     <ClInclude Include="HSLImguiWidget.h" />
     <ClInclude Include="HSL_PlugIn.h" />

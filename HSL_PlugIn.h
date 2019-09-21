@@ -3,6 +3,7 @@
 
 #include "HSL.h"
 #include "HSLImguiWidget.h"
+#include "CargoObject.h"
 
 
 class HSL_PlugIn
@@ -72,22 +73,15 @@ public:
 	/////////////////////////////////////////////////////////
 	// Sling Variables
 
+	CargoObject myCargo;
+	CargoObject myHook;
+
 	vector<float> myVectorHelicopterPosition = vector<float>(3);
 	vector<float> myVectorHookPosition = vector<float>(3);
-	vector<float> myVectorHookVelocity = vector<float>(3);
-	vector<float> myVectorForceGravity = vector<float>(3);
-	vector<float> myVectorWindVelocity = vector<float>(3);
 	vector<float> myVectorWinchPosition = vector<float>(3);
-	vector<float> myVectorCargoOffset = vector<float>(3);
 	vector<float> myVectorZeroVector = vector<float>(3);
 
-	vector<float> myVectorObjectDisplayOffset = vector<float>(3);
-	vector<float> myVectorObjectDisplayAngle = vector<float>(3);
-
-	vector<float> myVectorRotationTest = vector<float>(3);
-
 	float myFrameTime = 0;
-	float myObjectTerrainLevel = 0;
 
 	int myProcessingTimeFlightLoop = 0;
 	int myProcessingTimeDrawRoutine = 0;
@@ -102,6 +96,7 @@ public:
 
 	float myMaxAccRopeFactor = 2.0f; 
 
+	/*
 	// Loaded Object
 	float myObjectHeight = 0.0f;
 	float myObjectMass = 75; //kg
@@ -126,10 +121,9 @@ public:
 	float myCargoCrossSection = 1.1f; //m2
 	float myCargoCWFront = 0.9; //cube
 	float myCargoFrictionGlide = 0.35;
-	float myCargoFrictionStatic = 0.65;
+	float myCargoFrictionStatic = 0.65;*/
 	
 	float myWinchSpeed = 0.5f;
-	bool  myCargoConnected = false;
 	float myCurrentRopeLength = 2.2f;
 
 
@@ -141,8 +135,6 @@ public:
 
 	vector<float> myVectorDefaultWinchPosition = vector<float>(3);
 
-
-	bool myTerrainHit = false;
 	
 	float myNewRopeLength = 0;
 	float myRopeStretchRelative = 0;
@@ -151,20 +143,8 @@ public:
 	float myRopeStretchSpeed = 0;
 	float myRopeCorrectedD = 0;
 	
-	float myAirSpeed = 0;
-	float myAirResistance = 0;
 
 	vector<float> myVectorRope = vector<float>(3);
-	vector<float> myVectorForceRope = vector<float>(3);
-	vector<float> myVectorAirVelocity = vector<float>(3);
-	vector<float> myVectorForceAir = vector<float>(3);
-	vector<float> myVectorForceTotal = vector<float>(3);
-	vector<float> myVectorHorizontalVelocity = vector<float>(3);
-	vector<float> myVectorForceFriction = vector<float>(3);
-	vector<float> myVectorAccTotal = vector<float>(3);
-	vector<float> myVectorVelocityDelta = vector<float>(3);
-	vector<float> myVectorForceChopper = vector<float>(3);
-	vector<float> myVectorMomentumChopper = vector<float>(3);
 
 
 	///////////////////////////////////////////////////
