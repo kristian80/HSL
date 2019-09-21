@@ -411,6 +411,8 @@ int WrapUpdateObjectCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* r
 
 float WrapReadFloatCallback(void* inRefcon);
 void WrapWriteFloatCallback(void* inRefcon, float inValue);
+double WrapReadDoubleCallback(void* inRefcon);
+void WrapWriteDoubleCallback(void* inRefcon, double inValue);
 
 int WrapReadIntCallback(void* inRefcon);
 void WrapWriteIntCallback(void* inRefcon, int inValue);

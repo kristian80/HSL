@@ -10,6 +10,7 @@ CargoObject::CargoObject(HSL_PlugIn& HSLNew) :
 	myVectorForceGravity = myVectorZeroVector;
 	myVectorWindVelocity = myVectorZeroVector;
 	myVectorCargoOffset = myVectorZeroVector;
+	myVectorCargoRotation = myVectorZeroVector;
 
 	myVectorDisplayOffset = myVectorZeroVector;
 	myVectorDisplayAngle = myVectorZeroVector;
@@ -295,15 +296,13 @@ void CargoObject::CalculatePhysics()
 		if (myTerrainHit == false)
 		{
 			// Using Pitch/Roll
-			myVectorDisplayAngle(0) = ropeUnitSphere(1) * 180.0f / M_PI; // Pitch
-			myVectorDisplayAngle(1) = ropeUnitSphere(2) * 180.0f / M_PI; // Roll
-			myVectorDisplayAngle(2) = 0; //heading
+			myVectorDisplayAngle(0) = myVectorCargoRotation(0) + ropeUnitSphere(1) * 180.0f / M_PI; // Pitch
+			myVectorDisplayAngle(1) = myVectorCargoRotation(1) + ropeUnitSphere(2) * 180.0f / M_PI; // Roll
+			myVectorDisplayAngle(2) = myVectorCargoRotation(2); //heading
 		}
 		else
 		{
-			myVectorDisplayAngle(0) = 0;
-			myVectorDisplayAngle(1) = 0;
-			myVectorDisplayAngle(2) = 0;
+			myVectorDisplayAngle = myVectorCargoRotation;
 		}
 
 
@@ -319,8 +318,8 @@ void CargoObject::CalculatePhysics()
 
 			angle += myVectorDisplayAngle(2) * M_PI / 180.0f;
 
-			myVectorCargoOffsetRotated(0) = length * cos(angle);
-			myVectorCargoOffsetRotated(2) = length * sin(angle);
+			//myVectorCargoOffsetRotated(0) = length * cos(angle);
+			//myVectorCargoOffsetRotated(2) = length * sin(angle);
 
 			vector<float> vectorObjectOffsetSphere = XPlaneCartToSphere(myVectorCargoOffsetRotated);
 			if (myTerrainHit == false)
@@ -336,5 +335,13 @@ void CargoObject::CalculatePhysics()
 			myVectorDisplayOffset = myVectorZeroVector;
 		}
 
+	}
+	else
+	{
+		if (myTerrainHit == true)
+		{
+			myVectorDisplayOffset = myVectorCargoOffset;
+			myVectorDisplayAngle = myVectorCargoRotation;
+		}
 	}
 }

@@ -179,6 +179,15 @@ void WrapWriteFloatCallback(void* inRefcon, float inValue)
 {
 	*((float*)inRefcon) = inValue;
 }
+double WrapReadDoubleCallback(void* inRefcon)
+{
+	return *((double*)inRefcon);
+}
+
+void WrapWriteDoubleCallback(void* inRefcon, double inValue)
+{
+	*((double*)inRefcon) = inValue;
+}
 
 int WrapReadVectorFloatCallback(
 	void* inRefcon,

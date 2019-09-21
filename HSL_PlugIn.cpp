@@ -203,7 +203,7 @@ void HSL_PlugIn::PluginStart()
 
 
 	// Drawing
-	XPLMRegisterDrawCallback(WrapDrawCallback, xplm_Phase_Airplanes, 0, NULL);
+	XPLMRegisterDrawCallback(WrapDrawCallback, xplm_Phase_Objects, 0, NULL); //xplm_Phase_Airplanes
 
 	int left, top, right, bot;
 	XPLMGetScreenBoundsGlobal(&left, &top, &right, &bot);
@@ -418,9 +418,10 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			XPLMDrawObjects(myRopeObjectRef, myRopePoints.size(), drawInfo, 0, 0);
 		}*/
 
-		vector<float> vectorCargoPointOpenGL = AdjustFrameMovement(myVectorHookPosition);
+		
 		if (myCargo.myDrawingEnabled == true)
 		{
+			vector<float> vectorCargoPointOpenGL = AdjustFrameMovement(myCargo.myVectorPosition);
 			vectorCargoPointOpenGL -= myCargo.myVectorDisplayOffset;
 
 			DrawInstanceCreate(myCargoInstanceRef, myCargoObjectRef);
@@ -436,6 +437,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 
 		if (myHook.myDrawingEnabled == true)
 		{
+			vector<float> vectorCargoPointOpenGL = AdjustFrameMovement(myHook.myVectorPosition);
 			DrawInstanceCreate(myHookInstanceRef, myHookObjectRef);
 			DrawInstanceSetPosition(myHookInstanceRef, myHookObjectRef, vectorCargoPointOpenGL, false);
 		}
@@ -694,12 +696,29 @@ void HSL_PlugIn::SlingReset()
 	myDebugStatement = true;
 
 	UpdateObjects();
-	SlingRelease();
+	
+	myCargo.myRopeConnected = true;
+	myCargo.myFollowOnly = true;
+	myCargo.myDrawingEnabled = false;
+
+	myHook.myRopeConnected = true;
+	myHook.myFollowOnly = false;
+	myHook.myDrawingEnabled = true;
 
 }
 
+
 void HSL_PlugIn::SlingConnect()
 {
+	if (myCargo.myRopeConnected == false)
+	{
+		vector<float> distanceVector = myVectorHelicopterPosition - myCargo.myVectorPosition;
+
+		float rope_needed = norm_2(distanceVector);
+		if (rope_needed > myRopeLengthNormal) myRopeLengthNormal = rope_needed * 1.05;
+		myVectorHookPosition = myCargo.myVectorPosition;
+	}
+
 	myCargo.myRopeConnected = true;
 	myCargo.myFollowOnly = false;
 	myCargo.myDrawingEnabled = true;
@@ -711,9 +730,9 @@ void HSL_PlugIn::SlingConnect()
 
 void HSL_PlugIn::SlingRelease()
 {
-	myCargo.myRopeConnected = true;
-	myCargo.myFollowOnly = true;
-	myCargo.myDrawingEnabled = false;
+	myCargo.myRopeConnected = false;
+	myCargo.myFollowOnly = false;
+	myCargo.myDrawingEnabled = true;
 
 	myHook.myRopeConnected = true;
 	myHook.myFollowOnly = false;
@@ -825,6 +844,55 @@ void HSL_PlugIn::UpdateObjects()
 
 		
 	}*/
+}
+
+void HSL_PlugIn::CargoPlaceOnGround()
+{
+	if (myGroundProbe == NULL) return;
+
+	// Place Load 10m before Aircraft
+	vector<float> placement(3);
+	placement(0) = 0;
+	placement(1) = 0;
+	placement(2) = -10;
+	placement = AircraftToWorld(placement);
+
+	XPLMProbeInfo_t info;
+	info.structSize = sizeof(info);
+	XPLMProbeResult	result = XPLMProbeTerrainXYZ(myGroundProbe, placement(0), placement(1), placement(2), &info);
+	
+	myCargo.myVectorPosition(0) = info.locationX;
+	myCargo.myVectorPosition(1) = info.locationY;
+	myCargo.myVectorPosition(2) = info.locationZ;
+
+	myCargo.myRopeConnected = false;
+	myCargo.myFollowOnly = false;
+	myCargo.myDrawingEnabled = true;
+}
+
+void HSL_PlugIn::CargoPlaceCoordinates()
+{
+	if (myGroundProbe == NULL) return;
+
+	double zero_x, zero_y, zero_z;
+	XPLMWorldToLocal(myCargoSetLatitutde, myCargoSetLongitude, 0, &zero_x, &zero_y, &zero_z);
+
+	XPLMProbeInfo_t info;
+	info.structSize = sizeof(info);
+
+	XPLMProbeResult result = XPLMProbeTerrainXYZ(myGroundProbe, zero_x, zero_y, zero_z, &info);
+
+	double local_long;
+	double local_lat;
+	double local_alt;
+
+	XPLMLocalToWorld(info.locationX, info.locationY, info.locationZ, &local_lat, &local_long, &local_alt);
+	XPLMWorldToLocal(myCargoSetLatitutde, myCargoSetLongitude, local_alt, &zero_x, &zero_y, &zero_z); // incorporate elevation 
+
+	myCargo.myVectorPosition(0) = zero_x;
+	myCargo.myVectorPosition(2) = zero_z;
+	XPLMProbeTerrainXYZ(myGroundProbe, zero_x, zero_y, zero_z, &info); // Once again for improved precision
+	myCargo.myVectorPosition(1) = info.locationY;
 }
 
 int HSL_PlugIn::WinchUpCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)

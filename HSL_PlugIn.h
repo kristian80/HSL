@@ -45,6 +45,8 @@ public:
 	XPLMCommandRef myCmdRefReleaseLoad = NULL;
 	XPLMCommandRef myCmdRefToggleControlWindow = NULL;
 	XPLMCommandRef myCmdRefUpdateObjects = NULL;
+	XPLMCommandRef myCmdRefPlaceCargoGround = NULL;
+	XPLMCommandRef myCmdRefPlaceCoordinates = NULL;
 
 
 	std::string myWinchPath = "hsl/Sphere_1.obj";
@@ -95,6 +97,10 @@ public:
 	bool  myRopeRuptured = false;
 
 	float myMaxAccRopeFactor = 2.0f; 
+
+	double myCargoSetLatitutde = 0.0;
+	double myCargoSetLongitude = 0.0;
+	float myCargoSetHeading = 0.0;
 
 	/*
 	// Loaded Object
@@ -245,6 +251,8 @@ public:
 	void SlingRelease();
 	void UpdateParameters();
 	void UpdateObjects();
+	void CargoPlaceOnGround();
+	void CargoPlaceCoordinates();
 
 	int WinchUpCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 	int WinchDownCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);

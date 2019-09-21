@@ -13,6 +13,7 @@ public:
 	vector<float> myVectorForceGravity = vector<float>(3);
 	vector<float> myVectorWindVelocity = vector<float>(3);
 	vector<float> myVectorCargoOffset = vector<float>(3);
+	vector<float> myVectorCargoRotation = vector<float>(3);
 
 	vector<float> myVectorDisplayOffset = vector<float>(3);
 	vector<float> myVectorDisplayAngle = vector<float>(3);

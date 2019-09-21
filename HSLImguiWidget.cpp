@@ -92,6 +92,10 @@ void HSLImguiWidget::buildInterface()
 	InputVector(pHSL->myVectorWinchPosition, "Winch Position");
 	if (ImGui::Button("Write Aircraft Ini File")) pHSL->AircraftConfigSave();
 
+	ImGui::Text("Set Cargo Coordinates:");
+	ImGui::InputDouble("Latitude", &(pHSL->myCargoSetLatitutde), 0.01, 0.01, "%.9f");
+	ImGui::InputDouble("Longitude", &(pHSL->myCargoSetLongitude), 0.01, 0.01, "%.9f");
+
 	ImGui::Text("Rope Parameters:");
 	ImGui::InputFloat("Rope Length Start [m]", &(pHSL->myRopeLengthStart), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Rope Length [m]", &(pHSL->myRopeLengthNormal), 0.01, 0.01, 3, 0);
@@ -117,15 +121,18 @@ void HSLImguiWidget::buildInterface()
 	ImGui::InputFloat("Cargo Friction Glide", &(pHSL->myCargo.myFrictionGlide), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Cargo Friction Static", &(pHSL->myCargo.myFrictionStatic), 0.01, 0.01, 3, 0);
 	InputVector(pHSL->myCargo.myVectorCargoOffset, "Cargo Offset");	
+	InputVector(pHSL->myCargo.myVectorCargoRotation, "Cargo Rotation");
 
 	ImGui::NextColumn();
 	OutputVector(pHSL->myVectorHookPosition, "Hook Pos");
 	OutputVector(pHSL->myVectorRope, "Rope");
 	OutputVector(pHSL->myVectorWinchPosition, "WinchPosition");
-
+	OutputVector(pHSL->myCargo.myVectorVelocity, "Cargo:Velocity");
+	
+	OutputVector(pHSL->myCargo.myVectorPosition, "CargoPosition");
 	OutputVector(pHSL->myCargo.myVectorDisplayOffset, "Cargo:Object Offset");
 	OutputVector(pHSL->myCargo.myVectorDisplayAngle, "Cargo:Object Angle");
-	OutputVector(pHSL->myCargo.myVectorVelocity, "Cargo:HookVelocity");
+	
 	OutputVector(pHSL->myCargo.myVectorForceGravity, "Cargo:ForceGravity");
 	OutputVector(pHSL->myCargo.myVectorWindVelocity, "Cargo:WindVelocity");
 	OutputVector(pHSL->myCargo.myVectorForceRope, "Cargo:ForceRope");
@@ -139,9 +146,11 @@ void HSLImguiWidget::buildInterface()
 	OutputVector(pHSL->myCargo.myVectorForceChopper, "Cargo:ForceChopper");
 	OutputVector(pHSL->myCargo.myVectorMomentumChopper, "Cargo:MomentumChopper");
 
+	OutputVector(pHSL->myHook.myVectorPosition, "HookPosition");
+	OutputVector(pHSL->myHook.myVectorVelocity, "Hook:Velocity");
 	OutputVector(pHSL->myHook.myVectorDisplayOffset, "Hook:Object Offset");
 	OutputVector(pHSL->myHook.myVectorDisplayAngle, "Hook:Object Angle");
-	OutputVector(pHSL->myHook.myVectorVelocity, "Hook:HookVelocity");
+	
 	OutputVector(pHSL->myHook.myVectorForceGravity, "Hook:ForceGravity");
 	OutputVector(pHSL->myHook.myVectorWindVelocity, "Hook:WindVelocity");
 	OutputVector(pHSL->myHook.myVectorForceRope, "Hook:ForceRope");
@@ -212,6 +221,10 @@ void HSLImguiWidget::buildInterface()
 	if (ImGui::Button("Enable")) pHSL->SlingEnable();
 	if (ImGui::Button("Disable")) pHSL->SlingDisable();
 	if (ImGui::Button("Reset")) pHSL->SlingReset();
+
+	if (ImGui::Button("Place Load Here")) pHSL->CargoPlaceOnGround();
+	if (ImGui::Button("Place Load Coords")) pHSL->CargoPlaceCoordinates();
+
 	if (ImGui::Button("Connect Load")) pHSL->SlingConnect();
 	if (ImGui::Button("Release Load")) pHSL->SlingRelease();
 	if (ImGui::Button("Cut Rope")) pHSL->myRopeRuptured = true;
