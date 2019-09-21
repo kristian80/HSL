@@ -96,6 +96,9 @@ void HSLImguiWidget::buildInterface()
 	ImGui::InputDouble("Latitude", &(pHSL->myCargoSetLatitutde), 0.01, 0.01, "%.9f");
 	ImGui::InputDouble("Longitude", &(pHSL->myCargoSetLongitude), 0.01, 0.01, "%.9f");
 
+	ImGui::Checkbox("Cargo Is Bambi Bucket", &(pHSL->myCargo.myIsBambiBucket));
+	ImGui::Checkbox("Bambi Bucket Release", &(pHSL->myCargo.myBambiBucketRelease));
+
 	ImGui::Text("Rope Parameters:");
 	ImGui::InputFloat("Rope Length Start [m]", &(pHSL->myRopeLengthStart), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Rope Length [m]", &(pHSL->myRopeLengthNormal), 0.01, 0.01, 3, 0);
@@ -202,6 +205,8 @@ void HSLImguiWidget::buildInterface()
 	ImGui::Text("Cargo:SpeedStaticFriction:%.3f", pHSL->myCargo.mySpeedStaticFriction);
 	ImGui::Text("Cargo:WaterLevel:         %.3f", pHSL->myCargo.myWaterLevel);
 	ImGui::Text("Cargo:Volume:             %.3f", pHSL->myCargo.myVolume);
+	ImGui::Text("Cargo:BambiWaterLevel:    %.3f", pHSL->myCargo.myBambiBucketWaterLevel);
+	ImGui::Text("Cargo:BambiWaterWeight:   %.3f", pHSL->myCargo.myBambiBucketWaterWeight);
 
 	ImGui::Text("Hook:TerrainHit:         %d", pHSL->myHook.myTerrainHit);
 	ImGui::Text("Hook:ObjectTerrainLevel: %.3f", pHSL->myHook.myObjectTerrainLevel);

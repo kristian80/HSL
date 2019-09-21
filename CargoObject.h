@@ -39,6 +39,11 @@ public:
 	float myAirSpeed = 0;
 	float myAirResistance = 0;
 	float mySpeedStaticFriction = 0.3;
+	bool myIsBambiBucket = false;
+
+	bool myBambiBucketRelease = false;
+	float myBambiBucketWaterLevel = 0;
+	float myBambiBucketWaterWeight = 0;
 
 	vector<float> myVectorForceRope = vector<float>(3);
 	vector<float> myVectorAirVelocity = vector<float>(3);

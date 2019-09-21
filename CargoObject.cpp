@@ -87,6 +87,29 @@ void CargoObject::CalculatePhysics()
 		float sink = myObjectTerrainLevel - myVectorPosition(VERT_AXIS);
 		myWaterLevel = sink / myVectorSize(2);
 		if (myWaterLevel > 1) myWaterLevel = 1;
+
+		if (myIsBambiBucket == true)
+		{
+			if (myBambiBucketWaterLevel < myWaterLevel) myBambiBucketWaterLevel = myWaterLevel;
+			myBambiBucketWaterWeight = myBambiBucketWaterLevel * myVolume * HSL_Data::density_water;
+		}
+		
+	}
+
+	if (myIsBambiBucket == false)
+	{
+		myBambiBucketWaterLevel = 0;
+		myBambiBucketWaterWeight = 0;
+	}
+
+	if ((myBambiBucketRelease == true) && (myBambiBucketWaterWeight > 0))
+	{
+		float releasedWater = HSL.myBambiBucketRelease * HSL.myFrameTime;
+		myBambiBucketWaterWeight -= releasedWater;
+		if (myBambiBucketWaterWeight < 0) myBambiBucketWaterWeight = 0;
+		
+		if (myVolume == 0) myBambiBucketWaterLevel = 0;
+		else myBambiBucketWaterLevel = myBambiBucketWaterWeight / (myVolume * HSL_Data::density_water);
 	}
 
 
@@ -114,7 +137,7 @@ void CargoObject::CalculatePhysics()
 		HSL.myRopeStretchSpeed = HSL.myRopeLengthDelta / HSL.myFrameTime;
 
 		if (HSL.myRopeStretchSpeed < 0.0f) HSL.myDebugValue3 = 100;
-		HSL.myRopeCorrectedD = HSL.myRopeDamping * 2 * sqrt(myMass * HSL.myRopeK);
+		HSL.myRopeCorrectedD = HSL.myRopeDamping * 2 * sqrt((myMass + myBambiBucketWaterWeight) * HSL.myRopeK);
 
 		check_nan(HSL.myRopeCorrectedD);
 
@@ -149,7 +172,7 @@ void CargoObject::CalculatePhysics()
 		//if (myRopeStretchSpeed > 0.0f)
 		{
 			// force to stop the object at the current point in time
-			float ropeStopForce = HSL.myRopeStretchSpeed * myMass;
+			float ropeStopForce = HSL.myRopeStretchSpeed * (myMass + myBambiBucketWaterWeight);
 
 			// calcuate the required speed to reach the unstreched rope length in a single frame (= excactly a bit too much):
 			float ropeTotalStretchMeters = HSL.myNewRopeLength - HSL.myRopeLengthNormal;
@@ -162,7 +185,7 @@ void CargoObject::CalculatePhysics()
 				ropeEscapeSpeed /= HSL.myMaxAccRopeFactor;
 
 				//cacluate the max force to stop and accelerate in the other direction and still be within the streched rope
-				float ropeMaxEscapeForce = ropeStopForce + (ropeEscapeSpeed * myMass);
+				float ropeMaxEscapeForce = ropeStopForce + (ropeEscapeSpeed * (myMass + myBambiBucketWaterWeight));
 
 				HSL.myDebugValue1 = ropeMaxEscapeForce;
 
@@ -231,10 +254,12 @@ void CargoObject::CalculatePhysics()
 
 	float waterResistance = norm_2(myVectorForceWater);
 
-	myVectorForceSwim(VERT_AXIS) = -1 * HSL_Data::density_water * myVolume * myWaterLevel * HSL.myLfGravitation;
+	myVectorForceSwim(VERT_AXIS) = 0;
+	if (myIsBambiBucket == false) myVectorForceSwim(VERT_AXIS) = -1 * HSL_Data::density_water * myVolume * myWaterLevel * HSL.myLfGravitation;
+
 
 	// Get the force of the gravity
-	myVectorForceGravity(VERT_AXIS) = HSL.myLfGravitation * myMass;
+	myVectorForceGravity(VERT_AXIS) = HSL.myLfGravitation * (myMass + (myBambiBucketWaterWeight * (1.0f - myWaterLevel)));
 
 
 	// Sum up the forces
@@ -253,8 +278,8 @@ void CargoObject::CalculatePhysics()
 			myVectorForceFriction = get_unit_vector(myVectorHorizontalVelocity) * myVectorForceTotal(VERT_AXIS) * myFrictionGlide;
 
 			// Compute the speed, where the static friction would stop us within a frame. Multiply with 3 to be on the safe side for fps drop
-			if (myMass == 0.0f) return;
-			mySpeedStaticFriction = std::abs(3 * HSL.myFrameTime * myVectorForceTotal(VERT_AXIS) * myFrictionStatic / myMass); // adapt stop speed to frame rate
+			if ((myMass + myBambiBucketWaterWeight) == 0.0f) return;
+			mySpeedStaticFriction = std::abs(3 * HSL.myFrameTime * myVectorForceTotal(VERT_AXIS) * myFrictionStatic / (myMass + myBambiBucketWaterWeight)); // adapt stop speed to frame rate
 
 			// if we are below static friction speed
 			if (norm_2(myVectorHorizontalVelocity) < mySpeedStaticFriction)
@@ -281,8 +306,8 @@ void CargoObject::CalculatePhysics()
 
 
 	// Get the acceleration
-	if (myMass == 0.0f) return;
-	myVectorAccTotal = myVectorForceTotal / myMass;
+	if ((myMass + myBambiBucketWaterWeight) == 0.0f) return;
+	myVectorAccTotal = myVectorForceTotal / (myMass + myBambiBucketWaterWeight);
 
 	// calcualte the new velocity
 	myVectorVelocityDelta = myVectorAccTotal * HSL.myFrameTime;

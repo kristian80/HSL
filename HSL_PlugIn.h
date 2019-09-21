@@ -96,6 +96,8 @@ public:
 	float myRopeRuptureForce = 100000.0f; //10t max
 	bool  myRopeRuptured = false;
 
+	float myBambiBucketRelease = 250.0f;
+
 	float myMaxAccRopeFactor = 2.0f; 
 
 	double myCargoSetLatitutde = 0.0;

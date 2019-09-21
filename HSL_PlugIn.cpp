@@ -467,6 +467,7 @@ void HSL_PlugIn::ConfigSave()
 
 			pt.put("Winch.library_object", myWinchPath);
 			pt.put("Winch.speed", myWinchSpeed);
+			pt.put("Bambi.water_per_second", myBambiBucketRelease);
 
 			pt.put("Hook.library_object", myHookPath);
 			pt.put("Hook.height", myHook.myHeight);
@@ -516,6 +517,8 @@ void HSL_PlugIn::ConfigRead()
 
 		ConfigReadString(pt, "Winch.library_object", myWinchPath);
 		ConfigReadFloat(pt, "Winch.speed", myWinchSpeed);
+
+		ConfigReadFloat(pt, "Bambi.water_per_second", myBambiBucketRelease);
 
 		ConfigReadString(pt, "Hook.library_object", myHookPath);
 		ConfigReadFloat(pt, "Hook.height", myHook.myHeight);
