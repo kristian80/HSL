@@ -110,8 +110,8 @@ void HSLImguiWidget::buildInterface()
 
 	ImGui::Text("Hook Parameters:");
 	ImGui::InputFloat("Hook Mass [kg]", &(pHSL->myHook.myMass), 0.01, 0.01, 3, 0);
-	InputVector(pHSL->myHook.myVectorSize, "Cargo Size L/W/H [m]");
-	InputVector(pHSL->myHook.myVectorCW, "CW F/S/T [m]");
+	InputVector(pHSL->myHook.myVectorSize, "Hook Size L/W/H [m]");
+	InputVector(pHSL->myHook.myVectorCW, "Hook CW F/S/T [m]");
 	ImGui::InputFloat("Hook Height [m]", &(pHSL->myHook.myHeight), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Hook Friction Glide", &(pHSL->myHook.myFrictionGlide), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Hook Friction Static", &(pHSL->myHook.myFrictionStatic), 0.01, 0.01, 3, 0);
@@ -120,7 +120,7 @@ void HSLImguiWidget::buildInterface()
 	ImGui::InputFloat("Cargo Mass [kg]", &(pHSL->myCargo.myMass), 0.01, 0.01, 3, 0);
 
 	InputVector(pHSL->myCargo.myVectorSize, "Cargo Size L/W/H [m]");
-	InputVector(pHSL->myCargo.myVectorCW,  "CW F/T/S [m]");
+	InputVector(pHSL->myCargo.myVectorCW,  "Cargo CW F/T/S [m]");
 
 	ImGui::InputFloat("Cargo Height [m]", &(pHSL->myCargo.myHeight), 0.01, 0.01, 3, 0);
 	ImGui::InputFloat("Cargo Friction Glide", &(pHSL->myCargo.myFrictionGlide), 0.01, 0.01, 3, 0);
