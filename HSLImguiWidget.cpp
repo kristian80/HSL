@@ -84,7 +84,8 @@ void HSLImguiWidget::buildInterface()
 	if (pHSL->myPhysicsEnabled == false)
 	{
 		ImGui::Text("Object:");
-		InputVector(pHSL->myVectorHookPosition, "Object Position");
+		InputVector(pHSL->myCargo.myVectorPosition, "Cargo Position");
+		InputVector(pHSL->myHook.myVectorPosition, "Hook Position");
 	}
 	
 	ImGui::Text("Winch:");

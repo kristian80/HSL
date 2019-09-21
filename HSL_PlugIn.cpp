@@ -424,7 +424,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			vectorCargoPointOpenGL -= myCargo.myVectorDisplayOffset;
 
 			DrawInstanceCreate(myCargoInstanceRef, myCargoObjectRef);
-			DrawInstanceSetPosition(myCargoInstanceRef, myCargoObjectRef, vectorCargoPointOpenGL, myCargo.myVectorDisplayAngle, true);
+			DrawInstanceSetPosition(myCargoInstanceRef, myCargoObjectRef, vectorCargoPointOpenGL, myCargo.myVectorDisplayAngle, false);
 			
 
 		}
@@ -679,6 +679,11 @@ void HSL_PlugIn::SlingReset()
 	myVectorHookPosition = AircraftToWorld(myVectorWinchPosition);
 	myVectorHookPosition(VERT_AXIS) -= myRopeLengthNormal * 0.5;
 	myWinchDirection = HSL::Stop;
+
+	myCargo.myVectorPosition = myVectorHookPosition;
+	myCargo.myVectorVelocity = myVectorZeroVector;
+	myHook.myVectorPosition = myVectorHookPosition;
+	myHook.myVectorVelocity = myVectorZeroVector;
 
 	AircraftConfigRead();
 
@@ -1068,6 +1073,9 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 		// Get the new position of the winch in world coodinates		
 		myVectorHelicopterPosition = AircraftToWorld(myVectorWinchPosition);
 
+		// Calculate Physics for Cargo and Hook
+		myCargo.CalculatePhysics();
+		myHook.CalculatePhysics();
 		
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////
