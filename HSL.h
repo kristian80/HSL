@@ -451,6 +451,8 @@ int WrapResetCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 int WrapConnectLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 int WrapReleaseLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 int WrapToggleControlWindowCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+int WrapLoadGroundCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+int WrapLoadCoordinatesCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 
 int WrapDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inRefcon);
 

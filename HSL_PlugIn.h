@@ -264,10 +264,13 @@ public:
 	int ResetCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 	int ConnectLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 	int ReleaseLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+	int LoadGroundCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+	int LoadCoordinatesCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 	int ToggleControlWindowCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 	int UpdateObjectsCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 
 	void RegisterFloatDataref(float &valueIn, std::string nameIn);
+	void RegisterDoubleDataref(double& valueIn, std::string nameIn);
 	void RegisterVectorDataref(vector<float> & vectorIn, std::string nameIn);
 
 	void RegisterIntDataref(bool& valueIn, std::string nameIn);

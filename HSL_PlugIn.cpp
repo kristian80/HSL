@@ -83,6 +83,8 @@ void HSL_PlugIn::PluginStart()
 	myCmdRefReset = XPLMCreateCommand("HSL/Sling_Reset", "Reset slingline");
 	myCmdRefConnectLoad = XPLMCreateCommand("HSL/Load_Connect", "Connect the load");
 	myCmdRefReleaseLoad = XPLMCreateCommand("HSL/Load_Release", "Release the load");
+	myCmdRefPlaceCargoGround = XPLMCreateCommand("HSL/Load_On_Ground", "Place the load in front of the aircraft");
+	myCmdRefPlaceCoordinates = XPLMCreateCommand("HSL/Load_On_Coordinates", "Place the load at given coordinates");
 	myCmdRefToggleControlWindow = XPLMCreateCommand("HSL/ToogleControlWindow", "Toggle Control Window");
 	myCmdRefUpdateObjects = XPLMCreateCommand("HSL/UpdateObjects", "Update Objects");
 
@@ -94,11 +96,29 @@ void HSL_PlugIn::PluginStart()
 	XPLMRegisterCommandHandler(myCmdRefReset, WrapResetCallback, 0, 0);
 	XPLMRegisterCommandHandler(myCmdRefConnectLoad, WrapConnectLoadCallback, 0, 0);
 	XPLMRegisterCommandHandler(myCmdRefReleaseLoad, WrapReleaseLoadCallback, 0, 0);
+
+	XPLMRegisterCommandHandler(myCmdRefPlaceCargoGround, WrapLoadGroundCallback, 0, 0);
+	XPLMRegisterCommandHandler(myCmdRefPlaceCoordinates, WrapLoadCoordinatesCallback, 0, 0);
+
 	XPLMRegisterCommandHandler(myCmdRefToggleControlWindow, WrapToggleControlWindowCallback, 0, 0);
 	XPLMRegisterCommandHandler(myCmdRefUpdateObjects, WrapUpdateObjectCallback, 0, 0);
 
 	//myDrShRopeLengthStart = XPLMRegisterDataAccessor("HSL/RopeLengthStart", xplmType_Float, 1, NULL, NULL, WrapReadFloatCallback, WrapWriteFloatCallback, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &myRopeLengthStart, &myRopeLengthStart);
 
+	
+	
+	
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//                      DATAREF REGISTER
+	
+	
+	
+	RegisterDoubleDataref(myCargoSetLatitutde, "HSL/CargoSetLatitude");
+	RegisterDoubleDataref(myCargoSetLongitude, "HSL/CargoSetLongitude");
+	
+	
+	
 	RegisterFloatDataref(myRopeLengthStart, "HSL/RopeLengthStart");
 	
 
@@ -132,10 +152,14 @@ void HSL_PlugIn::PluginStart()
 	// Cargo
 	RegisterFloatDataref(myCargo.myHeight, "HSL/CargoHeight");
 	RegisterFloatDataref(myCargo.myMass, "HSL/CargoMass");
-	RegisterVectorDataref(myCargo.myVectorSize, "HSL/CargoCrossSection");
+	RegisterVectorDataref(myCargo.myVectorSize, "HSL/CargoSize");
 	RegisterVectorDataref(myCargo.myVectorCW, "HSL/CargoCWFront");
 	RegisterFloatDataref(myCargo.myFrictionGlide, "HSL/CargoFrictionGlide");
 	RegisterFloatDataref(myCargo.myFrictionStatic, "HSL/CargoFrictionStatic");
+	RegisterIntDataref(myCargo.myIsBambiBucket, "HSL/CargoIsBambiBucket");
+	RegisterIntDataref(myCargo.myBambiBucketRelease, "HSL/CargoBambiBucketReleaseWater");
+	RegisterFloatDataref(myCargo.myBambiBucketWaterWeight, "HSL/BambiBucketWaterWeigth");
+	RegisterFloatDataref(myCargo.myBambiBucketWaterLevel, "HSL/BambiBucketWaterLevel");
 
 	RegisterFloatDataref(myWinchSpeed, "HSL/WinchSpeed");
 	
@@ -949,6 +973,18 @@ int HSL_PlugIn::ReleaseLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, 
 	return 1;
 }
 
+int HSL_PlugIn::LoadGroundCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	if (phase == xplm_CommandBegin) CargoPlaceOnGround();
+	return 1;
+}
+
+int HSL_PlugIn::LoadCoordinatesCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	if (phase == xplm_CommandBegin) CargoPlaceCoordinates();
+	return 1;
+}
+
 int HSL_PlugIn::ToggleControlWindowCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
 {
 	if (phase == xplm_CommandBegin)
@@ -975,6 +1011,20 @@ void HSL_PlugIn::RegisterFloatDataref(float &valueIn, std::string nameIn)
 {
 	myRegisteredDatarefs.push_back(
 		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_Float, 1, NULL, NULL, WrapReadFloatCallback, WrapWriteFloatCallback, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &valueIn, &valueIn)
+	);
+
+
+	if (myDataRefEditorPluginID == XPLM_NO_PLUGIN_ID) myDataRefEditorPluginID = XPLMFindPluginBySignature("xplanesdk.examples.DataRefEditor");
+	if (myDataRefEditorPluginID != XPLM_NO_PLUGIN_ID)
+	{
+		XPLMSendMessageToPlugin(myDataRefEditorPluginID, MSG_ADD_DATAREF, (void*)nameIn.c_str());
+	}
+}
+
+void HSL_PlugIn::RegisterDoubleDataref(double& valueIn, std::string nameIn)
+{
+	myRegisteredDatarefs.push_back(
+		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_Float, 1, NULL, NULL, NULL, NULL, WrapReadDoubleCallback, WrapWriteDoubleCallback, NULL, NULL, NULL, NULL, NULL, NULL, &valueIn, &valueIn)
 	);
 
 

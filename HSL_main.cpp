@@ -160,6 +160,16 @@ int WrapReleaseLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* re
 	return pHSL->ReleaseLoadCallback(cmd, phase, refcon);
 }
 
+int WrapLoadGroundCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	return pHSL->LoadGroundCallback(cmd, phase, refcon);
+}
+
+int WrapLoadCoordinatesCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	return pHSL->LoadCoordinatesCallback(cmd, phase, refcon);
+}
+
 int WrapToggleControlWindowCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
 {
 	return pHSL->ToggleControlWindowCallback(cmd, phase, refcon);
