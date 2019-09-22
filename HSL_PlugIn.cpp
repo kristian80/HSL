@@ -114,8 +114,8 @@ void HSL_PlugIn::PluginStart()
 	
 	
 	
-	RegisterDoubleDataref(myCargoSetLatitutde, "HSL/CargoSetLatitude");
-	RegisterDoubleDataref(myCargoSetLongitude, "HSL/CargoSetLongitude");
+	RegisterDoubleDataref(myCargoSetLatitutde, "HSL/Cargo/SetLatitude");
+	RegisterDoubleDataref(myCargoSetLongitude, "HSL/Cargo/SetLongitude");
 	
 	
 	
@@ -127,9 +127,9 @@ void HSL_PlugIn::PluginStart()
 	RegisterFloatDataref(myRopeLengthNormal, "HSL/RopeLengthNormal");
 	RegisterFloatDataref(myRopeDamping, "HSL/RopeDamping");
 	RegisterFloatDataref(myRopeK, "HSL/RopeK");
-	RegisterFloatDataref(myRopeRuptureForce, "HSL/RopeRuptureForce");
+	RegisterFloatDataref(myRopeRuptureForce, "HSL/Rope/RuptureForce");
 
-	RegisterFloatDataref(myMaxAccRopeFactor, "HSL/MaxAccRopeFactor");
+	RegisterFloatDataref(myMaxAccRopeFactor, "HSL/Rope/MaxAccRopeFactor");
 
 	// Loaded Object
 	/*RegisterFloatDataref(myObjectHeight, "HSL/CurrentLoadHeight");
@@ -142,24 +142,36 @@ void HSL_PlugIn::PluginStart()
 	
 
 	// Hook 
-	RegisterFloatDataref(myHook.myHeight, "HSL/HookHeight");
-	RegisterFloatDataref(myHook.myMass, "HSL/HookMass");
-	RegisterVectorDataref(myHook.myVectorSize, "HSL/HookSize");
-	RegisterVectorDataref(myHook.myVectorCW, "HSL/HookCW");
-	RegisterFloatDataref(myHook.myFrictionGlide, "HSL/HookFrictionGlide");
-	RegisterFloatDataref(myHook.myFrictionStatic, "HSL/HookFrictionStatic");
+	RegisterIntDataref(myHook.myRopeConnected, "HSL/Hook/Connected");
+	RegisterIntDataref(myHook.myFollowOnly, "HSL/Hook/FollowOnly");
+	RegisterIntDataref(myHook.myDrawingEnabled, "HSL/Hook/DrawingEnabled");
+	RegisterIntDataref(myHook.myInstancedDrawing, "HSL/Hook/InstancedDrawing");
+
+	RegisterFloatDataref(myHook.myHeight, "HSL/Hook/Height");
+	RegisterFloatDataref(myHook.myMass, "HSL/Hook/Mass");
+	RegisterVectorDataref(myHook.myVectorSize, "HSL/Hook/Size");
+	RegisterVectorDataref(myHook.myVectorCW, "HSL/Hook/CW");
+	RegisterFloatDataref(myHook.myFrictionGlide, "HSL/Hook/FrictionGlide");
+	RegisterFloatDataref(myHook.myFrictionStatic, "HSL/Hook/FrictionStatic");
 
 	// Cargo
-	RegisterFloatDataref(myCargo.myHeight, "HSL/CargoHeight");
-	RegisterFloatDataref(myCargo.myMass, "HSL/CargoMass");
-	RegisterVectorDataref(myCargo.myVectorSize, "HSL/CargoSize");
-	RegisterVectorDataref(myCargo.myVectorCW, "HSL/CargoCWFront");
-	RegisterFloatDataref(myCargo.myFrictionGlide, "HSL/CargoFrictionGlide");
-	RegisterFloatDataref(myCargo.myFrictionStatic, "HSL/CargoFrictionStatic");
-	RegisterIntDataref(myCargo.myIsBambiBucket, "HSL/CargoIsBambiBucket");
-	RegisterIntDataref(myCargo.myBambiBucketRelease, "HSL/CargoBambiBucketReleaseWater");
-	RegisterFloatDataref(myCargo.myBambiBucketWaterWeight, "HSL/BambiBucketWaterWeigth");
-	RegisterFloatDataref(myCargo.myBambiBucketWaterLevel, "HSL/BambiBucketWaterLevel");
+	RegisterIntDataref(myCargo.myRopeConnected, "HSL/Cargo/Connected");
+	RegisterIntDataref(myCargo.myFollowOnly, "HSL/Cargo/FollowOnly");
+	RegisterIntDataref(myCargo.myDrawingEnabled, "HSL/Cargo/DrawingEnabled");
+	RegisterIntDataref(myCargo.myInstancedDrawing, "HSL/Cargo/InstancedDrawing");
+
+	RegisterVectorDataref(myCargo.myVectorPosition, "HSL/Cargo/Position");
+	RegisterFloatDataref(myCargo.myHeight, "HSL/Cargo/Height");
+	RegisterFloatDataref(myCargo.myMass, "HSL/Cargo/Mass");
+	RegisterVectorDataref(myCargo.myVectorSize, "HSL/Cargo/Size");
+	RegisterVectorDataref(myCargo.myVectorCW, "HSL/Cargo/CWFront");
+	RegisterFloatDataref(myCargo.myFrictionGlide, "HSL/Cargo/FrictionGlide");
+	RegisterFloatDataref(myCargo.myFrictionStatic, "HSL/Cargo/FrictionStatic");
+	RegisterIntDataref(myCargo.myIsBambiBucket, "HSL/Cargo/IsBambiBucket");
+	RegisterIntDataref(myCargo.myBambiBucketRelease, "HSL/Cargo/BambiBucketReleaseWater");
+	RegisterFloatDataref(myCargo.myBambiBucketWaterWeight, "HSL/Cargo/BambiBucketWaterWeigth");
+	RegisterFloatDataref(myCargo.myBambiBucketWaterLevel, "HSL/Cargo/BambiBucketWaterLevel");
+	RegisterVectorDataref(myCargo.myVectorCargoOffset, "HSL/Cargo/RopeOffset");
 
 	RegisterFloatDataref(myWinchSpeed, "HSL/WinchSpeed");
 	

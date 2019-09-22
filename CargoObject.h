@@ -25,6 +25,7 @@ public:
 	bool myRopeConnected = false;
 	bool myFollowOnly = false;
 	bool myDrawingEnabled = false;
+	bool myInstancedDrawing = false;
 
 	float myWaterLevel = 0;
 	float myVolume = 0;
