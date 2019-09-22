@@ -935,6 +935,10 @@ void HSL_PlugIn::CargoPlaceCoordinates()
 	myCargo.myVectorPosition(2) = zero_z;
 	XPLMProbeTerrainXYZ(myGroundProbe, zero_x, zero_y, zero_z, &info); // Once again for improved precision
 	myCargo.myVectorPosition(1) = info.locationY;
+
+	myCargo.myRopeConnected = false;
+	myCargo.myFollowOnly = false;
+	myCargo.myDrawingEnabled = true;
 }
 
 int HSL_PlugIn::WinchUpCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
