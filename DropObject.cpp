@@ -57,7 +57,7 @@ DropObject::DropObject(vector<float> pos, vector<float> vel)
 
 	myVectorCW = myVectorSize * 0.9; //0.9 == Cube
 
-	myMass = 0.000125;
+	myMass = 997 * 0.000125;
 	myVectorSize(0) = 0.05;
 	myVectorSize(1) = 0.05;
 	myVectorSize(2) = 0.05;
@@ -102,9 +102,9 @@ void DropObject::CalculatePhysics(DropHSLData& HSL)
 
 
 
-	myVectorForceAir(0) = HSL.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * myVectorAirVelocity(0) * myVectorAirVelocity(0) / 2.0;
-	myVectorForceAir(1) = HSL.myLfAirDensity * myVectorCW(1) * myVectorCrossSection(1) * myVectorAirVelocity(1) * myVectorAirVelocity(1) / 2.0;
-	myVectorForceAir(2) = HSL.myLfAirDensity * myVectorCW(2) * myVectorCrossSection(2) * myVectorAirVelocity(2) * myVectorAirVelocity(2) / 2.0;
+	myVectorForceAir(0) = HSL.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * myVectorAirVelocity(0) * myVectorAirVelocity(0) / 2.0f;
+	myVectorForceAir(1) = HSL.myLfAirDensity * myVectorCW(1) * myVectorCrossSection(1) * myVectorAirVelocity(1) * myVectorAirVelocity(1) / 2.0f;
+	myVectorForceAir(2) = HSL.myLfAirDensity * myVectorCW(2) * myVectorCrossSection(2) * myVectorAirVelocity(2) * myVectorAirVelocity(2) / 2.0f;
 
 	if (myVectorAirVelocity(0) < 0) myVectorForceAir(0) *= -1;
 	if (myVectorAirVelocity(1) < 0) myVectorForceAir(1) *= -1;
