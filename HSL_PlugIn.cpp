@@ -1,5 +1,5 @@
-#include "HSL_PlugIn.h"
-
+﻿#include "HSL_PlugIn.h"
+#include <thread>
 
 
 
@@ -8,6 +8,14 @@ HSL_PlugIn::HSL_PlugIn() :
 	myCargo(*this),
 	myHook(*this)
 {
+	myRaindrops = new RainDropDrawData[HSL_RAINDROPS_DRAW_MAX];
+
+	for (int rain_index = 0; rain_index < HSL_RAINDROPS_DRAW_MAX; rain_index++)
+	{
+		myRaindrops->dataValid = false;
+		myRaindrops->myDrawInstance = NULL;
+	}
+
 	myCargo.myHeight = 0.9;
 	myCargo.myMass = 75.0f;
 	myCargo.myFrictionGlide = 0.35;
@@ -25,6 +33,7 @@ HSL_PlugIn::HSL_PlugIn() :
 	myVectorWinchPosition = myVectorZeroVector;
 	
 	myVectorDefaultWinchPosition = myVectorZeroVector;
+	myVectorWindVelocity = myVectorZeroVector;
 
 	myVectorRope = myVectorZeroVector;
 
@@ -282,9 +291,14 @@ void HSL_PlugIn::PluginStart()
 	myDrAirDensity = XPLMFindDataRef("sim/weather/rho");
 	myDrGravitation = XPLMFindDataRef("sim/weather/gravity_mss");
 
+	HSLDebugString("Config Read");
 	ConfigRead();
 
 	myInitialized = true;
+
+	HSLDebugString("Starting Drop Thread");
+	myDropThreadPtr = new std::thread(&DropThread::RunDropThread, &myDropThreadObject, 1);
+	HSLDebugString("Drop Thread running");
 
 
 }
@@ -298,9 +312,14 @@ void HSL_PlugIn::PluginStop()
 	XPLMDestroyMenu(myPluginMenuID);
 	for (auto dataRef: myRegisteredDatarefs) XPLMUnregisterDataAccessor(dataRef);
 
+	if (myDropThreadPtr != NULL)
+	{
+		myDropThreadObject.myHSLCommandsIn.push(DropThreadData::ThreadStop);
+		myDropThreadPtr->join();
+		delete myDropThreadPtr;
+		myDropThreadPtr = NULL;
+	}
 
-
-	
 }
 
 void HSL_PlugIn::PluginEnable()
@@ -471,11 +490,27 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 		{
 			vector<float> vectorCargoPointOpenGL = AdjustFrameMovement(myHook.myVectorPosition);
 			DrawInstanceCreate(myHookInstanceRef, myHookObjectRef);
-			DrawInstanceSetPosition(myHookInstanceRef, myHookObjectRef, vectorCargoPointOpenGL, false);
+			DrawInstanceSetPosition(myHookInstanceRef, myHookObjectRef, vectorCargoPointOpenGL, myHook.myVectorDisplayAngle, false);
 		}
 		else
 		{
 			DrawInstanceDestroy(myHookInstanceRef);
+		}
+
+		for (int rain_index = 0; rain_index < HSL_RAINDROPS_DRAW_MAX; rain_index++)
+		{
+			
+			if (myRaindrops[rain_index].dataValid == true)
+			{
+				vector<float> vectorCargoPointOpenGL = AdjustFrameMovement(myRaindrops[rain_index].myVectorPosition);
+				DrawInstanceCreate(myRaindrops[rain_index].myDrawInstance, myRopeObjectRef);
+				DrawInstanceSetPosition(myRaindrops[rain_index].myDrawInstance, myRopeObjectRef, vectorCargoPointOpenGL, myRaindrops[rain_index].myVectorDisplayAngle, true);
+			}
+			else
+			{
+				DrawInstanceCreate(myRaindrops[rain_index].myDrawInstance, myRopeObjectRef);
+				DrawInstanceSetPosition(myRaindrops[rain_index].myDrawInstance, myRopeObjectRef, myVectorZeroVector, myVectorZeroVector, true);
+			}
 		}
 	}
 
@@ -801,6 +836,11 @@ void HSL_PlugIn::UpdateObjects()
 		DrawInstanceDestroy(myWinchInstanceRef);
 		DrawInstanceDestroy(myHookInstanceRef);
 
+		for (int rain_index = 0; rain_index < HSL_RAINDROPS_DRAW_MAX; rain_index++)
+		{
+			DrawInstanceDestroy(myRaindrops[rain_index].myDrawInstance);
+		}
+
 		for (int index = 0; index < HSL_ROPE_POINTS_MAX; index++)
 		{
 			DrawInstanceDestroy(myRopeInstances[index]);
@@ -837,22 +877,30 @@ void HSL_PlugIn::UpdateObjects()
 			myCargoObjectRef = NULL;
 		}
 
+		if (myRaindropObjectRef != NULL)
+		{
+			XPLMUnloadObject(myRaindropObjectRef);
+			myRaindropObjectRef = NULL;
+		}
+
 		HSLDebugString("Reset: Winch Object Lookup Start");
 		XPLMLookupObjects(myWinchPath.c_str(), 0, 0, load_cb, &myWinchObjectRef);
 		XPLMLookupObjects(myRopePath.c_str(), 0, 0, load_cb, &myRopeObjectRef);
 		XPLMLookupObjects(myHookPath.c_str(), 0, 0, load_cb, &myHookObjectRef);
 		XPLMLookupObjects(myCargoPath.c_str(), 0, 0, load_cb, &myCargoObjectRef);
+		XPLMLookupObjects(myRaindropPath.c_str(), 0, 0, load_cb, &myRaindropObjectRef);
 
-		if (myCargoObjectRef == NULL)	myCargoObjectRef = XPLMLoadObject(myCargoPath.c_str());
-		if (myHookObjectRef == NULL)	myHookObjectRef  = XPLMLoadObject(myHookPath.c_str());
-		if (myRopeObjectRef == NULL)	myRopeObjectRef  = XPLMLoadObject(myRopePath.c_str());
-		if (myWinchObjectRef == NULL)	myWinchObjectRef = XPLMLoadObject(myWinchPath.c_str());
+		if (myCargoObjectRef == NULL)		myCargoObjectRef = XPLMLoadObject(myCargoPath.c_str());
+		if (myHookObjectRef == NULL)		myHookObjectRef  = XPLMLoadObject(myHookPath.c_str());
+		if (myRopeObjectRef == NULL)		myRopeObjectRef  = XPLMLoadObject(myRopePath.c_str());
+		if (myWinchObjectRef == NULL)		myWinchObjectRef = XPLMLoadObject(myWinchPath.c_str());
+		if (myRaindropObjectRef == NULL)	myRaindropObjectRef = XPLMLoadObject(myRaindropPath.c_str());
 
 
 		myGroundProbe = XPLMCreateProbe(xplm_ProbeY);
 		HSLDebugString("Reset: Winch Object Lookup Finished");
 
-		if ((!myWinchObjectRef) || (!myRopeObjectRef) || (!myHookObjectRef) || (!myCargoObjectRef))
+		if ((!myWinchObjectRef) || (!myRopeObjectRef) || (!myHookObjectRef) || (!myCargoObjectRef) || (!myRaindropObjectRef))
 		{
 			HSLDebugString("Reset: Winch Object Lookup Failed");
 			SlingDisable();
@@ -1196,6 +1244,8 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 		myDebugStatement = true;
 		myFrameTime = elapsedMe;
 
+		if (myDropThreadObject.myDropObjectIn.size() > 0) myRainDropOverflow++;
+
 		ReadDataRefs();
 
 		// Move the Winch
@@ -1239,10 +1289,96 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 				myRopePoints.push_back(position);
 			}
 		}
+
+		if (myCargo.myBambiBucketRelease == true)
+		{
+			myRainReleaseTime += myFrameTime;
+
+			if (myRainReleaseTime >= myRainReleaseFrequency)
+			{
+				myRainReleaseTime = 0;
+				for (int direction = 0; direction < myRainDirections; direction++)
+				{
+					vector<float> rainVelocity = myCargo.myVectorVelocity;
+					float offset = ((float)direction) / ((float)myRainDirections);
+					float angle = 2.0f * M_PI * offset;
+					float cos_angle = cos(angle);
+					float sin_angle = sin(angle);
+					float speed_x = myRainSpeed * cos_angle;
+					float speed_y = myRainSpeed * sin_angle;
+					float speed_z = rainVelocity(1);
+					rainVelocity(0) += speed_x;
+					rainVelocity(2) += speed_y;
+
+					DropObject* p_raindrop = new DropObject(myCargo.myVectorPosition, rainVelocity);
+					myDropThreadObject.myDropObjectIn.push(p_raindrop);
+				}
+			}
+		}
+		else
+		{
+			myRainReleaseTime = 0;
+		}
+
 		
+		// Handle all drops that we are able to draw
+		for (int rain_index = 0; rain_index < HSL_RAINDROPS_DRAW_MAX; rain_index++)
+		{
+			if (myDropThreadObject.myDropObjectOut.size() > 0)
+			{
+				DropObject* p_raindrop = myDropThreadObject.myDropObjectOut.pop();
+
+				if (check_below_ground(p_raindrop->myVectorPosition, myGroundProbe) == false)
+				{
+					myRaindrops[rain_index].dataValid = true;
+					myRaindrops[rain_index].myVectorPosition = p_raindrop->myVectorPosition;
+					myRaindrops[rain_index].myVectorVelocity = p_raindrop->myVectorVelocity;
+					myRaindrops[rain_index].myVectorDisplayAngle = p_raindrop->myVectorDisplayAngle;
+
+					myDropThreadObject.myDropObjectIn.push(p_raindrop);
+				}
+				else
+				{
+					myRaindrops[rain_index].dataValid = false;
+					delete p_raindrop;
+				}
+			}
+			else
+			{
+				myRaindrops[rain_index].dataValid = false;
+
+			}
+		}
+
+		// Handle all undrawn drops
+		while ((myDropThreadObject.myDropObjectOut.size() > 0))
+		{
+			DropObject* p_raindrop = myDropThreadObject.myDropObjectOut.pop();
+			if (check_below_ground(p_raindrop->myVectorPosition, myGroundProbe) == false)
+			{
+				myDropThreadObject.myDropObjectIn.push(p_raindrop);
+			}
+			else
+			{
+				delete p_raindrop;
+			}
+		}	
+
+		myRainDropNumber = myDropThreadObject.myDropObjectIn.size();
+
+		DropHSLData newData;
+
+		newData.myFrameTime = myFrameTime;
+		newData.myLfAirDensity = myLfAirDensity;
+		newData.myLfGravitation = myLfGravitation;
+		newData.myVectorWindVelocity = myVectorWindVelocity;
+
+		myDropThreadObject.myHSLDataIn.push(newData);
+		myDropThreadObject.myHSLCommandsIn.push(DropThreadData::ThreadNewHSLData);
 
 
-		
+		// Start Computation
+		myDropThreadObject.myHSLCommandsIn.push(DropThreadData::ThreadCompute);
 
 		// Store to be able to detect movement between flight loop and draw callback
 		myLastLocalX = myLdLocalX;
@@ -1285,7 +1421,6 @@ void HSL_PlugIn::ReadDataRefs()
 	myLiPause = XPLMGetDatai(myDrPause);
 	myLfWindDirection = XPLMGetDataf(myDrWindDirection) * M_PI / 180.0f;
 	myLfWindSpeed = XPLMGetDataf(myDrWindSpeed);
-
 
 	myLfForceX = XPLMGetDataf(myDrForceX);
 	myLfForceY = XPLMGetDataf(myDrForceY);

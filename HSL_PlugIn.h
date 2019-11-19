@@ -4,6 +4,9 @@
 #include "HSL.h"
 #include "HSLImguiWidget.h"
 #include "CargoObject.h"
+#include "DropObject.h"
+#include "TSQueue.h"
+#include "DropThread.h"
 
 
 class HSL_PlugIn
@@ -17,6 +20,9 @@ public:
 	std::string myConfigIniFile = "HSL.ini";
 
 	std::shared_ptr<HSLImguiWidget> imguiPtr;
+	
+	DropThread myDropThreadObject;
+	std::thread *myDropThreadPtr = NULL;
 
 	bool myInitialized = false;
 	int myPluginEnabled = 0;
@@ -52,11 +58,13 @@ public:
 	std::string myWinchPath = "hsl/Sphere_1.obj";
 	std::string myRopePath = "hsl/Sphere_2.obj";
 	std::string myHookPath = "hsl/Sphere_1.obj";
+	std::string myRaindropPath = "hsl/Sphere_2.obj";
 	std::string myCargoPath = "RescueX/objects/Bergwacht_Luftrettungssack.obj";
 
 	XPLMObjectRef myWinchObjectRef = NULL;
 	XPLMObjectRef myRopeObjectRef = NULL;
 	XPLMObjectRef myHookObjectRef = NULL;
+	XPLMObjectRef myRaindropObjectRef = NULL;
 	XPLMObjectRef myCargoObjectRef = NULL;
 	
 	XPLMInstanceRef myWinchInstanceRef = NULL;
@@ -81,6 +89,7 @@ public:
 	vector<float> myVectorHelicopterPosition = vector<float>(3);
 	vector<float> myVectorHookPosition = vector<float>(3);
 	vector<float> myVectorWinchPosition = vector<float>(3);
+	vector<float> myVectorWindVelocity = vector<float>(3);
 	vector<float> myVectorZeroVector = vector<float>(3);
 
 	float myFrameTime = 0;
@@ -103,6 +112,16 @@ public:
 	double myCargoSetLatitutde = 0.0;
 	double myCargoSetLongitude = 0.0;
 	float myCargoSetHeading = 0.0;
+
+	float myRainSpeed = 5.0f;
+	int myRainDirections = 10;
+	float myRainReleaseFrequency = 0.1f;
+	float myRainReleaseTime = 0.0f;
+
+	int myRainDropNumber = 0;
+	int myRainDropOverflow = 0;
+
+	RainDropDrawData *myRaindrops = NULL;
 
 	/*
 	// Loaded Object

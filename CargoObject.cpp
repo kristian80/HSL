@@ -41,6 +41,69 @@ CargoObject::CargoObject(HSL_PlugIn& HSLNew) :
 	myVectorCW = myVectorSize * 0.9; //0.9 == Cube
 }
 
+CargoObject::CargoObject(HSL_PlugIn& HSLNew, vector<float> pos, vector<float> vel) : 
+	HSL(HSLNew)
+{
+	for (unsigned i = 0; i < myVectorZeroVector.size(); ++i) myVectorZeroVector(i) = 0;
+
+	myVectorVelocity = myVectorZeroVector;
+	myVectorForceGravity = myVectorZeroVector;
+	myVectorWindVelocity = myVectorZeroVector;
+	myVectorCargoOffset = myVectorZeroVector;
+	myVectorCargoRotation = myVectorZeroVector;
+	myVectorWaterVelocity = myVectorZeroVector;
+
+
+	myVectorSize = myVectorZeroVector;
+	myVectorCrossSection = myVectorZeroVector;
+	myVectorCW = myVectorZeroVector;
+
+	myVectorDisplayOffset = myVectorZeroVector;
+	myVectorDisplayAngle = myVectorZeroVector;
+
+	myVectorForceRope = myVectorZeroVector;
+	myVectorAirVelocity = myVectorZeroVector;
+	myVectorForceAir = myVectorZeroVector;
+	myVectorForceWater = myVectorZeroVector;
+	myVectorForceTotal = myVectorZeroVector;
+	myVectorHorizontalVelocity = myVectorZeroVector;
+	myVectorForceFriction = myVectorZeroVector;
+	myVectorAccTotal = myVectorZeroVector;
+	myVectorVelocityDelta = myVectorZeroVector;
+	myVectorForceChopper = myVectorZeroVector;
+	myVectorMomentumChopper = myVectorZeroVector;
+	myVectorForceSwim = myVectorZeroVector;
+
+	myVectorSize(0) = 1;
+	myVectorSize(1) = 1;
+	myVectorSize(2) = 1;
+
+	myVectorCW = myVectorSize * 0.9; //0.9 == Cube
+
+	myRopeConnected = false;
+	myDrawingEnabled = true;
+	myInstancedDrawing = true;
+	myOrientationFollowsDirection = true;
+	myHeight = 0.05;
+
+
+
+	myHeight = 0.05;
+	myMass = 0.000125;
+	myVectorSize(0) = 0.05;
+	myVectorSize(1) = 0.05;
+	myVectorSize(2) = 0.05;
+	myVectorCW(0) = 0.45;
+	myVectorCW(1) = 0.45;
+	myVectorCW(2) = 0.45;
+	myHeight = 0.05;
+	myHeight = 0.05;
+
+	myVectorPosition = pos;
+
+	myVectorVelocity = vel;
+}
+
 CargoObject::~CargoObject()
 {
 }
@@ -361,7 +424,7 @@ void CargoObject::CalculatePhysics()
 
 	// If ruptured, keep offset and angle
 
-	if ((HSL.myRopeRuptured == false) && (myRopeConnected == true))
+	if (((HSL.myRopeRuptured == false) && (myRopeConnected == true)) || (myOrientationFollowsDirection == true))
 	{
 		vector<float> normalPosition(3);
 
@@ -371,6 +434,10 @@ void CargoObject::CalculatePhysics()
 
 		vector<float> normalPositionSphere = XPlaneCartToSphere(normalPosition);
 		vector<float> ropeUnitSphere = XPlaneCartToSphere(vectorRopeUnit);
+
+		vector<float> negativeVelocity = -1 * myVectorVelocity;
+
+		if (myOrientationFollowsDirection == true) ropeUnitSphere = XPlaneCartToSphere(get_unit_vector(negativeVelocity));
 
 		normalPositionSphere(1) = ropeUnitSphere(1) - normalPositionSphere(1);
 		normalPositionSphere(2) = ropeUnitSphere(2) - normalPositionSphere(2);

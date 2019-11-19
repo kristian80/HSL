@@ -98,6 +98,7 @@ void HSLImguiWidget::buildInterface()
 
 	ImGui::Checkbox("Cargo Is Bambi Bucket", &(pHSL->myCargo.myIsBambiBucket));
 	ImGui::Checkbox("Bambi Bucket Release", &(pHSL->myCargo.myBambiBucketRelease));
+	ImGui::InputFloat("Water Speed [m/s]", &(pHSL->myRainSpeed), 0.1, 0.1, 3, 0);
 
 	ImGui::Text("Rope Parameters:");
 	ImGui::InputFloat("Rope Length Start [m]", &(pHSL->myRopeLengthStart), 0.01, 0.01, 3, 0);
@@ -186,6 +187,9 @@ void HSLImguiWidget::buildInterface()
 	ImGui::Text("FrameTime [s]:      %.3f", pHSL->myFrameTime);
 	ImGui::Text("FlightLoopTime [us]:%d", pHSL->myProcessingTimeFlightLoop);
 	ImGui::Text("DrawTime [us]:      %d", pHSL->myProcessingTimeDrawRoutine);
+
+	ImGui::Text("Raindrops:          %d", pHSL->myRainDropNumber);
+	ImGui::Text("RD Thread Overvlow: %d", pHSL->myRainDropOverflow);
 
 
 	ImGui::Text("CurrentRopeLength:  %.3f", pHSL->myCurrentRopeLength);

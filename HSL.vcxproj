@@ -58,8 +58,8 @@
     <TargetExt>.xpl</TargetExt>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>win</TargetName>
-    <IncludePath>E:\Docs\Games\X-Plane\Ivy\imgui_tabs;E:\Docs\Games\X-Plane\IvyGit\Client_CPP\Ivy\SDK\CHeaders\Wrappers;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include\;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include;E:\Docs\Games\X-Plane\Ivy\imgui;E:\Docs\Games\X-Plane\Ivy\xsb_public;E:\Docs\Games\X-Plane\Ivy\boost_1_55_0\boost_1_55_0\;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64;$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\Docs\Games\X-Plane\CPP\Libs\Opengl;E:\Docs\Games\X-Plane\CPP\Examples\glExamples\src\libs;E:\Docs\Games\X-Plane\CPP\Libs\glut-3.7.6-bin\glut-3.7.6-bin;E:\Docs\Games\X-Plane\CPP\Examples\glExamples\src\examples\common;E:\Docs\Games\X-Plane\Ivy\imgui_tabs;E:\Docs\Games\X-Plane\IvyGit\Client_CPP\Ivy\SDK\CHeaders\Wrappers;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include\;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include;E:\Docs\Games\X-Plane\Ivy\imgui;E:\Docs\Games\X-Plane\Ivy\xsb_public;E:\Docs\Games\X-Plane\Ivy\boost_1_55_0\boost_1_55_0\;E:\Docs\Games\X-Plane\CPP\Libs\glm;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\Docs\Games\X-Plane\CPP\Libs\glut-3.7.6-bin\glut-3.7.6-bin\glut32.lib;C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -152,6 +152,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CargoObject.cpp" />
+    <ClCompile Include="DropObject.cpp" />
+    <ClCompile Include="DropThread.cpp" />
     <ClCompile Include="E:\Docs\Games\X-Plane\Ivy\imgui\imgui.cpp" />
     <ClCompile Include="E:\Docs\Games\X-Plane\Ivy\imgui\imgui_draw.cpp" />
     <ClCompile Include="E:\Docs\Games\X-Plane\Ivy\imgui\imgui_widgets.cpp" />
@@ -163,10 +165,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CargoObject.h" />
+    <ClInclude Include="DropObject.h" />
+    <ClInclude Include="DropThread.h" />
     <ClInclude Include="LoadBaseObject.h" />
     <ClInclude Include="HSL.h" />
     <ClInclude Include="HSLImguiWidget.h" />
     <ClInclude Include="HSL_PlugIn.h" />
+    <ClInclude Include="TSQueue.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

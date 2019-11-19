@@ -7,6 +7,8 @@ class CargoObject :
 public:
 	HSL_PlugIn& HSL;
 
+	XPLMInstanceRef myDrawInstance = NULL;
+
 	vector<float> myVectorZeroVector = vector<float>(3);
 
 	vector<float> myVectorVelocity = vector<float>(3);
@@ -26,6 +28,7 @@ public:
 	bool myFollowOnly = false;
 	bool myDrawingEnabled = false;
 	bool myInstancedDrawing = false;
+	bool myOrientationFollowsDirection = false;
 
 	float myWaterLevel = 0;
 	float myVolume = 0;
@@ -61,6 +64,7 @@ public:
 	vector<float> myVectorMomentumChopper = vector<float>(3);
 
 	CargoObject(HSL_PlugIn &HSLNew);
+	CargoObject(HSL_PlugIn& HSLNew, vector<float> pos, vector<float> vel);
 	~CargoObject();
 
 	void CalculatePhysics();

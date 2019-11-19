@@ -68,6 +68,7 @@ using namespace boost::numeric::ublas;
 #define VERT_AXIS 1
 
 #define HSL_ROPE_POINTS_MAX 2000
+#define HSL_RAINDROPS_DRAW_MAX 1000
 #define MAX_OBJ_SPEED 300.0f // ~sonic speed
 
 #define MSG_ADD_DATAREF 0x01000000
@@ -78,6 +79,32 @@ using namespace boost::numeric::ublas;
 class HSL_PlugIn;
 extern HSL_PlugIn* pHSL;
 extern std::ofstream hsl_output_file;
+
+struct DropHSLData
+{
+	float myFrameTime = 0;
+	float myLfAirDensity = 0;
+	float myLfGravitation = 0;
+	vector<float> myVectorWindVelocity;
+};
+
+struct RainDropDrawData
+{
+	bool dataValid = false;
+	XPLMInstanceRef myDrawInstance = NULL;
+	vector<float> myVectorPosition = vector<float>(3);
+	vector<float> myVectorVelocity = vector<float>(3);
+	vector<float> myVectorDisplayAngle = vector<float>(3);
+};
+
+inline bool check_below_ground(vector<float>& pos, XPLMProbeRef groundProbe)
+{
+	XPLMProbeInfo_t info;
+	info.structSize = sizeof(info);
+	XPLMProbeResult	result = XPLMProbeTerrainXYZ(groundProbe, pos(0), pos(1), pos(2), &info);
+	if (info.locationY < pos(1)) return false;
+	return true;
+}
 
 inline vector<float> get_unit_vector(vector<float>& v_in)
 {
