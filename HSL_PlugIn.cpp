@@ -58,6 +58,7 @@ void HSL_PlugIn::PluginStart()
 	mySystemPath = buffer;
 
 	myConfigPath = mySystemPath + "Resources" + myDS + "plugins" + myDS + "HSL" + myDS;
+	myFireAircraftPath = myConfigPath + myFireAircraftPath;
 
 	
 	XPLMCreateFlightLoop_t flightLoopParams;
@@ -97,6 +98,10 @@ void HSL_PlugIn::PluginStart()
 	myCmdRefToggleControlWindow = XPLMCreateCommand("HSL/ToogleControlWindow", "Toggle Control Window");
 	myCmdRefUpdateObjects = XPLMCreateCommand("HSL/UpdateObjects", "Update Objects");
 
+	myCmdRefFirePlaceGround = XPLMCreateCommand("HSL/Fire_On_Ground", "Place fire in front of the aircraft");
+	myCmdRefFirePlaceCoordinates = XPLMCreateCommand("HSL/Fire_On_Coordinates", "Place fire at given coordinates");
+	myCmdRefBambiBucketRelease = XPLMCreateCommand("HSL/Bucket_Release", "Release Water in Bambi Bucket");
+
 	XPLMRegisterCommandHandler(myCmdRefWinchUp, WrapWinchUpCallback, 0, 0);
 	XPLMRegisterCommandHandler(myCmdRefWinchDown, WrapWinchDownCallback, 0, 0);
 	XPLMRegisterCommandHandler(myCmdRefWinchStop, WrapWinchStopCallback, 0, 0);
@@ -112,6 +117,14 @@ void HSL_PlugIn::PluginStart()
 	XPLMRegisterCommandHandler(myCmdRefToggleControlWindow, WrapToggleControlWindowCallback, 0, 0);
 	XPLMRegisterCommandHandler(myCmdRefUpdateObjects, WrapUpdateObjectCallback, 0, 0);
 
+
+	XPLMRegisterCommandHandler(myCmdRefFirePlaceGround, WrapFireGroundCallback, 0, 0);
+	XPLMRegisterCommandHandler(myCmdRefFirePlaceCoordinates, WrapFireCoordinatesCallback, 0, 0);
+	XPLMRegisterCommandHandler(myCmdRefBambiBucketRelease, WrapBambiBucketRelease, 0, 0);
+
+
+
+
 	//myDrShRopeLengthStart = XPLMRegisterDataAccessor("HSL/RopeLengthStart", xplmType_Float, 1, NULL, NULL, WrapReadFloatCallback, WrapWriteFloatCallback, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &myRopeLengthStart, &myRopeLengthStart);
 
 	
@@ -126,29 +139,14 @@ void HSL_PlugIn::PluginStart()
 	RegisterDoubleDataref(myCargoSetLatitutde, "HSL/Cargo/SetLatitude");
 	RegisterDoubleDataref(myCargoSetLongitude, "HSL/Cargo/SetLongitude");
 	
-	
-	
+	RegisterFloatDataref(myWinchSpeed, "HSL/WinchSpeed");
+	RegisterVectorDataref(myVectorWinchPosition, "HSL/VectorWinchPosition");
 	RegisterFloatDataref(myRopeLengthStart, "HSL/RopeLengthStart");
-	
-
-
-
 	RegisterFloatDataref(myRopeLengthNormal, "HSL/RopeLengthNormal");
 	RegisterFloatDataref(myRopeDamping, "HSL/RopeDamping");
 	RegisterFloatDataref(myRopeK, "HSL/RopeK");
 	RegisterFloatDataref(myRopeRuptureForce, "HSL/Rope/RuptureForce");
-
 	RegisterFloatDataref(myMaxAccRopeFactor, "HSL/Rope/MaxAccRopeFactor");
-
-	// Loaded Object
-	/*RegisterFloatDataref(myObjectHeight, "HSL/CurrentLoadHeight");
-	RegisterFloatDataref(myObjectMass, "HSL/CurrentLoadMass");
-	RegisterFloatDataref(myObjectCrossSection, "HSL/CurrentLoadCrossSection");
-	RegisterFloatDataref(myObjectCWFront, "HSL/CurrentLoadCWFront");
-	RegisterFloatDataref(myObjectFrictionGlide, "HSL/CurrentLoadFrictionGlide");
-	RegisterFloatDataref(myObjectFrictionStatic, "HSL/CurrentLoadFrictionStatic");*/
-
-	
 
 	// Hook 
 	RegisterIntDataref(myHook.myRopeConnected, "HSL/Hook/Connected");
@@ -182,10 +180,7 @@ void HSL_PlugIn::PluginStart()
 	RegisterFloatDataref(myCargo.myBambiBucketWaterLevel, "HSL/Cargo/BambiBucketWaterLevel");
 	RegisterVectorDataref(myCargo.myVectorCargoOffset, "HSL/Cargo/RopeOffset");
 
-	RegisterFloatDataref(myWinchSpeed, "HSL/WinchSpeed");
-	
-	
-	RegisterVectorDataref(myVectorWinchPosition, "HSL/VectorWinchPosition");
+
 
 	RegisterVectorDataref(myVectorHelicopterPosition, "HSL/Calculated/VectorHelicopterPosition");
 	RegisterVectorDataref(myVectorHookPosition, "HSL/Calculated/VectorHookPosition");
@@ -236,6 +231,36 @@ void HSL_PlugIn::PluginStart()
 	RegisterStringDataref(myRopePath, "HSL/RopeObjectPath");
 	RegisterStringDataref(myHookPath, "HSL/HookObjectPath");
 	RegisterStringDataref(myCargoPath, "HSL/CargoObjectPath");
+
+	// Fire:
+
+	RegisterStringDataref(myFireAircraftPath, "HSL/Fire/FireAircraftPath");
+
+
+
+
+	RegisterFloatDataref(myFireWaterRadius, "HSL/Fire/WaterRadius");
+	RegisterFloatDataref(myFireLiftNom, "HSL/Fire/LiftNom");
+	RegisterFloatDataref(myFireLiftDenom, "HSL/Fire/LiftDenom");
+	RegisterFloatDataref(myFireDistDemon, "HSL/Fire/DistDenom");
+
+	RegisterFloatDataref(myFireStrengthStart, "HSL/Fire/StrengthStart");
+	RegisterFloatDataref(myFireStrengthMax, "HSL/Fire/StrengthMax");
+	RegisterFloatDataref(myFireStrengthIncrease, "HSL/Fire/StrengthIncrease");
+
+
+	RegisterDoubleDataref(myFireSetLatitutde, "HSL/Fire/SetLatitude");
+	RegisterDoubleDataref(myFireSetLongitude, "HSL/Fire/SetLongitude");
+	RegisterFloatDataref(myFireSetElevation, "HSL/Fire/SetElevation");
+
+	RegisterFloatDataref(myFireCount, "HSL/Fire/Count");
+	RegisterFloatArrayDataref(myFireStrength, "HSL/Fire/FireStrengh", MAX_FIRES);
+
+	RegisterIntDataref(myFireCreateFailed, "HSL/Fire/CreateFailed");
+	RegisterIntDataref(myUpdateFirePositions, "HSL/Fire/UpdatePositions");
+	RegisterIntDataref(myRemoveFires, "HSL/Fire/RemoveFires");
+
+
 	
 	/*strcpy(buffer, "RescueX/objects/Bergwacht_Luftrettungssack.obj");
 	XPLMDataRef test = XPLMFindDataRef("HSL/RopeObjectPath");
@@ -245,6 +270,7 @@ void HSL_PlugIn::PluginStart()
 
 	// Drawing
 	XPLMRegisterDrawCallback(WrapDrawCallback, xplm_Phase_Objects, 0, NULL); //xplm_Phase_Airplanes
+	//XPLMRegisterDrawCallback(WrapDrawCallback, xplm_Phase_Airplanes, 0, NULL); //
 
 	int left, top, right, bot;
 	XPLMGetScreenBoundsGlobal(&left, &top, &right, &bot);
@@ -320,6 +346,8 @@ void HSL_PlugIn::PluginStop()
 		myDropThreadPtr = NULL;
 	}
 
+	XPLMReleasePlanes();
+
 }
 
 void HSL_PlugIn::PluginEnable()
@@ -340,15 +368,13 @@ void HSL_PlugIn::PluginReceiveMessage(XPLMPluginID inFromWho, int inMessage, voi
 
 	if (inFromWho == XPLM_PLUGIN_XPLANE)
 	{
+		//if ((inMessage == XPLM_MSG_PLANE_LOADED) && (*((int *) (inParam)) == 0)) // 0 = User Aircraft
 		if (inMessage == XPLM_MSG_PLANE_LOADED)
 		{
 			HSLDebugString("Plane loaded");
 
 			myAircraftLoaded = 1;
-
-			
-
-			SlingDisable();
+			//SlingDisable();
 
 		}
 		if (inMessage == XPLM_MSG_AIRPORT_LOADED)
@@ -411,6 +437,11 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 	if (mySlingLineEnabled == true)
 	{
 		ReadDataRefs();
+
+		for (auto fire : myFires)
+		{
+			//XPLMDrawAircraft(fire.planeIndex, fire.posX, fire.posY, fire.posZ, 0, 0, 0, 1, &(fire.drawState));
+		}
 
 		vector<float> vectorWinchWorld = AdjustFrameMovement(myVectorHelicopterPosition);
 		//vector<float> vectorWinchWorld = myVectorHelicopterPosition;
@@ -989,6 +1020,200 @@ void HSL_PlugIn::CargoPlaceCoordinates()
 	myCargo.myDrawingEnabled = true;
 }
 
+void HSL_PlugIn::FirePlaceOnGround()
+{
+	// Place Load 10m before Aircraft
+	vector<float> placement(3);
+	placement(0) = 0;
+	placement(1) = 0;
+	placement(2) = -10;
+	placement = AircraftToWorld(placement);
+
+	FirePlaceAtCoordinates(&placement);
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/*int planeTotalCount = 0;
+	int planeActiveCount = 0;
+	char planeFileName[2048];
+	char planePath[2048];
+	int aircraftAcquired = -1;
+
+
+	char loadAircraftPath[2048];
+	char nullPath[2048];
+	char* pLoadAircraftPath[2];
+
+	pLoadAircraftPath[0] = loadAircraftPath;
+	pLoadAircraftPath[1] = NULL;
+
+	strcpy(nullPath, "");
+	strcpy(loadAircraftPath, "D:\\X-Plane 11\\Aircraft\\Extra Aircraft\\Fire_Aircraft\\Austins Personal Jet.acf");
+	//strcpy(loadAircraftPath, "D:\\X-Plane 11\\Aircraft\\Commercial Aircraft\\A310\\A310.acf");
+
+	XPLMCountAircraft(&planeTotalCount, &planeActiveCount, 0);
+	aircraftAcquired = XPLMAcquirePlanes(pLoadAircraftPath, NULL, NULL);
+	XPLMSetAircraftModel(2, loadAircraftPath);
+	
+	
+	aircraftAcquired = XPLMAcquirePlanes(pLoadAircraftPath, NULL, NULL);
+
+	FireData newFire;
+
+
+	newFire.drawState.structSize = sizeof(XPLMPlaneDrawState_t);
+
+	newFire.drawState.flapRatio = 0;
+	newFire.drawState.gearPosition = 0;
+	newFire.drawState.slatRatio = 0;
+	newFire.drawState.speedBrakeRatio = 0;
+	newFire.drawState.spoilerRatio = 0;
+	newFire.drawState.thrust = 0;
+	newFire.drawState.wingSweep = 0;
+	newFire.drawState.yokeHeading = 0;
+	newFire.posX = myLdLocalX - 1.0f;
+	newFire.posY = myLdLocalY;
+	newFire.posZ = myLdLocalZ + 1.0f;
+
+	XPLMDisableAIForPlane(2);
+
+	newFire.drXPos = XPLMFindDataRef("sim/multiplayer/position/plane2_x");
+	newFire.drYPos = XPLMFindDataRef("sim/multiplayer/position/plane2_y");
+	newFire.drZPos = XPLMFindDataRef("sim/multiplayer/position/plane2_z");
+
+
+	newFire.drXV = XPLMFindDataRef("sim/multiplayer/position/plane2_v_x");
+	newFire.drYV = XPLMFindDataRef("sim/multiplayer/position/plane2_v_y");
+	newFire.drZV = XPLMFindDataRef("sim/multiplayer/position/plane2_v_z");
+
+	newFire.drStrobe = XPLMFindDataRef("sim/multiplayer/position/plane2_strobe_lights_on");
+	newFire.drNav = XPLMFindDataRef("sim/multiplayer/position/plane2_nav_lights_on");
+	newFire.drTaxi = XPLMFindDataRef("sim/multiplayer/position/plane2_taxi_light_on");
+	newFire.drLanding = XPLMFindDataRef("sim/multiplayer/position/plane2_landing_lights_on");
+	newFire.drBeacon = XPLMFindDataRef("sim/multiplayer/position/plane2_beacon_lights_on");
+
+	newFire.planeIndex = 2;
+	newFire.waterPercent = 0;
+
+	//XPLMDrawAircraft(newFire.planeIndex, newFire.posX, newFire.posY, newFire.posZ, 0, 0, 0, 1, &newFire.drawState);
+
+	
+	XPLMSetDataf(newFire.drXPos, newFire.posX);
+	XPLMSetDataf(newFire.drYPos, newFire.posY);
+	XPLMSetDataf(newFire.drZPos, newFire.posZ);
+
+	XPLMSetDataf(newFire.drXV, 0);
+	XPLMSetDataf(newFire.drYV, 0);
+	XPLMSetDataf(newFire.drZV, 0);
+
+	XPLMSetDatai(newFire.drStrobe, 0);
+	XPLMSetDatai(newFire.drNav, 0);
+	XPLMSetDatai(newFire.drTaxi, 0);
+	XPLMSetDatai(newFire.drLanding, 0);
+	XPLMSetDatai(newFire.drBeacon, 0);
+
+
+	myFires.push_back(newFire);
+		
+	/*XPLMCountAircraft(&planeTotalCount, &planeActiveCount, 0);
+
+	//if (planeActiveCount < planeTotalCount)
+	{
+		for (int index = 1; index < planeTotalCount; index++)
+		{
+			XPLMGetNthAircraftModel(index, planeFileName, planePath);
+			//strcpy(SDK210TestsAircraftPath[index - 1], planePath);
+		}
+
+	}*/
+}
+
+void HSL_PlugIn::FirePlaceCoordinates()
+{
+	FirePlaceAtCoordinates(NULL);
+}
+
+void HSL_PlugIn::BambiBucketRelease()
+{
+	myCargo.myBambiBucketRelease = true;
+}
+
+void HSL_PlugIn::FirePlaceAtCoordinates(vector<float> * pinVectorFireObjectPosition) // NULL = place at world coordinates
+{
+	int planeTotalCount = 0;
+	int planeActiveCount = 0;
+	char planeFileName[2048];
+	char planePath[2048];
+	int aircraftAcquired = -1;
+	int planeIndex = -1;
+
+
+	char loadAircraftPath[2048];
+	char* pLoadAircraftPath[2];
+
+	pLoadAircraftPath[0] = loadAircraftPath;
+	pLoadAircraftPath[1] = NULL;
+
+	strcpy(loadAircraftPath, myFireAircraftPath.c_str());
+
+	XPLMCountAircraft(&planeTotalCount, &planeActiveCount, 0);
+
+	for (int index = 1; index < planeTotalCount; index++)
+	{
+		bool isUsed = false;
+		for (auto pFire : myFires)
+		{
+			if (pFire->myPlaneIndex == index)
+				isUsed = true;
+		}
+
+		if (isUsed == false)
+		{
+			planeIndex = index;
+			index = planeTotalCount;
+		}
+
+	}
+
+	// If Aircraft was found
+	if (planeIndex > 0)
+	{
+		aircraftAcquired = XPLMAcquirePlanes(pLoadAircraftPath, NULL, NULL);
+		XPLMSetAircraftModel(planeIndex, loadAircraftPath);
+		aircraftAcquired = XPLMAcquirePlanes(pLoadAircraftPath, NULL, NULL);
+
+		XPLMDisableAIForPlane(planeIndex);
+
+		if (pinVectorFireObjectPosition != NULL)
+		{
+			FireObject* pNewFire = new FireObject(this, planeIndex, *pinVectorFireObjectPosition, false);
+			myFires.push_back(pNewFire);
+		}
+		else
+		{
+			FireObject* pNewFire = new FireObject(this, planeIndex, myVectorZeroVector, true);
+			myFires.push_back(pNewFire);
+		}
+
+		myFireCreateFailed = 0;
+	}
+	else
+	{
+		myFireCreateFailed = 1;
+	}
+
+}
+
 int HSL_PlugIn::WinchUpCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
 {
 	if (phase == xplm_CommandBegin) myWinchDirection = HSL::Up;
@@ -1085,10 +1310,24 @@ void HSL_PlugIn::RegisterFloatDataref(float &valueIn, std::string nameIn)
 	}
 }
 
+void HSL_PlugIn::RegisterFloatArrayDataref(float *valueIn, std::string nameIn, int sizeIn)
+{
+	myRegisteredDatarefs.push_back(
+		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_FloatArray, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, WrapReadFloatArrayCallback, WrapWriteFloatArrayCallback, NULL, NULL, valueIn, valueIn)
+	);
+
+
+	if (myDataRefEditorPluginID == XPLM_NO_PLUGIN_ID) myDataRefEditorPluginID = XPLMFindPluginBySignature("xplanesdk.examples.DataRefEditor");
+	if (myDataRefEditorPluginID != XPLM_NO_PLUGIN_ID)
+	{
+		XPLMSendMessageToPlugin(myDataRefEditorPluginID, MSG_ADD_DATAREF, (void*)nameIn.c_str());
+	}
+}
+
 void HSL_PlugIn::RegisterDoubleDataref(double& valueIn, std::string nameIn)
 {
 	myRegisteredDatarefs.push_back(
-		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_Float, 1, NULL, NULL, NULL, NULL, WrapReadDoubleCallback, WrapWriteDoubleCallback, NULL, NULL, NULL, NULL, NULL, NULL, &valueIn, &valueIn)
+		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_Double, 1, NULL, NULL, NULL, NULL, WrapReadDoubleCallback, WrapWriteDoubleCallback, NULL, NULL, NULL, NULL, NULL, NULL, &valueIn, &valueIn)
 	);
 
 
@@ -1290,9 +1529,19 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 			}
 		}
 
-		if (myCargo.myBambiBucketRelease == true)
+		//////////////////////////////////////////////////////////////////////////////////////////////////
+		//                   Bambi Bucket
+
+
+		if (myCargo.myBambiBucketWaterLevel <= 0.0f) myCargo.myBambiBucketRelease = false;
+
+		if ((myCargo.myBambiBucketRelease == true) && (myCargo.myBambiBucketWaterLevel > 0))
 		{
 			myRainReleaseTime += myFrameTime;
+
+			myBambiBucketWaterPerDrop = (myBambiBucketRelease * myRainReleaseFrequency) / myRainDirections;
+
+			vector<float> vectorWaterReleasePosition = myCargo.myVectorPosition - (myCargo.myHeight * vectorRopeUnit);
 
 			if (myRainReleaseTime >= myRainReleaseFrequency)
 			{
@@ -1310,13 +1559,14 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 					rainVelocity(0) += speed_x;
 					rainVelocity(2) += speed_y;
 
-					DropObject* p_raindrop = new DropObject(myCargo.myVectorPosition, rainVelocity);
+					DropObject* p_raindrop = new DropObject(vectorWaterReleasePosition, rainVelocity);
 					myDropThreadObject.myDropObjectIn.push(p_raindrop);
 				}
 			}
 		}
 		else
 		{
+			myBambiBucketWaterPerDrop = 0;
 			myRainReleaseTime = 0;
 		}
 
@@ -1337,8 +1587,26 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 
 					myDropThreadObject.myDropObjectIn.push(p_raindrop);
 				}
+				// Drop hit ground, check fires
 				else
 				{
+					std::list<FireObject*>::iterator it;
+					for (it=myFires.begin(); it != myFires.end();)
+					{
+						FireObject* pFire = *it;
+						if (pFire->CheckWaterDrop(myRaindrops[rain_index].myVectorPosition, myBambiBucketWaterPerDrop))
+						{
+							// Fire Extinguished
+							pFire->Remove();
+							it = myFires.erase(it);
+							delete pFire;
+						}
+						else
+						{
+							it++;
+						}
+					}
+
 					myRaindrops[rain_index].dataValid = false;
 					delete p_raindrop;
 				}
@@ -1349,6 +1617,22 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 
 			}
 		}
+
+		// Remove all fires
+		if (myRemoveFires == true)
+		{
+			std::list<FireObject*>::iterator it;
+			for (it = myFires.begin(); it != myFires.end();)
+			{
+				FireObject* pFire = *it;
+
+				// Fire Extinguished
+				pFire->Remove();
+				it = myFires.erase(it);
+				delete pFire;
+			}
+		}
+		myRemoveFires = false;
 
 		// Handle all undrawn drops
 		while ((myDropThreadObject.myDropObjectOut.size() > 0))
@@ -1365,6 +1649,35 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 		}	
 
 		myRainDropNumber = myDropThreadObject.myDropObjectIn.size();
+
+		// Handle remaining fires
+		myFireCount = myFires.size();
+
+		for (int index = 0; index < MAX_FIRES; index++)
+		{
+			myFireStrength[index] = -1;
+		}
+
+		int fireIndex = 0;
+
+		for (auto pFire : myFires)
+		{
+			if (myUpdateFirePositions) pFire->UpdateWorldCoordinates();
+			pFire->SetPosition();
+
+			if (pFire->myFireStrength < myFireStrengthMax)
+				pFire->myFireStrength += myFireStrengthIncrease * myFrameTime;
+
+			if (fireIndex < MAX_FIRES)
+			{
+				myFireStrength[fireIndex] = pFire->myFireStrength;
+				fireIndex++;
+			}
+		}
+
+		myUpdateFirePositions = 0;
+
+		// Update Flight Loop data for drop thread
 
 		DropHSLData newData;
 

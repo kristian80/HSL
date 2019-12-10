@@ -170,6 +170,22 @@ int WrapLoadCoordinatesCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void
 	return pHSL->LoadCoordinatesCallback(cmd, phase, refcon);
 }
 
+int WrapFireGroundCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	if (phase == xplm_CommandBegin) pHSL->FirePlaceOnGround();
+	return 1;
+}
+int WrapFireCoordinatesCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	if (phase == xplm_CommandBegin) pHSL->FirePlaceCoordinates();
+	return 1;
+}
+int WrapBambiBucketRelease(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
+{
+	if (phase == xplm_CommandBegin) pHSL->BambiBucketRelease();
+	return 1;
+}
+
 int WrapToggleControlWindowCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)
 {
 	return pHSL->ToggleControlWindowCallback(cmd, phase, refcon);
@@ -226,6 +242,27 @@ void WrapWriteVectorFloatCallback(
 	(*pVector)(1) = inValues[1];
 	(*pVector)(2) = inValues[2];
 
+}
+
+int WrapReadFloatArrayCallback(
+	void* inRefcon,
+	float* outValues,    /* Can be NULL */
+	int                  inOffset,
+	int                  inMax)
+{
+	float* array = (float*)inRefcon;
+	memcpy(outValues, array + inOffset, sizeof(float) * inMax);
+	return 1;
+}
+
+void WrapWriteFloatArrayCallback(
+	void* inRefcon,
+	float* inValues,
+	int                  inOffset,
+	int                  inCount)
+{
+	float* array = (float*)inRefcon;
+	memcpy(array + inOffset, inValues, sizeof(float) * inCount);
 }
 
 int WrapReadIntCallback(void* inRefcon)

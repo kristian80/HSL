@@ -70,7 +70,7 @@ using namespace boost::numeric::ublas;
 #define HSL_ROPE_POINTS_MAX 2000
 #define HSL_RAINDROPS_DRAW_MAX 1000
 #define MAX_OBJ_SPEED 300.0f // ~sonic speed
-
+#define MAX_FIRES 18
 #define MSG_ADD_DATAREF 0x01000000
 //#define USE_INSTANCED_DRAWING 0
 
@@ -79,6 +79,7 @@ using namespace boost::numeric::ublas;
 class HSL_PlugIn;
 extern HSL_PlugIn* pHSL;
 extern std::ofstream hsl_output_file;
+
 
 struct DropHSLData
 {
@@ -468,6 +469,18 @@ void WrapWriteVectorFloatCallback(
 	int                  inOffset,
 	int                  inCount);
 
+int WrapReadFloatArrayCallback(
+	void* inRefcon,
+	float* outValues,    /* Can be NULL */
+	int                  inOffset,
+	int                  inMax);
+
+void WrapWriteFloatArrayCallback(
+	void* inRefcon,
+	float* inValues,
+	int                  inOffset,
+	int                  inCount);
+
 
 int WrapWinchUpCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 int WrapWinchDownCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
@@ -480,6 +493,10 @@ int WrapReleaseLoadCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* re
 int WrapToggleControlWindowCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 int WrapLoadGroundCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 int WrapLoadCoordinatesCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+
+int WrapFireGroundCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+int WrapFireCoordinatesCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
+int WrapBambiBucketRelease(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 
 int WrapDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inRefcon);
 

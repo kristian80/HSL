@@ -7,6 +7,7 @@
 #include "DropObject.h"
 #include "TSQueue.h"
 #include "DropThread.h"
+#include "FireObject.h"
 
 
 class HSL_PlugIn
@@ -19,10 +20,13 @@ public:
 	std::string myAircraftIniFile = "HSLAircraft.ini";
 	std::string myConfigIniFile = "HSL.ini";
 
+	
+
 	std::shared_ptr<HSLImguiWidget> imguiPtr;
 	
 	DropThread myDropThreadObject;
 	std::thread *myDropThreadPtr = NULL;
+	std::list<FireObject *> myFires;
 
 	bool myInitialized = false;
 	int myPluginEnabled = 0;
@@ -53,6 +57,9 @@ public:
 	XPLMCommandRef myCmdRefUpdateObjects = NULL;
 	XPLMCommandRef myCmdRefPlaceCargoGround = NULL;
 	XPLMCommandRef myCmdRefPlaceCoordinates = NULL;
+	XPLMCommandRef myCmdRefFirePlaceGround = NULL;
+	XPLMCommandRef myCmdRefFirePlaceCoordinates = NULL;
+	XPLMCommandRef myCmdRefBambiBucketRelease = NULL;
 
 
 	std::string myWinchPath = "hsl/Sphere_1.obj";
@@ -60,6 +67,7 @@ public:
 	std::string myHookPath = "hsl/Sphere_1.obj";
 	std::string myRaindropPath = "hsl/Sphere_2.obj";
 	std::string myCargoPath = "RescueX/objects/Bergwacht_Luftrettungssack.obj";
+	
 
 	XPLMObjectRef myWinchObjectRef = NULL;
 	XPLMObjectRef myRopeObjectRef = NULL;
@@ -80,6 +88,35 @@ public:
 	XPLMInstanceRef myRopeInstances[HSL_ROPE_POINTS_MAX];
 	HSL::WinchDirection myWinchDirection = HSL::Stop;
 
+	/////////////////////////////////////////////////////////
+	// Fire Variables
+
+	//std::string myFireObjectPath = "lib/airport/Common_Elements/Miscellaneous/Tree.obj";
+	std::string myFireAircraftPath = "Fire_Aircraft\\fire_aircraft.acf";
+	XPLMObjectRef myFireObjectRef = NULL;
+
+	vector<float> myVectorFireEmitterOffset = vector<float>(3);
+
+	float myFireWaterRadius = 3.0f;
+	float myFireLiftNom = 77.0f;
+	float myFireLiftDenom = 5.7f;
+	float myFireDistDemon = 20.0f;
+
+	float myFireStrengthStart = 1.0f;
+	float myFireStrengthMax = 1000.0f;
+	float myFireStrengthIncrease = 0;
+
+
+	double myFireSetLatitutde = 0.0;
+	double myFireSetLongitude = 0.0;
+	float myFireSetElevation = 0.0;
+
+	float myFireCount = 0;
+	float myFireStrength[MAX_FIRES];
+
+	bool myFireCreateFailed = 0;
+	bool myUpdateFirePositions = 0;
+	bool myRemoveFires = 0;
 	/////////////////////////////////////////////////////////
 	// Sling Variables
 
@@ -106,6 +143,7 @@ public:
 	bool  myRopeRuptured = false;
 
 	float myBambiBucketRelease = 250.0f;
+	float myBambiBucketWaterPerDrop = 0;
 
 	float myMaxAccRopeFactor = 2.0f; 
 
@@ -274,6 +312,10 @@ public:
 	void UpdateObjects();
 	void CargoPlaceOnGround();
 	void CargoPlaceCoordinates();
+	void FirePlaceOnGround();
+	void FirePlaceCoordinates();
+	void BambiBucketRelease();
+	void FirePlaceAtCoordinates(vector<float> * pinVectorFireObjectPosition);
 
 	int WinchUpCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 	int WinchDownCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
@@ -289,6 +331,7 @@ public:
 	int UpdateObjectsCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 
 	void RegisterFloatDataref(float &valueIn, std::string nameIn);
+	void RegisterFloatArrayDataref(float *valueIn, std::string nameIn, int sizeIn);
 	void RegisterDoubleDataref(double& valueIn, std::string nameIn);
 	void RegisterVectorDataref(vector<float> & vectorIn, std::string nameIn);
 

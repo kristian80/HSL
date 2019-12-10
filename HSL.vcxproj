@@ -159,6 +159,7 @@
     <ClCompile Include="E:\Docs\Games\X-Plane\Ivy\imgui\imgui_widgets.cpp" />
     <ClCompile Include="E:\Docs\Games\X-Plane\Ivy\imgui\misc\cpp\imgui_stdlib.cpp" />
     <ClCompile Include="E:\Docs\Games\X-Plane\Ivy\xsb_public\ImgWindow.cpp" />
+    <ClCompile Include="FireObject.cpp" />
     <ClCompile Include="HSLImguiWidget.cpp" />
     <ClCompile Include="HSL_main.cpp" />
     <ClCompile Include="HSL_PlugIn.cpp" />
@@ -167,6 +168,7 @@
     <ClInclude Include="CargoObject.h" />
     <ClInclude Include="DropObject.h" />
     <ClInclude Include="DropThread.h" />
+    <ClInclude Include="FireObject.h" />
     <ClInclude Include="LoadBaseObject.h" />
     <ClInclude Include="HSL.h" />
     <ClInclude Include="HSLImguiWidget.h" />

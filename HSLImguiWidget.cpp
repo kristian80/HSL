@@ -130,6 +130,17 @@ void HSLImguiWidget::buildInterface()
 	InputVector(pHSL->myCargo.myVectorCargoRotation, "Cargo Rotation");
 
 	ImGui::NextColumn();
+
+	ImGui::Text("Fires:");
+	ImGui::Text(pHSL->myFireAircraftPath.c_str());
+	for (auto pFire : pHSL->myFires)
+	{
+		ImGui::Text("plane index  %i", pFire->myPlaneIndex);
+		ImGui::Text("strength     %.3f", pFire->myFireStrength);
+	}
+
+	ImGui::Text("Sling:");
+
 	OutputVector(pHSL->myVectorHookPosition, "Hook Pos");
 	OutputVector(pHSL->myVectorRope, "Rope");
 	OutputVector(pHSL->myVectorWinchPosition, "WinchPosition");
@@ -249,9 +260,15 @@ void HSLImguiWidget::buildInterface()
 	if (ImGui::Button("Place Load Here")) pHSL->CargoPlaceOnGround();
 	if (ImGui::Button("Place Load Coords")) pHSL->CargoPlaceCoordinates();
 
+	if (ImGui::Button("Place Fire Here")) pHSL->FirePlaceOnGround();
+	if (ImGui::Button("Place Fire Coords")) pHSL->FirePlaceCoordinates();
+
 	if (ImGui::Button("Connect Load")) pHSL->SlingConnect();
 	if (ImGui::Button("Release Load")) pHSL->SlingRelease();
 	if (ImGui::Button("Cut Rope")) pHSL->myRopeRuptured = true;
+
+	if (ImGui::Button("Fill BambiBucket")) pHSL->myCargo.myBambiBucketWaterLevel = 1.0f;
+
 
 	
 	
@@ -262,6 +279,8 @@ void HSLImguiWidget::buildInterface()
 	
 	
 	if (ImGui::Button("Update Objects")) pHSL->UpdateObjects();
+
+	
 
 	if (pHSL->mySlingLineEnabled == true)
 	{

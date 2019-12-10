@@ -143,20 +143,20 @@ void CargoObject::CalculatePhysics()
 		if (myVectorVelocity(VERT_AXIS) < 0) myVectorVelocity(VERT_AXIS) = 0; //no velocity targeting below ground
 
 	}
-	else if ((myVectorPosition(VERT_AXIS) <= myObjectTerrainLevel) && (info.is_wet == true))
+	else if ((myVectorPosition(VERT_AXIS) <= myObjectTerrainLevel) && (info.is_wet > 0))
 	{
 		if (myVectorSize(2) == 0) return;
 
 		float sink = myObjectTerrainLevel - myVectorPosition(VERT_AXIS);
 		myWaterLevel = sink / myVectorSize(2);
 		if (myWaterLevel > 1) myWaterLevel = 1;
-
-		if (myIsBambiBucket == true)
-		{
-			if (myBambiBucketWaterLevel < myWaterLevel) myBambiBucketWaterLevel = myWaterLevel;
-			myBambiBucketWaterWeight = myBambiBucketWaterLevel * myVolume * HSL_Data::density_water;
-		}
 		
+	}
+
+	if (myIsBambiBucket == true)
+	{
+		if (myBambiBucketWaterLevel < myWaterLevel) myBambiBucketWaterLevel = myWaterLevel;
+		myBambiBucketWaterWeight = myBambiBucketWaterLevel * myVolume * HSL_Data::density_water;
 	}
 
 	if (myIsBambiBucket == false)
