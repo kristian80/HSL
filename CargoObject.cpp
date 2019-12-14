@@ -118,6 +118,8 @@ void CargoObject::CalculatePhysics()
 
 	myVolume = myVectorSize(0) * myVectorSize(1) * myVectorSize(2);
 
+	myVectorWindVelocity = HSL.myVectorWindVelocity;
+
 	if ((myFollowOnly == true) && (myRopeConnected == true))
 	{
 		myVectorVelocity = (HSL.myVectorHookPosition - myVectorPosition) / HSL.myFrameTime;
@@ -167,7 +169,7 @@ void CargoObject::CalculatePhysics()
 
 	if ((myBambiBucketRelease == true) && (myBambiBucketWaterWeight > 0))
 	{
-		float releasedWater = HSL.myBambiBucketRelease * HSL.myFrameTime;
+		float releasedWater = HSL.myBambiBucketWaterFlow * HSL.myFrameTime;
 		myBambiBucketWaterWeight -= releasedWater;
 		if (myBambiBucketWaterWeight < 0) myBambiBucketWaterWeight = 0;
 		

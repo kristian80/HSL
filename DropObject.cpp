@@ -91,7 +91,7 @@ void DropObject::CalculatePhysics(DropHSLData& HSL)
 
 
 	//get the air velocity vector: wind velocity is in opposite direction to our own velocity. If we move with the wind, this vector must be zero.
-	myVectorAirVelocity = -1 * (myVectorVelocity - myVectorWindVelocity);
+	myVectorAirVelocity = -1 * (myVectorVelocity - HSL.myVectorWindVelocity);
 	myAirSpeed = norm_2(myVectorAirVelocity);
 
 
@@ -101,10 +101,14 @@ void DropObject::CalculatePhysics(DropHSLData& HSL)
 	//myVectorForceAir = get_unit_vector(myVectorAirVelocity) * myAirResistance;
 
 
+	// ToDo: Turn the air vector contrary to the object rotation. Otherwise CW and Crosssection are not correct
 
 	myVectorForceAir(0) = HSL.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * myVectorAirVelocity(0) * myVectorAirVelocity(0) / 2.0f;
 	myVectorForceAir(1) = HSL.myLfAirDensity * myVectorCW(1) * myVectorCrossSection(1) * myVectorAirVelocity(1) * myVectorAirVelocity(1) / 2.0f;
 	myVectorForceAir(2) = HSL.myLfAirDensity * myVectorCW(2) * myVectorCrossSection(2) * myVectorAirVelocity(2) * myVectorAirVelocity(2) / 2.0f;
+
+	// ToDo: Turn the force vector by the negative amount we turned the air first
+
 
 	if (myVectorAirVelocity(0) < 0) myVectorForceAir(0) *= -1;
 	if (myVectorAirVelocity(1) < 0) myVectorForceAir(1) *= -1;

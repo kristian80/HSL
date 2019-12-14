@@ -31,6 +31,7 @@ public:
 	bool myInitialized = false;
 	int myPluginEnabled = 0;
 	int myAircraftLoaded = 0;
+	bool mySimpleMode = true;
 
 	XPLMPluginID myDataRefEditorPluginID = XPLM_NO_PLUGIN_ID;
 	std::vector<XPLMDataRef> myRegisteredDatarefs;
@@ -62,11 +63,11 @@ public:
 	XPLMCommandRef myCmdRefBambiBucketRelease = NULL;
 
 
-	std::string myWinchPath = "hsl/Sphere_1.obj";
-	std::string myRopePath = "hsl/Sphere_2.obj";
-	std::string myHookPath = "hsl/Sphere_1.obj";
-	std::string myRaindropPath = "hsl/Sphere_2.obj";
-	std::string myCargoPath = "RescueX/objects/Bergwacht_Luftrettungssack.obj";
+	std::string myWinchPath = "./Resources/plugins/HSL/sphere_white_1.obj";
+	std::string myRopePath = "./Resources/plugins/HSL/rope2.obj";
+	std::string myHookPath = "./Resources/plugins/HSL/hook_hawk.obj";
+	std::string myRaindropPath = "./Resources/plugins/HSL/raindrop4.obj";
+	std::string myCargoPath = "./oggetti elitrasportabili/Swisscreations_bambi_bucket_8ft.obj";
 	
 
 	XPLMObjectRef myWinchObjectRef = NULL;
@@ -93,6 +94,7 @@ public:
 
 	//std::string myFireObjectPath = "lib/airport/Common_Elements/Miscellaneous/Tree.obj";
 	std::string myFireAircraftPath = "Fire_Aircraft\\fire_aircraft.acf";
+	std::string myNoFireAircraftPath = "NoFire_Aircraft\\nofire_aircraft.acf";
 	XPLMObjectRef myFireObjectRef = NULL;
 
 	vector<float> myVectorFireEmitterOffset = vector<float>(3);
@@ -142,7 +144,7 @@ public:
 	float myRopeRuptureForce = 100000.0f; //10t max
 	bool  myRopeRuptured = false;
 
-	float myBambiBucketRelease = 250.0f;
+	float myBambiBucketWaterFlow = 250.0f;
 	float myBambiBucketWaterPerDrop = 0;
 
 	float myMaxAccRopeFactor = 2.0f; 
@@ -151,9 +153,10 @@ public:
 	double myCargoSetLongitude = 0.0;
 	float myCargoSetHeading = 0.0;
 
-	float myRainSpeed = 5.0f;
+	float myRainSpeed = 3.5f;
 	int myRainDirections = 10;
-	float myRainReleaseFrequency = 0.1f;
+	int myRainVariance = 3;
+	float myRainReleasePeriod = 0.1f;
 	float myRainReleaseTime = 0.0f;
 
 	int myRainDropNumber = 0;
@@ -231,6 +234,10 @@ public:
 	XPLMDataRef myDrForceY;
 	XPLMDataRef myDrForceZ;
 
+	XPLMDataRef myDrWindX;
+	XPLMDataRef myDrWindY;
+	XPLMDataRef myDrWindZ;
+
 	XPLMDataRef myDrMomentumX;
 	XPLMDataRef myDrMomentumY;
 	XPLMDataRef myDrMomentumZ;
@@ -260,6 +267,10 @@ public:
 	float myLfForceX = 0;
 	float myLfForceY = 0;
 	float myLfForceZ = 0;
+
+	float myLfWindX = 0;
+	float myLfWindY = 0;
+	float myLfWindZ = 0;
 
 	float myLfMomentumX = 0;
 	float myLfMomentumY = 0;
@@ -301,6 +312,7 @@ public:
 	void ConfigWriteVector(boost::property_tree::ptree &pt, vector<float> &vectorIn, std::string nameIn);
 	void ConfigReadVector(boost::property_tree::ptree& pt, vector<float> &vectorOut, std::string nameIn);
 	void ConfigReadFloat(boost::property_tree::ptree& pt, std::string nameIn, float& floatOut);
+	void ConfigReadInt(boost::property_tree::ptree& pt, std::string nameIn, int& intOut);
 	void ConfigReadString(boost::property_tree::ptree& pt, std::string nameIn, std::string& stringOut);
 
 	void SlingEnable();
