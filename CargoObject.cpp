@@ -295,6 +295,36 @@ void CargoObject::CalculatePhysics()
 	//myAirResistance = HSL.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * myAirSpeed * myAirSpeed / 2.0; // If we are in the water, we would just need to correct for the density (+ split into air and water part).
 	//myVectorForceAir = get_unit_vector(myVectorAirVelocity) * myAirResistance;
 
+	/*vector<float> vectorRopeStart = HSL.myVectorHelicopterPosition - HSL.myVectorHookPosition;
+	vector<float> vectorRopeUnitStart = get_unit_vector(vectorRopeStart);
+
+	vector<float> ropeUnitSphere = XPlaneCartToSphere(vectorRopeUnitStart);
+
+	//vector<float> negativeVelocity = -1 * myVectorVelocity;
+
+
+	vector<float> vectorAirVelocityTurnedSphere = XPlaneCartToSphere(myVectorAirVelocity);
+
+	vectorAirVelocityTurnedSphere(1) -= ropeUnitSphere(1);
+	vectorAirVelocityTurnedSphere(2) -= ropeUnitSphere(2);
+
+
+	vector<float> vectorAirVelocityTurnedCart = XPlaneSphereToCart(vectorAirVelocityTurnedSphere);
+
+	vector<float> vectorForceAirCart = myVectorZeroVector;
+
+
+	vectorForceAirCart(0) = HSL.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * vectorAirVelocityTurnedCart(0) * vectorAirVelocityTurnedCart(0) / 2.0f;
+	vectorForceAirCart(1) = HSL.myLfAirDensity * myVectorCW(1) * myVectorCrossSection(1) * vectorAirVelocityTurnedCart(1) * vectorAirVelocityTurnedCart(1) / 2.0f;
+	vectorForceAirCart(2) = HSL.myLfAirDensity * myVectorCW(2) * myVectorCrossSection(2) * vectorAirVelocityTurnedCart(2) * vectorAirVelocityTurnedCart(2) / 2.0f;
+
+	vector<float> vectorForceAirSphere = XPlaneCartToSphere(vectorForceAirCart);
+
+	vectorForceAirSphere(1) += ropeUnitSphere(1);
+	vectorForceAirSphere(2) += ropeUnitSphere(2);
+
+	myVectorForceAir = XPlaneSphereToCart(vectorForceAirSphere);*/
+
 
 	
 	myVectorForceAir(0) = (1.0f - myWaterLevel) * HSL.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * myVectorAirVelocity(0) * myVectorAirVelocity(0) / 2.0;

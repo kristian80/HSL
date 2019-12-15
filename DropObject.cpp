@@ -102,12 +102,30 @@ void DropObject::CalculatePhysics(DropHSLData& HSL)
 
 
 	// ToDo: Turn the air vector contrary to the object rotation. Otherwise CW and Crosssection are not correct
+	vector<float> normalPosition(3);
+
+	normalPosition(0) = 0;
+	normalPosition(1) = 1;
+	normalPosition(2) = 0;
+	vector<float> normalPositionSphere = XPlaneCartToSphere(normalPosition);
+
+	vector<float> negativeVelocity = -1 * myVectorVelocity;
+
+
+	
+
+
+	// To Cart again
 
 	myVectorForceAir(0) = HSL.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * myVectorAirVelocity(0) * myVectorAirVelocity(0) / 2.0f;
 	myVectorForceAir(1) = HSL.myLfAirDensity * myVectorCW(1) * myVectorCrossSection(1) * myVectorAirVelocity(1) * myVectorAirVelocity(1) / 2.0f;
 	myVectorForceAir(2) = HSL.myLfAirDensity * myVectorCW(2) * myVectorCrossSection(2) * myVectorAirVelocity(2) * myVectorAirVelocity(2) / 2.0f;
 
 	// ToDo: Turn the force vector by the negative amount we turned the air first
+
+	// To Sphere
+	// Add ropeUnitSphere 1, 2
+	// To Cart
 
 
 	if (myVectorAirVelocity(0) < 0) myVectorForceAir(0) *= -1;
@@ -140,15 +158,9 @@ void DropObject::CalculatePhysics(DropHSLData& HSL)
 	myVectorPosition += myVectorVelocity * HSL.myFrameTime;
 	check_nan(myVectorPosition);
 
-	vector<float> normalPosition(3);
+	
 
-	normalPosition(0) = 0;
-	normalPosition(1) = 1;
-	normalPosition(2) = 0;
-
-	vector<float> negativeVelocity = -1 * myVectorVelocity;
-
-	vector<float> normalPositionSphere = XPlaneCartToSphere(normalPosition);
+	negativeVelocity = -1 * myVectorVelocity;
 	vector<float> ropeUnitSphere = XPlaneCartToSphere(get_unit_vector(negativeVelocity));
 
 	normalPositionSphere(1) = ropeUnitSphere(1) - normalPositionSphere(1);
