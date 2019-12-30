@@ -1515,6 +1515,9 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 		// Calculate Physics for Cargo and Hook
 		myCargo.CalculatePhysics();
 		myHook.CalculatePhysics();
+
+		myDebugValue1 = norm_2(myCargo.myVectorForceAir);
+		myDebugValue2 = norm_2(myCargo.myVectorForceAirNew);
 		
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////

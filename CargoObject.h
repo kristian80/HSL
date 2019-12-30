@@ -63,6 +63,9 @@ public:
 	vector<float> myVectorForceChopper = vector<float>(3);
 	vector<float> myVectorMomentumChopper = vector<float>(3);
 
+	vector<float> myVectorForceAirNew = vector<float>(3);
+	vector<float> myVectorForceAirCart = vector<float>(3);
+
 	CargoObject(HSL_PlugIn &HSLNew);
 	CargoObject(HSL_PlugIn& HSLNew, vector<float> pos, vector<float> vel);
 	~CargoObject();

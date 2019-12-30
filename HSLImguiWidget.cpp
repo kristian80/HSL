@@ -220,6 +220,8 @@ void HSLImguiWidget::buildInterface()
 		OutputVector(pHSL->myCargo.myVectorAirVelocity, "Cargo:AirVelocity");
 		OutputVector(pHSL->myCargo.myVectorWaterVelocity, "Cargo:WaterVelocity");
 		OutputVector(pHSL->myCargo.myVectorForceAir, "Cargo:ForceAir");
+		OutputVector(pHSL->myCargo.myVectorForceAirNew, "Cargo:ForceAirNew");
+		OutputVector(pHSL->myCargo.myVectorForceAirCart, "Cargo:ForceAirCart");
 		OutputVector(pHSL->myCargo.myVectorForceWater, "Cargo:ForceWater");
 		OutputVector(pHSL->myCargo.myVectorForceSwim, "Cargo:ForceSwim");
 		OutputVector(pHSL->myCargo.myVectorForceTotal, "Cargo:ForceTotal");
@@ -242,6 +244,7 @@ void HSLImguiWidget::buildInterface()
 		OutputVector(pHSL->myHook.myVectorAirVelocity, "Hook:AirVelocity");
 		OutputVector(pHSL->myHook.myVectorWaterVelocity, "Hook:WaterVelocity");
 		OutputVector(pHSL->myHook.myVectorForceAir, "Hook:ForceAir");
+		
 		OutputVector(pHSL->myHook.myVectorForceWater, "Hook:ForceWater");
 		OutputVector(pHSL->myHook.myVectorForceSwim, "Hook:ForceSwim");
 		OutputVector(pHSL->myHook.myVectorForceTotal, "Hook:ForceTotal");
