@@ -5,7 +5,8 @@ class CargoObject :
 	public LoadBaseObject
 {
 public:
-	HSL_PlugIn& HSL;
+	//HSL_PlugIn& HSL;
+	CargoDataShared &myCargoDataShared;
 
 	XPLMInstanceRef myDrawInstance = NULL;
 
@@ -31,6 +32,7 @@ public:
 	bool myOrientationFollowsDirection = false;
 
 	float myWaterLevel = 0;
+	bool myTerrainIsWet = false;
 	float myVolume = 0;
 
 	float myHeight = 0.1;

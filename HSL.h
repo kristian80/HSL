@@ -77,6 +77,7 @@ using namespace boost::numeric::ublas;
 
 
 class HSL_PlugIn;
+struct CargoDataShared;
 extern HSL_PlugIn* pHSL;
 extern std::ofstream hsl_output_file;
 
@@ -88,6 +89,14 @@ struct DropHSLData
 	float myLfGravitation = 0;
 	vector<float> myVectorWindVelocity;
 };
+
+struct ForceData
+{
+	vector<float> myVectorForce = vector<float>(3);
+	vector<float> myVectorMomentum = vector<float>(3);
+	float myTimeApplied = 0;
+};
+
 
 struct RainDropDrawData
 {

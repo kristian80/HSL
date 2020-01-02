@@ -87,20 +87,20 @@ void HSLImguiWidget::buildInterface()
 	if (pHSL->mySimpleMode == true)
 	{
 		ImGui::Text("Winch:");
-		InputVector(pHSL->myVectorWinchPosition, "Winch Position");
+		InputVector(pHSL->myCargoDataShared.myVectorWinchPosition, "Winch Position");
 		if (ImGui::Button("Write Aircraft Ini File")) pHSL->AircraftConfigSave();
 
 		ImGui::Checkbox("Cargo Is Bambi Bucket", &(pHSL->myCargo.myIsBambiBucket));
 		ImGui::Checkbox("Bambi Bucket Release", &(pHSL->myCargo.myBambiBucketRelease));
 
 		ImGui::Text("Rope Parameters:");
-		ImGui::InputFloat("Rope Length Start [m]", &(pHSL->myRopeLengthStart), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope Length [m]", &(pHSL->myRopeLengthNormal), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope Rupture Force [N]", &(pHSL->myRopeRuptureForce), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope Damping", &(pHSL->myRopeDamping), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope K", &(pHSL->myRopeK), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("MaxRopeAcc", &(pHSL->myMaxAccRopeFactor), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Winch Speed [m/s]", &(pHSL->myWinchSpeed), 0.01, 0.01, 3, 0);
+		ImGui::InputFloat("Rope Length Start [m]", &(pHSL->myCargoDataShared.myRopeLengthStart), 0.01, 0.01, 3, 0);
+		ImGui::InputFloat("Rope Length [m]", &(pHSL->myCargoDataShared.myRopeLengthNormal), 0.01, 0.01, 3, 0);
+		ImGui::InputFloat("Rope Rupture Force [N]", &(pHSL->myCargoDataShared.myRopeRuptureForce), 0.01, 0.01, 3, 0);
+		ImGui::InputFloat("Rope Damping", &(pHSL->myCargoDataShared.myRopeDamping), 0.01, 0.01, 3, 0);
+		ImGui::InputFloat("Rope K", &(pHSL->myCargoDataShared.myRopeK), 0.01, 0.01, 3, 0);
+		ImGui::InputFloat("MaxRopeAcc", &(pHSL->myCargoDataShared.myMaxAccRopeFactor), 0.01, 0.01, 3, 0);
+		ImGui::InputFloat("Winch Speed [m/s]", &(pHSL->myCargoDataShared.myWinchSpeed), 0.01, 0.01, 3, 0);
 
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(100);
@@ -136,10 +136,10 @@ void HSLImguiWidget::buildInterface()
 	else
 	{
 		ImGui::PushItemWidth(100);
-		ImGui::Checkbox("Physics Enabled", &(pHSL->myPhysicsEnabled));
+		ImGui::Checkbox("Physics Enabled", &(pHSL->myCargoDataShared.myPhysicsEnabled));
 
 
-		if (pHSL->myPhysicsEnabled == false)
+		if (pHSL->myCargoDataShared.myPhysicsEnabled == false)
 		{
 			ImGui::Text("Object:");
 			InputVector(pHSL->myCargo.myVectorPosition, "Cargo Position");
@@ -147,29 +147,29 @@ void HSLImguiWidget::buildInterface()
 		}
 
 		ImGui::Text("Winch:");
-		InputVector(pHSL->myVectorWinchPosition, "Winch Position");
+		InputVector(pHSL->myCargoDataShared.myVectorWinchPosition, "Winch Position");
 		if (ImGui::Button("Write Aircraft Ini File")) pHSL->AircraftConfigSave();
 
 		ImGui::Text("Set Cargo Coordinates:");
-		ImGui::InputDouble("Latitude", &(pHSL->myCargoSetLatitutde), 0.01, 0.01, "%.9f");
-		ImGui::InputDouble("Longitude", &(pHSL->myCargoSetLongitude), 0.01, 0.01, "%.9f");
+		ImGui::InputDouble("Latitude", &(pHSL->myCargoDataShared.myCargoSetLatitutde), 0.01, 0.01, "%.9f");
+		ImGui::InputDouble("Longitude", &(pHSL->myCargoDataShared.myCargoSetLongitude), 0.01, 0.01, "%.9f");
 
 		ImGui::Checkbox("Cargo Is Bambi Bucket", &(pHSL->myCargo.myIsBambiBucket));
 		ImGui::Checkbox("Bambi Bucket Release", &(pHSL->myCargo.myBambiBucketRelease));
-		ImGui::InputFloat("Water Flow [kg/s]", &(pHSL->myBambiBucketWaterFlow), 1, 10, 3, 0);
+		ImGui::InputFloat("Water Flow [kg/s]", &(pHSL->myCargoDataShared.myBambiBucketWaterFlow), 1, 10, 3, 0);
 		ImGui::InputFloat("Water Speed [m/s]", &(pHSL->myRainSpeed), 0.1, 0.1, 3, 0);
 		ImGui::InputInt("Drop Directions", &(pHSL->myRainDirections), 1, 1);
 		ImGui::InputInt("Drop Variance", &(pHSL->myRainVariance), 1, 1);
 		ImGui::InputFloat("Release Period [s]", &(pHSL->myRainReleasePeriod), 0.01, 0.1, 3, 0);
 
 		ImGui::Text("Rope Parameters:");
-		ImGui::InputFloat("Rope Length Start [m]", &(pHSL->myRopeLengthStart), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope Length [m]", &(pHSL->myRopeLengthNormal), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope Rupture Force [N]", &(pHSL->myRopeRuptureForce), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope Damping", &(pHSL->myRopeDamping), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope K", &(pHSL->myRopeK), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("MaxRopeAcc", &(pHSL->myMaxAccRopeFactor), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Winch Speed [m/s]", &(pHSL->myWinchSpeed), 0.01, 0.01, 3, 0);
+		ImGui::InputFloat("Rope Length Start [m]", &(pHSL->myCargoDataShared.myRopeLengthStart), 0.01, 0.01, 3, 0);
+		ImGui::InputFloat("Rope Length [m]", &(pHSL->myCargoDataShared.myRopeLengthNormal), 0.01, 0.01, 3, 0);
+		ImGui::InputFloat("Rope Rupture Force [N]", &(pHSL->myCargoDataShared.myRopeRuptureForce), 0.01, 0.01, 3, 0);
+		ImGui::InputFloat("Rope Damping", &(pHSL->myCargoDataShared.myRopeDamping), 0.01, 0.01, 3, 0);
+		ImGui::InputFloat("Rope K", &(pHSL->myCargoDataShared.myRopeK), 0.01, 0.01, 3, 0);
+		ImGui::InputFloat("MaxRopeAcc", &(pHSL->myCargoDataShared.myMaxAccRopeFactor), 0.01, 0.01, 3, 0);
+		ImGui::InputFloat("Winch Speed [m/s]", &(pHSL->myCargoDataShared.myWinchSpeed), 0.01, 0.01, 3, 0);
 
 		ImGui::Text("Hook Parameters:");
 		ImGui::InputFloat("Hook Mass [kg]", &(pHSL->myHook.myMass), 0.01, 0.01, 3, 0);
@@ -203,9 +203,9 @@ void HSLImguiWidget::buildInterface()
 
 		ImGui::Text("Sling:");
 
-		OutputVector(pHSL->myVectorHookPosition, "Hook Pos");
-		OutputVector(pHSL->myVectorRope, "Rope");
-		OutputVector(pHSL->myVectorWinchPosition, "WinchPosition");
+		OutputVector(pHSL->myCargoDataShared.myVectorHookPosition, "Hook Pos");
+		OutputVector(pHSL->myCargoDataShared.myVectorRope, "Rope");
+		OutputVector(pHSL->myCargoDataShared.myVectorWinchPosition, "WinchPosition");
 
 		OutputVector(pHSL->myCargo.myVectorPosition, "CargoPosition");
 		OutputVector(pHSL->myCargo.myVectorVelocity, "Cargo:Velocity");
@@ -260,7 +260,7 @@ void HSLImguiWidget::buildInterface()
 
 
 
-		ImGui::Text("FrameTime [s]:      %.3f", pHSL->myFrameTime);
+		ImGui::Text("FrameTime [s]:      %.3f", pHSL->myCargoDataShared.myFrameTime);
 		ImGui::Text("FlightLoopTime [us]:%d", pHSL->myProcessingTimeFlightLoop);
 		ImGui::Text("DrawTime [us]:      %d", pHSL->myProcessingTimeDrawRoutine);
 
@@ -269,15 +269,15 @@ void HSLImguiWidget::buildInterface()
 		ImGui::Text("RD Thread Overvlow: %d", pHSL->myRainDropOverflow);
 
 
-		ImGui::Text("CurrentRopeLength:  %.3f", pHSL->myCurrentRopeLength);
-		ImGui::Text("RopeLength:         %.3f", pHSL->myNewRopeLength);
-		ImGui::Text("StretchRelative:    %.3f", pHSL->myRopeStretchRelative);
-		ImGui::Text("ForceScalar:        %.3f", pHSL->myRopeForceScalar);
-		ImGui::Text("LengthDelta:        %.3f", pHSL->myRopeLengthDelta);
-		ImGui::Text("StretchSpeed:       %.3f", pHSL->myRopeStretchSpeed);
-		ImGui::Text("CorrectedD:         %.3f", pHSL->myRopeCorrectedD);
+		ImGui::Text("CurrentRopeLength:  %.3f", pHSL->myCargoDataShared.myCurrentRopeLength);
+		ImGui::Text("RopeLength:         %.3f", pHSL->myCargoDataShared.myNewRopeLength);
+		ImGui::Text("StretchRelative:    %.3f", pHSL->myCargoDataShared.myRopeStretchRelative);
+		ImGui::Text("ForceScalar:        %.3f", pHSL->myCargoDataShared.myRopeForceScalar);
+		ImGui::Text("LengthDelta:        %.3f", pHSL->myCargoDataShared.myRopeLengthDelta);
+		ImGui::Text("StretchSpeed:       %.3f", pHSL->myCargoDataShared.myRopeStretchSpeed);
+		ImGui::Text("CorrectedD:         %.3f", pHSL->myCargoDataShared.myRopeCorrectedD);
 
-		ImGui::Text("RopeRupture         %d", pHSL->myRopeRuptured);
+		ImGui::Text("RopeRupture         %d", pHSL->myCargoDataShared.myRopeRuptured);
 
 		ImGui::Text("Cargo:TerrainHit:         %d", pHSL->myCargo.myTerrainHit);
 		ImGui::Text("Cargo:ObjectTerrainLevel: %.3f", pHSL->myCargo.myObjectTerrainLevel);
@@ -297,12 +297,12 @@ void HSLImguiWidget::buildInterface()
 		ImGui::Text("Hook:WaterLevel:         %.3f", pHSL->myHook.myWaterLevel);
 		ImGui::Text("Hook:Volume:             %.3f", pHSL->myHook.myVolume);
 
-		ImGui::Text("Debug1              %f", pHSL->myDebugValue1);
-		ImGui::Text("Debug2              %f", pHSL->myDebugValue2);
-		ImGui::Text("Debug3              %f", pHSL->myDebugValue3);
-		ImGui::Text("Debug4              %f", pHSL->myDebugValue4);
+		ImGui::Text("Debug1              %f", pHSL->myCargoDataShared.myDebugValue1);
+		ImGui::Text("Debug2              %f", pHSL->myCargoDataShared.myDebugValue2);
+		ImGui::Text("Debug3              %f", pHSL->myCargoDataShared.myDebugValue3);
+		ImGui::Text("Debug4              %f", pHSL->myCargoDataShared.myDebugValue4);
 
-		if (pHSL->myDebugStatement == true)
+		if (pHSL->myCargoDataShared.myDebugStatement == true)
 		{
 			ImVec4 col = ImColor(0, 255, 0);
 			ImGui::PushStyleColor(ImGuiCol_Text, col);
@@ -332,7 +332,7 @@ void HSLImguiWidget::buildInterface()
 
 	if (ImGui::Button("Connect Load")) pHSL->SlingConnect();
 	if (ImGui::Button("Release Load")) pHSL->SlingRelease();
-	if (ImGui::Button("Cut Rope")) pHSL->myRopeRuptured = true;
+	if (ImGui::Button("Cut Rope")) pHSL->myCargoDataShared.myRopeRuptured = true;
 
 	if (ImGui::Button("Fill BambiBucket")) pHSL->myCargo.myBambiBucketWaterLevel = 1.0f;
 
@@ -349,7 +349,7 @@ void HSLImguiWidget::buildInterface()
 
 	
 
-	if (pHSL->mySlingLineEnabled == true)
+	if (pHSL->myCargoDataShared.mySlingLineEnabled == true)
 	{
 		ImVec4 col = ImColor(0, 255, 0);
 		ImGui::PushStyleColor(ImGuiCol_Text, col);

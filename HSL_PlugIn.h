@@ -10,6 +10,89 @@
 #include "FireObject.h"
 
 
+/*
+ToDo Thread:
+
+Make Dataref Access function thread safe -> Stop Computation, write value, start computation again
+Make Reset properly for out functions! Stop Computation on Reset
+
+*/
+
+
+
+struct CargoDataShared
+{
+	float myFrameTime = 0;
+	std::recursive_mutex myCargoDataSharedMutex;
+
+	vector<float> myVectorRope = vector<float>(3);
+
+	vector<float> myVectorHelicopterPosition = vector<float>(3);
+	vector<float> myVectorHookPosition = vector<float>(3);
+	vector<float> myVectorWinchPosition = vector<float>(3);
+	vector<float> myVectorWindVelocity = vector<float>(3);
+
+	std::queue<ForceData> myHelicopterForceQueue;
+
+	bool mySlingLineEnabled = false;
+	bool myPhysicsEnabled = true;
+
+	float myRopeLengthStart = 2.0f;
+	float myRopeLengthNormal = 2.2f;
+	float myRopeDamping = 0.03f;
+	float myRopeK = 55000.0f;
+	float myRopeRuptureForce = 100000.0f; //10t max
+	bool  myRopeRuptured = false;
+	float myMaxAccRopeFactor = 2.0f;
+
+	double myCargoSetLatitutde = 0.0;
+	double myCargoSetLongitude = 0.0;
+	float myCargoSetHeading = 0.0;
+	bool myCargoSetPosition = false;
+	float myWinchSpeed = 0.5f;
+	float myCurrentRopeLength = 2.2f;
+	float myBambiBucketWaterFlow = 250.0f;
+
+	float myNewRopeLength = 0;
+	float myRopeStretchRelative = 0;
+	float myRopeForceScalar = 0;
+	float myRopeLengthDelta = 0;
+	float myRopeStretchSpeed = 0;
+	float myRopeCorrectedD = 0;
+
+	float myDebugValue1 = 0.0f;
+	float myDebugValue2 = 0.0f;
+	float myDebugValue3 = 0.0f;
+	float myDebugValue4 = 0.0f;
+	bool myDebugStatement = true;
+
+
+	double myLdLocalX = 0;
+	double myLdLocalY = 0;
+	double myLdLocalZ = 0;
+
+	float myLfLocalXv = 0;
+	float myLfLocalYv = 0;
+	float myLfLocalZv = 0;
+
+	float myLfLocalXa = 0;
+	float myLfLocalYa = 0;
+	float myLfLocalZa = 0;
+
+	float myLfGravitation = 0;
+	float myLfAirDensity = 0;
+
+	float myLfLocalPhi = 0;
+	float myLfLocalPsi = 0;
+	float myLfLocalTheta = 0;
+
+	int   myLiPause = 0;
+	float myLfTimeActual = 1.0f;
+	float myLfWindDirection = 0;
+	float myLfWindSpeed = 0;
+
+};
+
 class HSL_PlugIn
 {
 public:
@@ -36,8 +119,11 @@ public:
 	XPLMPluginID myDataRefEditorPluginID = XPLM_NO_PLUGIN_ID;
 	std::vector<XPLMDataRef> myRegisteredDatarefs;
 
-	bool mySlingLineEnabled = false;
-	bool myPhysicsEnabled = true;
+	CargoDataShared myCargoDataShared;
+	
+	
+
+
 
 	float myDataRate = -1;
 
@@ -89,6 +175,9 @@ public:
 	XPLMInstanceRef myRopeInstances[HSL_ROPE_POINTS_MAX];
 	HSL::WinchDirection myWinchDirection = HSL::Stop;
 
+	vector<float> myVectorHelicopterForceApplied = vector<float>(3);
+	vector<float> myVectorHelicopterMomentumApplied = vector<float>(3);
+
 	/////////////////////////////////////////////////////////
 	// Fire Variables
 
@@ -125,33 +214,23 @@ public:
 	CargoObject myCargo;
 	CargoObject myHook;
 
-	vector<float> myVectorHelicopterPosition = vector<float>(3);
-	vector<float> myVectorHookPosition = vector<float>(3);
-	vector<float> myVectorWinchPosition = vector<float>(3);
-	vector<float> myVectorWindVelocity = vector<float>(3);
 	vector<float> myVectorZeroVector = vector<float>(3);
 
-	float myFrameTime = 0;
+	
 
 	int myProcessingTimeFlightLoop = 0;
 	int myProcessingTimeDrawRoutine = 0;
 
 	// Rope 
-	float myRopeLengthStart = 2.0f;
-	float myRopeLengthNormal = 2.2f;
-	float myRopeDamping = 0.03f;
-	float myRopeK = 55000.0f;
-	float myRopeRuptureForce = 100000.0f; //10t max
-	bool  myRopeRuptured = false;
+	
 
-	float myBambiBucketWaterFlow = 250.0f;
+
 	float myBambiBucketWaterPerDrop = 0;
 
-	float myMaxAccRopeFactor = 2.0f; 
+	
 
-	double myCargoSetLatitutde = 0.0;
-	double myCargoSetLongitude = 0.0;
-	float myCargoSetHeading = 0.0;
+	
+
 
 	float myRainSpeed = 3.5f;
 	int myRainDirections = 10;
@@ -164,55 +243,20 @@ public:
 
 	RainDropDrawData *myRaindrops = NULL;
 
-	/*
-	// Loaded Object
-	float myObjectHeight = 0.0f;
-	float myObjectMass = 75; //kg
-	float myObjectCrossSection = 1.1f; //m2
-	float myObjectCWFront = 0.9; //cube
-	float myObjectFrictionGlide = 0.35;
-	float myObjectFrictionStatic = 0.65;
-
-	float myObjectSpeedStaticFriction = 0.3; //This is independed of the actual load
 	
-	// Hook 
-	float myHookHeight = 0.1;
-	float myHookMass = 5.0f;
-	float myHookCrossSection = 1.1f; //m2
-	float myHookCWFront = 0.9; //cube
-	float myHookFrictionGlide = 0.35;
-	float myHookFrictionStatic = 0.65;
-
-	// Cargo
-	float myCargoHeight = 0.9;
-	float myCargoMass = 75.0f;
-	float myCargoCrossSection = 1.1f; //m2
-	float myCargoCWFront = 0.9; //cube
-	float myCargoFrictionGlide = 0.35;
-	float myCargoFrictionStatic = 0.65;*/
 	
-	float myWinchSpeed = 0.5f;
-	float myCurrentRopeLength = 2.2f;
+	
 
 
-	float myDebugValue1 = 0.0f;
-	float myDebugValue2 = 0.0f;
-	float myDebugValue3 = 0.0f;
-	float myDebugValue4 = 0.0f;
-	bool myDebugStatement = true;
+
 
 	vector<float> myVectorDefaultWinchPosition = vector<float>(3);
 
 	
-	float myNewRopeLength = 0;
-	float myRopeStretchRelative = 0;
-	float myRopeForceScalar = 0;
-	float myRopeLengthDelta = 0;
-	float myRopeStretchSpeed = 0;
-	float myRopeCorrectedD = 0;
+
 	
 
-	vector<float> myVectorRope = vector<float>(3);
+	
 
 
 	///////////////////////////////////////////////////
@@ -222,11 +266,20 @@ public:
 	XPLMDataRef myDrLocalY;
 	XPLMDataRef myDrLocalZ;
 
+	XPLMDataRef myDrLocalXv;
+	XPLMDataRef myDrLocalYv;
+	XPLMDataRef myDrLocalZv;
+
+	XPLMDataRef myDrLocalXa;
+	XPLMDataRef myDrLocalYa;
+	XPLMDataRef myDrLocalZa;
+
 	XPLMDataRef myDrLocalPhi;
 	XPLMDataRef myDrLocalPsi;
 	XPLMDataRef myDrLocalTheta;
 
 	XPLMDataRef myDrPause;
+	XPLMDataRef myDrTimeActual;
 	XPLMDataRef myDrWindDirection;
 	XPLMDataRef myDrWindSpeed;
 
@@ -248,21 +301,13 @@ public:
 	///////////////////////////////////////////////////
 	// DataRefs X-Plane Local Copies
 
-	double myLdLocalX = 0;
-	double myLdLocalY = 0;
-	double myLdLocalZ = 0;
+
 
 	double myLastLocalX = 0;
 	double myLastLocalY = 0;
 	double myLastLocalZ = 0;
 
-	float myLfLocalPhi = 0;
-	float myLfLocalPsi = 0;
-	float myLfLocalTheta = 0;
 
-	int myLiPause = 0;
-	float myLfWindDirection = 0;
-	float myLfWindSpeed = 0;
 
 	float myLfForceX = 0;
 	float myLfForceY = 0;
@@ -276,8 +321,7 @@ public:
 	float myLfMomentumY = 0;
 	float myLfMomentumZ = 0;
 
-	float myLfGravitation = 0;
-	float myLfAirDensity = 0;
+
 
 	///////////////////////////////////////////////////
 	// DataRef Shared Data
@@ -351,7 +395,7 @@ public:
 	void RegisterStringDataref(std::string& valueIn, std::string nameIn);
 
 
-	vector<float> HSL_PlugIn::TurnWorldToAircraft(vector<float> coordsAircraft);
+	static vector<float> TurnWorldToAircraft(vector<float> coordsAircraft, CargoDataShared& cargoDataSharedIn);
 	vector<float> AircraftToWorld(vector<float> coordsAircraft);
 	vector<float> AdjustFrameMovement(vector<float> coordsAircraft);
 
