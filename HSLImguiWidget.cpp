@@ -70,6 +70,8 @@ void HSLImguiWidget::OutputVector(vector<float>& vectorOut, std::string nameOut)
 
 void HSLImguiWidget::buildInterface()
 {
+	CARGO_SHM_SECTION_START
+
 	win_width = ImGui::GetWindowWidth();
 	win_height = ImGui::GetWindowHeight();
 
@@ -262,7 +264,10 @@ void HSLImguiWidget::buildInterface()
 
 		ImGui::Text("FrameTime [s]:      %.3f", pHSL->myCargoDataShared.myFrameTime);
 		ImGui::Text("FlightLoopTime [us]:%d", pHSL->myProcessingTimeFlightLoop);
+		ImGui::Text("CargoFrameMax [ns]: %.1f", pHSL->myCargoDataShared.myFrameTimeMax);
 		ImGui::Text("DrawTime [us]:      %d", pHSL->myProcessingTimeDrawRoutine);
+		ImGui::Text("Comp per FL:        %d", pHSL->myCompuationsPerFlightLoop);
+		ImGui::Text("Cargo per FL:       %d", pHSL->myCompuationsPerFlightLoop);
 
 		ImGui::Text("Raindrops:          %d", pHSL->myRainDropNumber);
 		ImGui::Text("Water per drop [l]: %.2f", pHSL->myBambiBucketWaterPerDrop);

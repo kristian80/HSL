@@ -8,6 +8,7 @@
 #include "TSQueue.h"
 #include "DropThread.h"
 #include "FireObject.h"
+#include "PhysicsThread.h"
 
 
 /*
@@ -18,14 +19,22 @@ Make Reset properly for out functions! Stop Computation on Reset
 
 */
 
-
-
 struct CargoDataShared
 {
+	bool myThreadRunFlag = true; // Only to terminate computation
+
 	float myFrameTime = 0;
-	std::recursive_mutex myCargoDataSharedMutex;
+	
+	float myFrameTimeMax = 0;
+	bool myNewFrame = false;
+
+	
 
 	vector<float> myVectorRope = vector<float>(3);
+
+	vector<float> myVectorHelicopterPositionFlightLoop = vector<float>(3);
+	vector<float> myVectorHelicopterVelocity = vector<float>(3);
+	vector<float> myVectorHelicopterAcceleration = vector<float>(3);
 
 	vector<float> myVectorHelicopterPosition = vector<float>(3);
 	vector<float> myVectorHookPosition = vector<float>(3);
@@ -109,6 +118,10 @@ public:
 	
 	DropThread myDropThreadObject;
 	std::thread *myDropThreadPtr = NULL;
+
+	PhysicsThread myPhysicsThreadObject;
+	std::thread* myPhysicsThreadPtr = NULL;
+
 	std::list<FireObject *> myFires;
 
 	bool myInitialized = false;
@@ -126,6 +139,8 @@ public:
 
 
 	float myDataRate = -1;
+	int myCompuationsPerFlightLoop = 0;
+	bool mySlingLineEnabled = false;
 
 	int myPluginMenu = 0;
 	int myEnableSlingMenu = 0;

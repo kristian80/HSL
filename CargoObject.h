@@ -10,6 +10,7 @@ public:
 
 	XPLMInstanceRef myDrawInstance = NULL;
 
+
 	vector<float> myVectorZeroVector = vector<float>(3);
 
 	vector<float> myVectorVelocity = vector<float>(3);
@@ -30,6 +31,9 @@ public:
 	bool myDrawingEnabled = false;
 	bool myInstancedDrawing = false;
 	bool myOrientationFollowsDirection = false;
+
+	std::chrono::time_point<std::chrono::steady_clock> myStartTime; 
+	bool myResetTime = true;
 
 	float myWaterLevel = 0;
 	bool myTerrainIsWet = false;

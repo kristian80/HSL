@@ -5,6 +5,7 @@ CargoObject::CargoObject(HSL_PlugIn& HSLNew) :
 	//HSL(HSLNew),
 	myCargoDataShared(HSLNew.myCargoDataShared)
 {
+	CARGO_SHM_SECTION_START
 	for (unsigned i = 0; i < myVectorZeroVector.size(); ++i) myVectorZeroVector(i) = 0;
 
 	myVectorVelocity = myVectorZeroVector;
@@ -49,6 +50,8 @@ CargoObject::CargoObject(HSL_PlugIn& HSLNew, vector<float> pos, vector<float> ve
 	//HSL(HSLNew),
 	myCargoDataShared(HSLNew.myCargoDataShared)
 {
+	CARGO_SHM_SECTION_START
+
 	for (unsigned i = 0; i < myVectorZeroVector.size(); ++i) myVectorZeroVector(i) = 0;
 
 	myVectorVelocity = myVectorZeroVector;
@@ -115,7 +118,35 @@ CargoObject::~CargoObject()
 
 void CargoObject::CalculatePhysics()
 {
-	float frameTime = myCargoDataShared.myFrameTime;
+	CARGO_SHM_SECTION_START
+
+	auto timeNow = std::chrono::steady_clock::now();
+
+	if ((myCargoDataShared.mySlingLineEnabled == false) || (myCargoDataShared.myLiPause > 0))
+	{
+		myResetTime = true;
+		return;
+	}
+	
+	
+	
+	if (myResetTime == true)
+	{
+		myStartTime = timeNow;
+		myResetTime = false;
+	}
+
+	// Not more than 100 kHz, otherwise values might get too small
+	float frameTimeNano = std::chrono::duration_cast<std::chrono::nanoseconds>(timeNow - myStartTime).count() * myCargoDataShared.myLfTimeActual;
+	if (frameTimeNano < 10000) 
+		return;
+	
+	float frameTime = frameTimeNano / (1000000000.0f);
+	myStartTime = timeNow;
+
+	myCargoDataShared.myFrameTimeMax = max(myCargoDataShared.myFrameTimeMax, frameTimeNano);
+	
+	//float frameTime = myCargoDataShared.myFrameTime;
 
 	if (frameTime == 0) return;
 

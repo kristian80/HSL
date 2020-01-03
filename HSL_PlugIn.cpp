@@ -1,13 +1,16 @@
 ﻿#include "HSL_PlugIn.h"
 #include <thread>
 
-
+std::recursive_mutex cargoDataSharedMutex;
 
 
 HSL_PlugIn::HSL_PlugIn() :
 	myCargo(*this),
-	myHook(*this)
+	myHook(*this),
+	myPhysicsThreadObject(*this)
 {
+	CARGO_SHM_SECTION_START
+
 	myRaindrops = new RainDropDrawData[HSL_RAINDROPS_DRAW_MAX];
 
 	for (int rain_index = 0; rain_index < HSL_RAINDROPS_DRAW_MAX; rain_index++)
@@ -31,6 +34,11 @@ HSL_PlugIn::HSL_PlugIn() :
 	myCargoDataShared.myVectorHelicopterPosition = myVectorZeroVector;
 	myCargoDataShared.myVectorHookPosition = myVectorZeroVector;
 	myCargoDataShared.myVectorWinchPosition = myVectorZeroVector;
+
+
+	myCargoDataShared.myVectorHelicopterPositionFlightLoop = myVectorZeroVector;
+	myCargoDataShared.myVectorHelicopterVelocity = myVectorZeroVector;
+	myCargoDataShared.myVectorHelicopterAcceleration = myVectorZeroVector;
 	
 	myVectorDefaultWinchPosition = myVectorZeroVector;
 	myCargoDataShared.myVectorWindVelocity = myVectorZeroVector;
@@ -51,6 +59,8 @@ HSL_PlugIn::~HSL_PlugIn()
 
 void HSL_PlugIn::PluginStart()
 {
+	CARGO_SHM_SECTION_START
+
 	myDS = XPLMGetDirectorySeparator();
 
 	char buffer[2048];
@@ -302,6 +312,10 @@ void HSL_PlugIn::PluginStart()
 	myDropThreadPtr = new std::thread(&DropThread::RunDropThread, &myDropThreadObject, 1);
 	HSLDebugString("Drop Thread running");
 
+	HSLDebugString("Starting Physics Thread");
+	myPhysicsThreadPtr = new std::thread(&PhysicsThread::RunPhysicsThread, &myPhysicsThreadObject, 1);
+	HSLDebugString("Physics Thread running");
+
 
 }
 
@@ -320,6 +334,17 @@ void HSL_PlugIn::PluginStop()
 		myDropThreadPtr->join();
 		delete myDropThreadPtr;
 		myDropThreadPtr = NULL;
+	}
+
+	if (myPhysicsThreadPtr != NULL)
+	{
+		CARGO_SHM_SECTION_START
+		myCargoDataShared.myThreadRunFlag = false;
+		CARGO_SHM_SECTION_END
+
+		myPhysicsThreadPtr->join();
+		delete myPhysicsThreadPtr;
+		myPhysicsThreadPtr = NULL;
 	}
 
 	XPLMReleasePlanes();
@@ -372,7 +397,6 @@ void HSL_PlugIn::PluginReceiveMessage(XPLMPluginID inFromWho, int inMessage, voi
 void HSL_PlugIn::PluginMenuHandler(void* in_menu_ref, void* inItemRef)
 {
 	HSLDebugString("Menu Handler");
-
 	if (myInitialized == false) return;
 
 	if (strcmp((char*)inItemRef, "ItemWindow") == NULL)
@@ -388,7 +412,7 @@ void HSL_PlugIn::PluginMenuHandler(void* in_menu_ref, void* inItemRef)
 	}
 	else if (strcmp((char*)inItemRef, "ItemEnable") == NULL)
 	{
-		if (myCargoDataShared.mySlingLineEnabled == true)
+		if (mySlingLineEnabled == true)
 			SlingDisable();
 		else
 			SlingEnable();
@@ -406,12 +430,16 @@ int HSL_PlugIn::PluginMouseClickCallback(XPLMWindowID inWindowID, int x, int y, 
 
 int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inRefcon)
 {
+	
+
 	static XPLMDrawInfo_t ropePositions[HSL_ROPE_POINTS_MAX];
 
 	auto time_start = std::chrono::steady_clock::now();
 
-	if (myCargoDataShared.mySlingLineEnabled == true)
+	if (mySlingLineEnabled == true)
 	{
+		CARGO_SHM_SECTION_START
+
 		ReadDataRefs();
 
 		for (auto fire : myFires)
@@ -504,6 +532,8 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			DrawInstanceDestroy(myHookInstanceRef);
 		}
 
+		CARGO_SHM_SECTION_END // Now comes the time consuming part
+
 		for (int rain_index = 0; rain_index < HSL_RAINDROPS_DRAW_MAX; rain_index++)
 		{
 			
@@ -529,6 +559,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 
 void HSL_PlugIn::ConfigSave()
 {
+	CARGO_SHM_SECTION_START
 	try
 	{
 
@@ -586,6 +617,7 @@ void HSL_PlugIn::ConfigSave()
 
 void HSL_PlugIn::ConfigRead()
 {
+	CARGO_SHM_SECTION_START
 	boost::property_tree::ptree pt;
 	try
 	{
@@ -642,6 +674,7 @@ void HSL_PlugIn::ConfigRead()
 
 void HSL_PlugIn::AircraftConfigSave()
 {
+	CARGO_SHM_SECTION_START
 	try
 	{
 		char buffer[2048];
@@ -670,6 +703,7 @@ void HSL_PlugIn::AircraftConfigSave()
 
 void HSL_PlugIn::AircraftConfigRead()
 {
+	CARGO_SHM_SECTION_START
 	try
 	{
 		char buffer[2048];
@@ -733,19 +767,21 @@ void HSL_PlugIn::ConfigReadString(boost::property_tree::ptree& pt, std::string n
 void HSL_PlugIn::SlingEnable()
 {
 	XPLMCheckMenuItem(myPluginMenuID, myEnableSlingMenu, xplm_Menu_Checked);
-	myCargoDataShared.mySlingLineEnabled = true;
+	mySlingLineEnabled = myCargoDataShared.mySlingLineEnabled = true;
 	SlingReset();
 	XPLMSetActiveAircraftCount(MAX_FIRES);
 }
 
 void HSL_PlugIn::SlingDisable()
 {
+	CARGO_SHM_SECTION_START
 	XPLMCheckMenuItem(myPluginMenuID, myEnableSlingMenu, xplm_Menu_Unchecked);
-	myCargoDataShared.mySlingLineEnabled = false;
+	mySlingLineEnabled = myCargoDataShared.mySlingLineEnabled = false;
 }
 
 void HSL_PlugIn::SlingReset()
 {
+	CARGO_SHM_SECTION_START
 	for (unsigned i = 0; i < myCargoDataShared.myVectorHelicopterPosition.size(); ++i) myCargoDataShared.myVectorHelicopterPosition(i) = 0;
 	for (unsigned i = 0; i < myCargoDataShared.myVectorHookPosition.size(); ++i) myCargoDataShared.myVectorHookPosition(i) = 0;
 	
@@ -755,6 +791,10 @@ void HSL_PlugIn::SlingReset()
 	
 	myCargo.myVectorDisplayOffset = myVectorZeroVector;
 	myHook.myVectorDisplayOffset = myVectorZeroVector;
+
+	myCargo.myResetTime = true;
+	myHook.myResetTime = true;
+	myCargoDataShared.myFrameTimeMax = 0;
 
 	for (unsigned i = 0; i < myVectorZeroVector.size(); ++i) myVectorZeroVector(i) = 0;
 
@@ -813,6 +853,7 @@ void HSL_PlugIn::SlingReset()
 
 void HSL_PlugIn::SlingConnect()
 {
+	CARGO_SHM_SECTION_START
 	if (myCargo.myRopeConnected == false)
 	{
 		vector<float> distanceVector = myCargoDataShared.myVectorHelicopterPosition - myCargo.myVectorPosition;
@@ -833,6 +874,7 @@ void HSL_PlugIn::SlingConnect()
 
 void HSL_PlugIn::SlingRelease()
 {
+	CARGO_SHM_SECTION_START
 	myCargo.myRopeConnected = false;
 	myCargo.myFollowOnly = false;
 	myCargo.myDrawingEnabled = true;
@@ -851,7 +893,7 @@ void HSL_PlugIn::UpdateParameters()
 void HSL_PlugIn::UpdateObjects()
 {
 	////////////////////////////////
-
+	CARGO_SHM_SECTION_START
 	try
 	{
 
@@ -964,6 +1006,7 @@ void HSL_PlugIn::UpdateObjects()
 
 void HSL_PlugIn::CargoPlaceOnGround()
 {
+	CARGO_SHM_SECTION_START
 	if (myGroundProbe == NULL) return;
 
 	// Place Load 10m before Aircraft
@@ -988,6 +1031,7 @@ void HSL_PlugIn::CargoPlaceOnGround()
 
 void HSL_PlugIn::CargoPlaceCoordinates()
 {
+	CARGO_SHM_SECTION_START
 	if (myGroundProbe == NULL) return;
 
 	double zero_x, zero_y, zero_z;
@@ -1140,6 +1184,7 @@ void HSL_PlugIn::FirePlaceCoordinates()
 
 void HSL_PlugIn::BambiBucketRelease()
 {
+	CARGO_SHM_SECTION_START
 	myCargo.myBambiBucketRelease = true;
 }
 
@@ -1293,6 +1338,7 @@ int HSL_PlugIn::UpdateObjectsCallback(XPLMCommandRef cmd, XPLMCommandPhase phase
 
 void HSL_PlugIn::RegisterFloatDataref(float &valueIn, std::string nameIn)
 {
+	CARGO_SHM_SECTION_START
 	myRegisteredDatarefs.push_back(
 		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_Float, 1, NULL, NULL, WrapReadFloatCallback, WrapWriteFloatCallback, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &valueIn, &valueIn)
 	);
@@ -1307,6 +1353,7 @@ void HSL_PlugIn::RegisterFloatDataref(float &valueIn, std::string nameIn)
 
 void HSL_PlugIn::RegisterFloatArrayDataref(float *valueIn, std::string nameIn, int sizeIn)
 {
+	CARGO_SHM_SECTION_START
 	myRegisteredDatarefs.push_back(
 		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_FloatArray, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, WrapReadFloatArrayCallback, WrapWriteFloatArrayCallback, NULL, NULL, valueIn, valueIn)
 	);
@@ -1321,6 +1368,7 @@ void HSL_PlugIn::RegisterFloatArrayDataref(float *valueIn, std::string nameIn, i
 
 void HSL_PlugIn::RegisterDoubleDataref(double& valueIn, std::string nameIn)
 {
+	CARGO_SHM_SECTION_START
 	myRegisteredDatarefs.push_back(
 		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_Double, 1, NULL, NULL, NULL, NULL, WrapReadDoubleCallback, WrapWriteDoubleCallback, NULL, NULL, NULL, NULL, NULL, NULL, &valueIn, &valueIn)
 	);
@@ -1335,6 +1383,7 @@ void HSL_PlugIn::RegisterDoubleDataref(double& valueIn, std::string nameIn)
 
 void HSL_PlugIn::RegisterVectorDataref(vector<float>& vectorIn, std::string nameIn)
 {
+	CARGO_SHM_SECTION_START
 	myRegisteredDatarefs.push_back(
 		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_FloatArray, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, WrapReadVectorFloatCallback, WrapWriteVectorFloatCallback, NULL, NULL, &vectorIn, &vectorIn)
 	);
@@ -1349,6 +1398,7 @@ void HSL_PlugIn::RegisterVectorDataref(vector<float>& vectorIn, std::string name
 
 void HSL_PlugIn::RegisterIntDataref(bool& valueIn, std::string nameIn)
 {
+	CARGO_SHM_SECTION_START
 	myRegisteredDatarefs.push_back(
 		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_Int, 1, WrapReadIntCallback, WrapWriteIntCallback, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &valueIn, &valueIn)
 	);
@@ -1363,6 +1413,7 @@ void HSL_PlugIn::RegisterIntDataref(bool& valueIn, std::string nameIn)
 
 void HSL_PlugIn::RegisterStringDataref(std::string& valueIn, std::string nameIn)
 {
+	CARGO_SHM_SECTION_START
 	myRegisteredDatarefs.push_back(
 		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_Data, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, WrapReadStringCallback, WrapWriteStringCallback, &valueIn, &valueIn)
 	);
@@ -1377,6 +1428,7 @@ void HSL_PlugIn::RegisterStringDataref(std::string& valueIn, std::string nameIn)
 
 vector<float> HSL_PlugIn::TurnWorldToAircraft(vector<float> coordsAircraft, CargoDataShared & cargoDataSharedIn)
 {
+	CARGO_SHM_SECTION_START
 	vector<float> world_coords = vector<float>(3);
 
 	double aircraft_x = coordsAircraft(0);
@@ -1408,6 +1460,7 @@ vector<float> HSL_PlugIn::TurnWorldToAircraft(vector<float> coordsAircraft, Carg
 
 vector<float> HSL_PlugIn::AircraftToWorld(vector<float> coordsAircraft)
 {
+	CARGO_SHM_SECTION_START
 	vector<float> world_coords = vector<float>(3);
 
 	double aircraft_x = coordsAircraft(0);
@@ -1459,6 +1512,7 @@ z_wrl=z_the*cos(psi) + x_the*sin(psi) + local_z
 
 vector<float> HSL_PlugIn::AdjustFrameMovement(vector<float> coordsAircraft)
 {
+	CARGO_SHM_SECTION_START
 	vector<float> world_coords = coordsAircraft;
 
 	world_coords(0) += myCargoDataShared.myLdLocalX - myLastLocalX;
@@ -1470,17 +1524,20 @@ vector<float> HSL_PlugIn::AdjustFrameMovement(vector<float> coordsAircraft)
 
 float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, int counter, void* refcon)
 {
+	CARGO_SHM_SECTION_START
+
 	auto time_start = std::chrono::steady_clock::now();
 	
+	ReadDataRefs();
 
-	if ((myCargoDataShared.mySlingLineEnabled == true) && (myCargoDataShared.myLiPause == 0))
+	if ((mySlingLineEnabled == true) && (myCargoDataShared.myLiPause == 0))
 	{
 		myCargoDataShared.myDebugStatement = true;
 		myCargoDataShared.myFrameTime = elapsedMe;
 
 		if (myDropThreadObject.myDropObjectIn.size() > 0) myRainDropOverflow++;
 
-		ReadDataRefs();
+		
 
 		// Move the Winch
 		if (myWinchDirection == HSL::Down)
@@ -1540,7 +1597,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 		myCargo.myTerrainIsWet = info.is_wet;
 
 
-
+		myCargoDataShared.myNewFrame = true;
 		// Calculate Physics for Cargo and Hook
 		myCargo.CalculatePhysics();
 		myHook.CalculatePhysics();
@@ -1552,7 +1609,8 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 
 		// Calculate Average Forces over all results
 		float forceTime = 0;
-		while (myCargoDataShared.myHelicopterForceQueue.size() > 0)
+
+		for (myCompuationsPerFlightLoop = 0; myCargoDataShared.myHelicopterForceQueue.size() > 0; myCompuationsPerFlightLoop++)
 		{
 			ForceData forceData = myCargoDataShared.myHelicopterForceQueue.front();
 			myCargoDataShared.myHelicopterForceQueue.pop();
@@ -1799,6 +1857,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 
 void HSL_PlugIn::DrawObjects()
 {
+	CARGO_SHM_SECTION_START
 	vector<float> vectorWinchWorld = AircraftToWorld(myCargoDataShared.myVectorWinchPosition);
 
 	XPLMDrawInfo_t		dr;
@@ -1815,17 +1874,19 @@ void HSL_PlugIn::DrawObjects()
 
 void HSL_PlugIn::ReadDataRefs()
 {
-	myCargoDataShared.myLdLocalX = XPLMGetDatad(myDrLocalX);
-	myCargoDataShared.myLdLocalY = XPLMGetDatad(myDrLocalY);
-	myCargoDataShared.myLdLocalZ = XPLMGetDatad(myDrLocalZ);
+	CARGO_SHM_SECTION_START
 
-	myCargoDataShared.myLfLocalXv = XPLMGetDataf(myDrLocalXv);
-	myCargoDataShared.myLfLocalYv = XPLMGetDataf(myDrLocalYv);
-	myCargoDataShared.myLfLocalZv = XPLMGetDataf(myDrLocalZv);
+	myCargoDataShared.myVectorHelicopterPositionFlightLoop(0) = myCargoDataShared.myLdLocalX = XPLMGetDatad(myDrLocalX);
+	myCargoDataShared.myVectorHelicopterPositionFlightLoop(1) = myCargoDataShared.myLdLocalY = XPLMGetDatad(myDrLocalY);
+	myCargoDataShared.myVectorHelicopterPositionFlightLoop(2) = myCargoDataShared.myLdLocalZ = XPLMGetDatad(myDrLocalZ);
 
-	myCargoDataShared.myLfLocalXa = XPLMGetDataf(myDrLocalXa);
-	myCargoDataShared.myLfLocalYa = XPLMGetDataf(myDrLocalYa);
-	myCargoDataShared.myLfLocalZa = XPLMGetDataf(myDrLocalZa);
+	myCargoDataShared.myVectorHelicopterPositionFlightLoop(0) = myCargoDataShared.myLfLocalXv = XPLMGetDataf(myDrLocalXv);
+	myCargoDataShared.myVectorHelicopterPositionFlightLoop(1) = myCargoDataShared.myLfLocalYv = XPLMGetDataf(myDrLocalYv);
+	myCargoDataShared.myVectorHelicopterPositionFlightLoop(2) = myCargoDataShared.myLfLocalZv = XPLMGetDataf(myDrLocalZv);
+
+	myCargoDataShared.myVectorHelicopterAcceleration(0) = myCargoDataShared.myLfLocalXa = XPLMGetDataf(myDrLocalXa);
+	myCargoDataShared.myVectorHelicopterAcceleration(1) = myCargoDataShared.myLfLocalYa = XPLMGetDataf(myDrLocalYa);
+	myCargoDataShared.myVectorHelicopterAcceleration(2) = myCargoDataShared.myLfLocalZa = XPLMGetDataf(myDrLocalZa);
 
 	myCargoDataShared.myLfLocalPhi = XPLMGetDataf(myDrLocalPhi) *  M_PI / 180.0f;
 	myCargoDataShared.myLfLocalPsi = XPLMGetDataf(myDrLocalPsi) * M_PI / 180.0f;

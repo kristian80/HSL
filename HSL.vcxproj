@@ -163,6 +163,7 @@
     <ClCompile Include="HSLImguiWidget.cpp" />
     <ClCompile Include="HSL_main.cpp" />
     <ClCompile Include="HSL_PlugIn.cpp" />
+    <ClCompile Include="PhysicsThread.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CargoObject.h" />
@@ -173,6 +174,7 @@
     <ClInclude Include="HSL.h" />
     <ClInclude Include="HSLImguiWidget.h" />
     <ClInclude Include="HSL_PlugIn.h" />
+    <ClInclude Include="PhysicsThread.h" />
     <ClInclude Include="TSQueue.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

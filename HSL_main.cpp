@@ -198,20 +198,24 @@ int WrapUpdateObjectCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* r
 
 float WrapReadFloatCallback(void* inRefcon)
 {
+	CARGO_SHM_SECTION_START
 	return *((float*)inRefcon);
 }
 
 void WrapWriteFloatCallback(void* inRefcon, float inValue)
 {
+	CARGO_SHM_SECTION_START
 	*((float*)inRefcon) = inValue;
 }
 double WrapReadDoubleCallback(void* inRefcon)
 {
+	CARGO_SHM_SECTION_START
 	return *((double*)inRefcon);
 }
 
 void WrapWriteDoubleCallback(void* inRefcon, double inValue)
 {
+	CARGO_SHM_SECTION_START
 	*((double*)inRefcon) = inValue;
 }
 
@@ -221,6 +225,7 @@ int WrapReadVectorFloatCallback(
 	int                  inOffset,
 	int                  inMax)
 {
+	CARGO_SHM_SECTION_START
 	if (inMax < 3) return 0;
 	vector<float>* pVector = (vector<float>*) inRefcon;
 	outValues[0] = (*pVector)(0);
@@ -235,6 +240,7 @@ void WrapWriteVectorFloatCallback(
 	int                  inOffset,
 	int                  inCount)
 {
+	CARGO_SHM_SECTION_START
 	if (inCount < 3) return;
 	vector<float>* pVector = (vector<float>*) inRefcon;
 
@@ -250,6 +256,7 @@ int WrapReadFloatArrayCallback(
 	int                  inOffset,
 	int                  inMax)
 {
+	CARGO_SHM_SECTION_START
 	float* array = (float*)inRefcon;
 	memcpy(outValues, array + inOffset, sizeof(float) * inMax);
 	return 1;
@@ -261,17 +268,20 @@ void WrapWriteFloatArrayCallback(
 	int                  inOffset,
 	int                  inCount)
 {
+	CARGO_SHM_SECTION_START
 	float* array = (float*)inRefcon;
 	memcpy(array + inOffset, inValues, sizeof(float) * inCount);
 }
 
 int WrapReadIntCallback(void* inRefcon)
 {
+	CARGO_SHM_SECTION_START
 	return (int) (*((bool*)inRefcon));
 }
 
 void WrapWriteIntCallback(void* inRefcon, int inValue)
 {
+	CARGO_SHM_SECTION_START
 	*((int*)inRefcon) = inValue;
 }
 
@@ -281,6 +291,7 @@ int WrapReadStringCallback(
 	int                  inOffset,
 	int                  inMaxLength)
 {
+	CARGO_SHM_SECTION_START
 	std::string* pStr = (std::string*) inRefcon;
 
 	if (pStr->size() < inMaxLength)
@@ -298,6 +309,7 @@ void WrapWriteStringCallback(
 	int                  inOffset,
 	int                  inLength)
 {
+	CARGO_SHM_SECTION_START
 	std::string* pStr = (std::string*) inRefcon;
 	*pStr = (char*)inValue;
 }

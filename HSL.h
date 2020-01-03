@@ -16,6 +16,7 @@
 #include <ctime>
 #include <iomanip>
 #include <set>
+#include <mutex>          
 
 #include "XPLMDefs.h"
 #include "XPLMProcessing.h"
@@ -80,6 +81,11 @@ class HSL_PlugIn;
 struct CargoDataShared;
 extern HSL_PlugIn* pHSL;
 extern std::ofstream hsl_output_file;
+extern std::recursive_mutex cargoDataSharedMutex;
+
+#define CARGO_SHM_SECTION_START std::unique_lock<std::recursive_mutex> cargo_shm_lock(cargoDataSharedMutex);
+
+#define CARGO_SHM_SECTION_END cargo_shm_lock.unlock();
 
 
 struct DropHSLData
@@ -106,6 +112,7 @@ struct RainDropDrawData
 	vector<float> myVectorVelocity = vector<float>(3);
 	vector<float> myVectorDisplayAngle = vector<float>(3);
 };
+
 
 inline bool check_below_ground(vector<float>& pos, XPLMProbeRef groundProbe)
 {
