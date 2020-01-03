@@ -23,7 +23,7 @@
  **************************************************************************************************************/
 HSL_PlugIn * pHSL;
 std::ofstream hsl_output_file;
-
+bool HIGH_PERFORMANCE = false;
 
 
 // Mac specific: this converts file paths from HFS (which we get from the SDK) to Unix (which the OS wants).
@@ -312,6 +312,12 @@ void WrapWriteStringCallback(
 	CARGO_SHM_SECTION_START
 	std::string* pStr = (std::string*) inRefcon;
 	*pStr = (char*)inValue;
+}
+
+void SetHighPerformance(bool performanceIn)
+{
+	CARGO_SHM_SECTION_START;
+	HIGH_PERFORMANCE = performanceIn;
 }
 
 

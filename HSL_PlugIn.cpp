@@ -3,6 +3,7 @@
 
 std::recursive_mutex cargoDataSharedMutex;
 
+bool HSL_PlugIn::HIGH_PERFORMANCE = false;
 
 HSL_PlugIn::HSL_PlugIn() :
 	myCargo(*this),
@@ -528,7 +529,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			//vectorFinalRopeStart = vectorCargoPointOpenGL;
 
 			DrawInstanceCreate(myCargoInstanceRef, myCargoObjectRef);
-			DrawInstanceSetPosition(myCargoInstanceRef, myCargoObjectRef, vectorCargoPointOpenGL, myCargo.myVectorDisplayAngle, false);
+			DrawInstanceSetPosition(myCargoInstanceRef, myCargoObjectRef, vectorCargoPointOpenGL, myCargo.myVectorDisplayAngle, true);
 			
 
 		}
@@ -559,6 +560,9 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 		int ropeObjectCount = (int) (myCargoDataShared.myRopeLengthNormal / 0.01f);
 		
 		if (ropeObjectCount > HSL_ROPE_POINTS_MAX) ropeObjectCount = HSL_ROPE_POINTS_MAX;
+
+		auto time_end = std::chrono::steady_clock::now();
+		myProcessingTimeDrawRoutine = std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_start).count();
 
 
 		CARGO_SHM_SECTION_END // Now comes the time consuming part
@@ -648,8 +652,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 		}
 	}
 
-	auto time_end = std::chrono::steady_clock::now();
-	myProcessingTimeDrawRoutine = std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_start).count();
+	
 
 	return 1;
 }
@@ -1629,7 +1632,8 @@ vector<float> HSL_PlugIn::AdjustFrameMovement(vector<float> coordsAircraft)
 float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, int counter, void* refcon)
 {
 	CARGO_SHM_SECTION_START
-
+	HIGH_PERFORMANCE = myCargoDataShared.myHighPerformace;
+	SetHighPerformance(HIGH_PERFORMANCE);
 	auto time_start = std::chrono::steady_clock::now();
 	
 	ReadDataRefs();
@@ -1761,6 +1765,23 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 				XPLMSetDataf(myDrMomentumY, myLfMomentumY + myVectorHelicopterMomentumApplied(0));
 				XPLMSetDataf(myDrMomentumZ, myLfMomentumZ - myVectorHelicopterMomentumApplied(1));
 			}
+		}
+
+		static auto timeStart = std::chrono::steady_clock::now();
+		static float countComps = 0;
+
+		countComps += myCompuationsPerFlightLoop;
+
+		auto timeNow = std::chrono::steady_clock::now();
+
+		float timeMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - timeStart).count();
+
+		if (timeMs > 1000)
+		{
+			myCargoDataShared.myFrameTimeMax = 0;
+			timeStart = timeNow;
+			myComputationFrequency = countComps * timeMs / 1000.0f;
+			countComps = 0;
 		}
 		
 

@@ -6,6 +6,7 @@ CargoObject::CargoObject(HSL_PlugIn& HSLNew) :
 	myCargoDataShared(HSLNew.myCargoDataShared)
 {
 	CARGO_SHM_SECTION_START
+	HIGH_PERFORMANCE = myCargoDataShared.myHighPerformace;
 	for (unsigned i = 0; i < myVectorZeroVector.size(); ++i) myVectorZeroVector(i) = 0;
 
 	myVectorHelicopterPositionApprox = myVectorZeroVector;
@@ -161,7 +162,7 @@ void CargoObject::CalculatePhysics()
 	float frameTime = frameTimeNano / (1000000000.0f);
 	myStartTime = timeNow;
 
-	myCargoDataShared.myFrameTimeMax = frameTimeNano; //max(myCargoDataShared.myFrameTimeMax, frameTimeNano);
+	myCargoDataShared.myFrameTimeMax = max(myCargoDataShared.myFrameTimeMax, frameTimeNano);
 	
 	//float frameTime = myCargoDataShared.myFrameTime;
 
@@ -304,11 +305,11 @@ void CargoObject::CalculatePhysics()
 		}*/
 
 		myCargoDataShared.myRopeForceScalar = ropeForceStrech + ropeForceDamping;
-		/*if (myCargoDataShared.myRopeForceScalar < 0.0f)
+		if (myCargoDataShared.myRopeForceScalar < 0.0f)
 		{
 			myCargoDataShared.myRopeForceScalar = 0;  // Rope can never apply negative forces, our damping could ;-)
 			myCargoDataShared.myDebugValue2 = 100.f;
-		}*/
+		}
 
 		// If we are still in the stretching phase, we want to make sure we do not shoot down the helicopter after an fps lag
 		// Hence, we make sure that we will have at least another computation in the negative stretching phase

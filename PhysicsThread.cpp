@@ -13,10 +13,13 @@ void PhysicsThread::RunPhysicsThread(int index)
 
 	std::unique_lock<std::recursive_mutex> physics_shm_lock(cargoDataSharedMutex, std::defer_lock);
 
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
+
 	while (myRunFlag)
 	{
 		if (physics_shm_lock.try_lock()) // Non-Blocking Lock
 		{
+			HIGH_PERFORMANCE = HSL.myCargoDataShared.myHighPerformace;
 			myRunFlag = HSL.myCargoDataShared.myThreadRunFlag;
 
 			if (HSL.myCargoDataShared.myComputationRunFlag == true)
@@ -35,6 +38,15 @@ void PhysicsThread::RunPhysicsThread(int index)
 
 			physics_shm_lock.unlock(); // Unlock
 		}
-		std::this_thread::sleep_for(1us); // Low to enable fast recover after lock
+		if (HIGH_PERFORMANCE == true)
+		{
+			volatile int counter = 0;
+			for (counter = 0; counter < 10000; counter++);
+		}
+		else
+		{
+			std::this_thread::sleep_for(1us);
+		}
+
 	}
 }

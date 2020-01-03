@@ -23,6 +23,7 @@ struct CargoDataShared
 {
 	bool myThreadRunFlag = true; // Only to terminate computation
 	bool myComputationRunFlag = false;
+	bool myHighPerformace = false;
 
 	float myFrameTime = 0;
 	
@@ -105,6 +106,7 @@ struct CargoDataShared
 
 class HSL_PlugIn
 {
+	static bool HIGH_PERFORMANCE;
 public:
 	std::string myDS = "";
 	std::string mySystemPath = "";
@@ -141,6 +143,7 @@ public:
 
 	float myDataRate = -1;
 	int myCompuationsPerFlightLoop = 0;
+	int myComputationFrequency = 0;
 	bool mySlingLineEnabled = false;
 
 	int myPluginMenu = 0;

@@ -4,6 +4,7 @@
 class CargoObject :
 	public LoadBaseObject
 {
+	bool HIGH_PERFORMANCE = false;
 public:
 	//HSL_PlugIn& HSL;
 	CargoDataShared &myCargoDataShared;

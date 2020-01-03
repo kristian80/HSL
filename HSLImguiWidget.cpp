@@ -70,7 +70,10 @@ void HSLImguiWidget::OutputVector(vector<float>& vectorOut, std::string nameOut)
 
 void HSLImguiWidget::buildInterface()
 {
+	static bool HIGH_PERFORMANCE = false;
 	CARGO_SHM_SECTION_START
+
+	HIGH_PERFORMANCE = pHSL->myCargoDataShared.myHighPerformace;
 
 	win_width = ImGui::GetWindowWidth();
 	win_height = ImGui::GetWindowHeight();
@@ -82,6 +85,8 @@ void HSLImguiWidget::buildInterface()
 	
 	ImGui::PushItemWidth(100);
 	ImGui::Checkbox("Simple Mode", &(pHSL->mySimpleMode));
+	ImGui::Checkbox("High Performace", &(pHSL->myCargoDataShared.myHighPerformace));
+	ImGui::Text("Frequency: %d Hz", pHSL->myComputationFrequency);
 
 
 	////////////////////////////////////////////////////////////////////////////

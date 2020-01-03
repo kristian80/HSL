@@ -83,7 +83,12 @@ extern HSL_PlugIn* pHSL;
 extern std::ofstream hsl_output_file;
 extern std::recursive_mutex cargoDataSharedMutex;
 
-#define CARGO_SHM_SECTION_START std::unique_lock<std::recursive_mutex> cargo_shm_lock(cargoDataSharedMutex);
+//#define CARGO_SHM_SECTION_START std::unique_lock<std::recursive_mutex> cargo_shm_lock(cargoDataSharedMutex);
+
+#define CARGO_SHM_SECTION_START std::unique_lock<std::recursive_mutex> cargo_shm_lock(cargoDataSharedMutex, std::defer_lock); if (HIGH_PERFORMANCE) {while (cargo_shm_lock.try_lock() == false);} else cargo_shm_lock.lock();
+
+
+//#define CARGO_SHM_SECTION_START HIGH_PERFORMANCE?std::unique_lock<std::recursive_mutex> cargo_shm_lock(cargoDataSharedMutex);:std::unique_lock<std::recursive_mutex> cargo_shm_lock(cargoDataSharedMutex, std::defer_lock); while (cargo_shm_lock.try_lock() == false);
 
 #define CARGO_SHM_SECTION_END cargo_shm_lock.unlock();
 
@@ -176,6 +181,8 @@ inline void limit_max(vector<float>& vec, float max_value)
 		if (vec(i) > max_value) vec(1) = max_value;
 	}
 }
+
+void SetHighPerformance(bool performanceIn);
 
 inline vector<float> XPlaneCartToSphere(vector<float>& cart)
 {
