@@ -205,6 +205,12 @@ void HSLImguiWidget::buildInterface()
 
 		ImGui::Text("Sling:");
 
+		ImGui::Text("CargoDevX:      %.9f", pHSL->myCargoDataShared.myVectorHelicopterVelocity(0));
+		ImGui::Text("CargoDevY:      %.9f", pHSL->myCargoDataShared.myVectorHelicopterVelocity(1));
+		ImGui::Text("CargoDevZ:      %.9f", pHSL->myCargoDataShared.myVectorHelicopterVelocity(2));
+
+		OutputVector(pHSL->myCargo.myVectorHelicopterPositionDeviation, "Cargo Dev");
+		OutputVector(pHSL->myHook.myVectorHelicopterPositionDeviation, "Hook Dev");
 		OutputVector(pHSL->myCargoDataShared.myVectorHookPosition, "Hook Pos");
 		OutputVector(pHSL->myCargoDataShared.myVectorRope, "Rope");
 		OutputVector(pHSL->myCargoDataShared.myVectorWinchPosition, "WinchPosition");

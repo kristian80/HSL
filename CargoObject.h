@@ -13,6 +13,11 @@ public:
 
 	vector<float> myVectorZeroVector = vector<float>(3);
 
+	vector<float> myVectorHelicopterPositionApprox = vector<float>(3);
+	vector<float> myVectorHelicopterPositionApproxOld = vector<float>(3);
+	vector<float> myVectorHelicopterVelocityApprox = vector<float>(3);
+	vector<float> myVectorHelicopterPositionDeviation = vector<float>(3);
+
 	vector<float> myVectorVelocity = vector<float>(3);
 	vector<float> myVectorForceGravity = vector<float>(3);
 	vector<float> myVectorWindVelocity = vector<float>(3);
@@ -31,6 +36,7 @@ public:
 	bool myDrawingEnabled = false;
 	bool myInstancedDrawing = false;
 	bool myOrientationFollowsDirection = false;
+	bool myUpdateHelicopterPosition = true;
 
 	std::chrono::time_point<std::chrono::steady_clock> myStartTime; 
 	bool myResetTime = true;
@@ -76,6 +82,7 @@ public:
 	CargoObject(HSL_PlugIn& HSLNew, vector<float> pos, vector<float> vel);
 	~CargoObject();
 
+	
 	void CalculatePhysics();
 	
 };

@@ -22,6 +22,7 @@ Make Reset properly for out functions! Stop Computation on Reset
 struct CargoDataShared
 {
 	bool myThreadRunFlag = true; // Only to terminate computation
+	bool myComputationRunFlag = false;
 
 	float myFrameTime = 0;
 	
@@ -32,7 +33,7 @@ struct CargoDataShared
 
 	vector<float> myVectorRope = vector<float>(3);
 
-	vector<float> myVectorHelicopterPositionFlightLoop = vector<float>(3);
+	//vector<float> myVectorHelicopterPositionFlightLoop = vector<float>(3);
 	vector<float> myVectorHelicopterVelocity = vector<float>(3);
 	vector<float> myVectorHelicopterAcceleration = vector<float>(3);
 
@@ -186,7 +187,7 @@ public:
 	
 	float myDummyAngle = 0;
 
-	std::vector<vector<float>> myRopePoints;
+	vector<float> myRopePoints[HSL_ROPE_POINTS_MAX];
 	XPLMInstanceRef myRopeInstances[HSL_ROPE_POINTS_MAX];
 	HSL::WinchDirection myWinchDirection = HSL::Stop;
 
