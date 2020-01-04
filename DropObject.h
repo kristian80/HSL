@@ -10,36 +10,36 @@ class DropObject :
 public:
 
 
-	vector<float> myVectorZeroVector = vector<float>(3);
+	vector<double> myVectorZeroVector = vector<double>(3);
 
-	vector<float> myVectorVelocity = vector<float>(3);
-	vector<float> myVectorForceGravity = vector<float>(3);
-	vector<float> myVectorWindVelocity = vector<float>(3);
+	vector<double> myVectorVelocity = vector<double>(3);
+	vector<double> myVectorForceGravity = vector<double>(3);
+	vector<double> myVectorWindVelocity = vector<double>(3);
 
-	vector<float> myVectorDisplayOffset = vector<float>(3);
-	vector<float> myVectorDisplayAngle = vector<float>(3);
+	vector<double> myVectorDisplayOffset = vector<double>(3);
+	vector<double> myVectorDisplayAngle = vector<double>(3);
 
-	vector<float> myVectorSize = vector<float>(3); //Length / Width / Height
-	vector<float> myVectorCrossSection = vector<float>(3);
-	vector<float> myVectorCW = vector<float>(3);
+	vector<double> myVectorSize = vector<double>(3); //Length / Width / Height
+	vector<double> myVectorCrossSection = vector<double>(3);
+	vector<double> myVectorCW = vector<double>(3);
 
 	bool myInstancedDrawing = false;
 
-	float myMass = 5.0f;
-	float myVolume = 1.0f;
+	double myMass = 5.0;
+	double myVolume = 1.0;
 
-	float myAirSpeed = 0;
-	float myAirResistance = 0;
+	double myAirSpeed = 0;
+	double myAirResistance = 0;
 
-	vector<float> myVectorAirVelocity = vector<float>(3);
-	vector<float> myVectorForceAir = vector<float>(3);
-	vector<float> myVectorForceTotal = vector<float>(3);
-	vector<float> myVectorAccTotal = vector<float>(3);
-	vector<float> myVectorVelocityDelta = vector<float>(3);
+	vector<double> myVectorAirVelocity = vector<double>(3);
+	vector<double> myVectorForceAir = vector<double>(3);
+	vector<double> myVectorForceTotal = vector<double>(3);
+	vector<double> myVectorAccTotal = vector<double>(3);
+	vector<double> myVectorVelocityDelta = vector<double>(3);
 
 
 	DropObject();
-	DropObject(vector<float> pos, vector<float> vel);
+	DropObject(vector<double> pos, vector<double> vel);
 	~DropObject();
 
 	void CalculatePhysics(DropHSLData& HSL);

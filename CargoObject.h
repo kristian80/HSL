@@ -12,25 +12,25 @@ public:
 	XPLMInstanceRef myDrawInstance = NULL;
 
 
-	vector<float> myVectorZeroVector = vector<float>(3);
+	vector<double> myVectorZeroVector = vector<double>(3);
 
-	vector<float> myVectorHelicopterPositionApprox = vector<float>(3);
-	vector<float> myVectorHelicopterPositionApproxOld = vector<float>(3);
-	vector<float> myVectorHelicopterVelocityApprox = vector<float>(3);
-	vector<float> myVectorHelicopterPositionDeviation = vector<float>(3);
+	vector<double> myVectorHelicopterPositionApprox = vector<double>(3);
+	vector<double> myVectorHelicopterPositionApproxOld = vector<double>(3);
+	vector<double> myVectorHelicopterVelocityApprox = vector<double>(3);
+	vector<double> myVectorHelicopterPositionDeviation = vector<double>(3);
 
-	vector<float> myVectorVelocity = vector<float>(3);
-	vector<float> myVectorForceGravity = vector<float>(3);
-	vector<float> myVectorWindVelocity = vector<float>(3);
-	vector<float> myVectorCargoOffset = vector<float>(3);
-	vector<float> myVectorCargoRotation = vector<float>(3);
+	vector<double> myVectorVelocity = vector<double>(3);
+	vector<double> myVectorForceGravity = vector<double>(3);
+	vector<double> myVectorWindVelocity = vector<double>(3);
+	vector<double> myVectorCargoOffset = vector<double>(3);
+	vector<double> myVectorCargoRotation = vector<double>(3);
 
-	vector<float> myVectorDisplayOffset = vector<float>(3);
-	vector<float> myVectorDisplayAngle = vector<float>(3);
+	vector<double> myVectorDisplayOffset = vector<double>(3);
+	vector<double> myVectorDisplayAngle = vector<double>(3);
 
-	vector<float> myVectorSize = vector<float>(3); //Length / Width / Height
-	vector<float> myVectorCrossSection = vector<float>(3);
-	vector<float> myVectorCW = vector<float>(3);
+	vector<double> myVectorSize = vector<double>(3); //Length / Width / Height
+	vector<double> myVectorCrossSection = vector<double>(3);
+	vector<double> myVectorCW = vector<double>(3);
 
 	bool myRopeConnected = false;
 	bool myFollowOnly = false;
@@ -42,45 +42,46 @@ public:
 	std::chrono::time_point<std::chrono::steady_clock> myStartTime; 
 	bool myResetTime = true;
 
-	float myWaterLevel = 0;
+	double myWaterLevel = 0;
 	bool myTerrainIsWet = false;
-	float myVolume = 0;
+	double myVolume = 0;
 
-	float myHeight = 0.1;
-	float myMass = 5.0f;
-	float myFrictionGlide = 0.35;
-	float myFrictionStatic = 0.65;
+	double myHeight = 0.1;
+	double myMass = 5.0;
+	double myFrictionGlide = 0.35;
+	double myFrictionStatic = 0.65;
 
-	float myObjectTerrainLevel = 0;
+	double myObjectTerrainLevel = 0;
 	bool myTerrainHit = false;
-	float myAirSpeed = 0;
-	float myAirResistance = 0;
-	float mySpeedStaticFriction = 0.3;
+	bool myStopMovement = false;
+	double myAirSpeed = 0;
+	double myAirResistance = 0;
+	double mySpeedStaticFriction = 0.3;
 	bool myIsBambiBucket = false;
 
 	bool myBambiBucketRelease = false;
-	float myBambiBucketWaterLevel = 0;
-	float myBambiBucketWaterWeight = 0;
+	double myBambiBucketWaterLevel = 0;
+	double myBambiBucketWaterWeight = 0;
 
-	vector<float> myVectorForceRope = vector<float>(3);
-	vector<float> myVectorAirVelocity = vector<float>(3);
-	vector<float> myVectorWaterVelocity = vector<float>(3);
-	vector<float> myVectorForceAir = vector<float>(3);
-	vector<float> myVectorForceWater = vector<float>(3);
-	vector<float> myVectorForceSwim = vector<float>(3);
-	vector<float> myVectorForceTotal = vector<float>(3);
-	vector<float> myVectorHorizontalVelocity = vector<float>(3);
-	vector<float> myVectorForceFriction = vector<float>(3);
-	vector<float> myVectorAccTotal = vector<float>(3);
-	vector<float> myVectorVelocityDelta = vector<float>(3);
-	vector<float> myVectorForceChopper = vector<float>(3);
-	vector<float> myVectorMomentumChopper = vector<float>(3);
+	vector<double> myVectorForceRope = vector<double>(3);
+	vector<double> myVectorAirVelocity = vector<double>(3);
+	vector<double> myVectorWaterVelocity = vector<double>(3);
+	vector<double> myVectorForceAir = vector<double>(3);
+	vector<double> myVectorForceWater = vector<double>(3);
+	vector<double> myVectorForceSwim = vector<double>(3);
+	vector<double> myVectorForceTotal = vector<double>(3);
+	vector<double> myVectorHorizontalVelocity = vector<double>(3);
+	vector<double> myVectorForceFriction = vector<double>(3);
+	vector<double> myVectorAccTotal = vector<double>(3);
+	vector<double> myVectorVelocityDelta = vector<double>(3);
+	vector<double> myVectorForceChopper = vector<double>(3);
+	vector<double> myVectorMomentumChopper = vector<double>(3);
 
-	vector<float> myVectorForceAirNew = vector<float>(3);
-	vector<float> myVectorForceAirCart = vector<float>(3);
+	vector<double> myVectorForceAirNew = vector<double>(3);
+	vector<double> myVectorForceAirCart = vector<double>(3);
 
 	CargoObject(HSL_PlugIn &HSLNew);
-	CargoObject(HSL_PlugIn& HSLNew, vector<float> pos, vector<float> vel);
+	CargoObject(HSL_PlugIn& HSLNew, vector<double> pos, vector<double> vel);
 	~CargoObject();
 
 	

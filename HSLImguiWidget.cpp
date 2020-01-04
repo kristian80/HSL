@@ -40,17 +40,17 @@ void HSLImguiWidget::Visible(bool visible)
 	}
 }
 
-void HSLImguiWidget::InputVector(vector<float>& vectorIn, std::string nameIn)
+void HSLImguiWidget::InputVector(vector<double>& vectorIn, std::string nameIn)
 {
 	for (int i = 0; i < vectorIn.size(); i++)
 	{
 		std::string name = nameIn + std::to_string(i + 1);
-		//float* var = &(vectorIn(i));
-		ImGui::InputFloat(name.c_str(), &(vectorIn(i)), 0.01, 0.01, 2, 0);
+		//double* var = &(vectorIn(i));
+		ImGui::InputDouble(name.c_str(), &(vectorIn(i)), 0.01, 0.01,"%.3f");
 	}
 }
 
-void HSLImguiWidget::OutputVector(vector<float>& vectorOut, std::string nameOut)
+void HSLImguiWidget::OutputVector(vector<double>& vectorOut, std::string nameOut)
 {
 	ImGui::PushItemWidth(50);
 	ImGui::Text(nameOut.c_str());
@@ -86,7 +86,34 @@ void HSLImguiWidget::buildInterface()
 	ImGui::PushItemWidth(100);
 	ImGui::Checkbox("Simple Mode", &(pHSL->mySimpleMode));
 	ImGui::Checkbox("High Performace", &(pHSL->myCargoDataShared.myHighPerformace));
-	ImGui::Text("Frequency: %d Hz", pHSL->myComputationFrequency);
+
+	double loadFreq = 0;
+	
+	if ((pHSL->myHook.myFollowOnly == false) && (pHSL->myHook.myRopeConnected == true))
+		loadFreq = sqrt(pHSL->myCargoDataShared.myRopeK / pHSL->myHook.myMass) / (2.0f * M_PI);
+	else if ((pHSL->myCargo.myFollowOnly == false) && (pHSL->myCargo.myRopeConnected == true))
+		loadFreq = sqrt(pHSL->myCargoDataShared.myRopeK / (pHSL->myCargo.myMass + pHSL->myCargo.myBambiBucketWaterWeight)) / (2.0f * M_PI);
+
+	if (250 <= pHSL->myComputationFrequency)
+	{
+		ImVec4 col = ImColor(0, 255, 0);
+		ImGui::PushStyleColor(ImGuiCol_Text, col);
+	}
+	else if (100 <= pHSL->myComputationFrequency)
+	{
+		ImVec4 col = ImColor(255, 255, 0);
+		ImGui::PushStyleColor(ImGuiCol_Text, col);
+	}
+	else
+	{
+		ImVec4 col = ImColor(255, 0, 0);
+		ImGui::PushStyleColor(ImGuiCol_Text, col);
+	}
+
+	ImGui::Text("Computation Freq: %d Hz", pHSL->myComputationFrequency);
+	//ImGui::Text("Load Resonance: %d Hz", (int) loadFreq);
+
+	ImGui::PopStyleColor();
 
 
 	////////////////////////////////////////////////////////////////////////////
@@ -101,37 +128,37 @@ void HSLImguiWidget::buildInterface()
 		ImGui::Checkbox("Bambi Bucket Release", &(pHSL->myCargo.myBambiBucketRelease));
 
 		ImGui::Text("Rope Parameters:");
-		ImGui::InputFloat("Rope Length Start [m]", &(pHSL->myCargoDataShared.myRopeLengthStart), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope Length [m]", &(pHSL->myCargoDataShared.myRopeLengthNormal), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope Rupture Force [N]", &(pHSL->myCargoDataShared.myRopeRuptureForce), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope Damping", &(pHSL->myCargoDataShared.myRopeDamping), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope K", &(pHSL->myCargoDataShared.myRopeK), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("MaxRopeAcc", &(pHSL->myCargoDataShared.myMaxAccRopeFactor), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Winch Speed [m/s]", &(pHSL->myCargoDataShared.myWinchSpeed), 0.01, 0.01, 3, 0);
+		ImGui::InputDouble("Rope Length Start [m]", &(pHSL->myCargoDataShared.myRopeLengthStart), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Rope Length [m]", &(pHSL->myCargoDataShared.myRopeLengthNormal), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Rope Rupture Force [N]", &(pHSL->myCargoDataShared.myRopeRuptureForce), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Rope Damping", &(pHSL->myCargoDataShared.myRopeDamping), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Rope K", &(pHSL->myCargoDataShared.myRopeK), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("MaxRopeAcc", &(pHSL->myCargoDataShared.myMaxAccRopeFactor), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Winch Speed [m/s]", &(pHSL->myCargoDataShared.myWinchSpeed), 0.01, 0.01, "%.3f", 0);
 
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(100);
 
 		ImGui::Text("Hook Parameters:");
-		ImGui::InputFloat("Hook Mass [kg]", &(pHSL->myHook.myMass), 0.01, 0.01, 3, 0);
+		ImGui::InputDouble("Hook Mass [kg]", &(pHSL->myHook.myMass), 0.01, 0.01, "%.3f", 0);
 		InputVector(pHSL->myHook.myVectorSize, "Hook Size L/W/H [m]");
 		InputVector(pHSL->myHook.myVectorCW, "Hook CW F/S/T [m]");
-		ImGui::InputFloat("Hook Height [m]", &(pHSL->myHook.myHeight), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Hook Friction Glide", &(pHSL->myHook.myFrictionGlide), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Hook Friction Static", &(pHSL->myHook.myFrictionStatic), 0.01, 0.01, 3, 0);
+		ImGui::InputDouble("Hook Height [m]", &(pHSL->myHook.myHeight), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Hook Friction Glide", &(pHSL->myHook.myFrictionGlide), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Hook Friction Static", &(pHSL->myHook.myFrictionStatic), 0.01, 0.01, "%.3f", 0);
 
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(100);
 
 		ImGui::Text("Cargo Parameters:");
-		ImGui::InputFloat("Cargo Mass [kg]", &(pHSL->myCargo.myMass), 0.01, 0.01, 3, 0);
+		ImGui::InputDouble("Cargo Mass [kg]", &(pHSL->myCargo.myMass), 0.01, 0.01, "%.3f", 0);
 
 		InputVector(pHSL->myCargo.myVectorSize, "Cargo Size L/W/H [m]");
 		InputVector(pHSL->myCargo.myVectorCW, "Cargo CW F/T/S [m]");
 
-		ImGui::InputFloat("Cargo Height [m]", &(pHSL->myCargo.myHeight), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Cargo Friction Glide", &(pHSL->myCargo.myFrictionGlide), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Cargo Friction Static", &(pHSL->myCargo.myFrictionStatic), 0.01, 0.01, 3, 0);
+		ImGui::InputDouble("Cargo Height [m]", &(pHSL->myCargo.myHeight), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Cargo Friction Glide", &(pHSL->myCargo.myFrictionGlide), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Cargo Friction Static", &(pHSL->myCargo.myFrictionStatic), 0.01, 0.01, "%.3f", 0);
 		InputVector(pHSL->myCargo.myVectorCargoOffset, "Cargo Offset");
 
 
@@ -153,6 +180,9 @@ void HSLImguiWidget::buildInterface()
 			InputVector(pHSL->myHook.myVectorPosition, "Hook Position");
 		}
 
+		if (ImGui::Button("Load Settings")) pHSL->ConfigRead();
+		if (ImGui::Button("Save Settings")) pHSL->ConfigSave();
+
 		ImGui::Text("Winch:");
 		InputVector(pHSL->myCargoDataShared.myVectorWinchPosition, "Winch Position");
 		if (ImGui::Button("Write Aircraft Ini File")) pHSL->AircraftConfigSave();
@@ -163,38 +193,38 @@ void HSLImguiWidget::buildInterface()
 
 		ImGui::Checkbox("Cargo Is Bambi Bucket", &(pHSL->myCargo.myIsBambiBucket));
 		ImGui::Checkbox("Bambi Bucket Release", &(pHSL->myCargo.myBambiBucketRelease));
-		ImGui::InputFloat("Water Flow [kg/s]", &(pHSL->myCargoDataShared.myBambiBucketWaterFlow), 1, 10, 3, 0);
-		ImGui::InputFloat("Water Speed [m/s]", &(pHSL->myRainSpeed), 0.1, 0.1, 3, 0);
+		ImGui::InputDouble("Water Flow [kg/s]", &(pHSL->myCargoDataShared.myBambiBucketWaterFlow), 1, 10, "%.3f", 0);
+		ImGui::InputDouble("Water Speed [m/s]", &(pHSL->myRainSpeed), 0.1, 0.1, "%.3f", 0);
 		ImGui::InputInt("Drop Directions", &(pHSL->myRainDirections), 1, 1);
 		ImGui::InputInt("Drop Variance", &(pHSL->myRainVariance), 1, 1);
-		ImGui::InputFloat("Release Period [s]", &(pHSL->myRainReleasePeriod), 0.01, 0.1, 3, 0);
+		ImGui::InputDouble("Release Period [s]", &(pHSL->myRainReleasePeriod), 0.01, 0.1, "%.3f", 0);
 
 		ImGui::Text("Rope Parameters:");
-		ImGui::InputFloat("Rope Length Start [m]", &(pHSL->myCargoDataShared.myRopeLengthStart), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope Length [m]", &(pHSL->myCargoDataShared.myRopeLengthNormal), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope Rupture Force [N]", &(pHSL->myCargoDataShared.myRopeRuptureForce), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope Damping", &(pHSL->myCargoDataShared.myRopeDamping), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Rope K", &(pHSL->myCargoDataShared.myRopeK), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("MaxRopeAcc", &(pHSL->myCargoDataShared.myMaxAccRopeFactor), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Winch Speed [m/s]", &(pHSL->myCargoDataShared.myWinchSpeed), 0.01, 0.01, 3, 0);
+		ImGui::InputDouble("Rope Length Start [m]", &(pHSL->myCargoDataShared.myRopeLengthStart), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Rope Length [m]", &(pHSL->myCargoDataShared.myRopeLengthNormal), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Rope Rupture Force [N]", &(pHSL->myCargoDataShared.myRopeRuptureForce), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Rope Damping", &(pHSL->myCargoDataShared.myRopeDamping), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Rope K", &(pHSL->myCargoDataShared.myRopeK), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("MaxRopeAcc", &(pHSL->myCargoDataShared.myMaxAccRopeFactor), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Winch Speed [m/s]", &(pHSL->myCargoDataShared.myWinchSpeed), 0.01, 0.01, "%.3f", 0);
 
 		ImGui::Text("Hook Parameters:");
-		ImGui::InputFloat("Hook Mass [kg]", &(pHSL->myHook.myMass), 0.01, 0.01, 3, 0);
+		ImGui::InputDouble("Hook Mass [kg]", &(pHSL->myHook.myMass), 0.01, 0.01, "%.3f", 0);
 		InputVector(pHSL->myHook.myVectorSize, "Hook Size L/W/H [m]");
 		InputVector(pHSL->myHook.myVectorCW, "Hook CW F/S/T [m]");
-		ImGui::InputFloat("Hook Height [m]", &(pHSL->myHook.myHeight), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Hook Friction Glide", &(pHSL->myHook.myFrictionGlide), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Hook Friction Static", &(pHSL->myHook.myFrictionStatic), 0.01, 0.01, 3, 0);
+		ImGui::InputDouble("Hook Height [m]", &(pHSL->myHook.myHeight), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Hook Friction Glide", &(pHSL->myHook.myFrictionGlide), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Hook Friction Static", &(pHSL->myHook.myFrictionStatic), 0.01, 0.01, "%.3f", 0);
 
 		ImGui::Text("Cargo Parameters:");
-		ImGui::InputFloat("Cargo Mass [kg]", &(pHSL->myCargo.myMass), 0.01, 0.01, 3, 0);
+		ImGui::InputDouble("Cargo Mass [kg]", &(pHSL->myCargo.myMass), 0.01, 0.01, "%.3f", 0);
 
 		InputVector(pHSL->myCargo.myVectorSize, "Cargo Size L/W/H [m]");
 		InputVector(pHSL->myCargo.myVectorCW, "Cargo CW F/T/S [m]");
 
-		ImGui::InputFloat("Cargo Height [m]", &(pHSL->myCargo.myHeight), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Cargo Friction Glide", &(pHSL->myCargo.myFrictionGlide), 0.01, 0.01, 3, 0);
-		ImGui::InputFloat("Cargo Friction Static", &(pHSL->myCargo.myFrictionStatic), 0.01, 0.01, 3, 0);
+		ImGui::InputDouble("Cargo Height [m]", &(pHSL->myCargo.myHeight), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Cargo Friction Glide", &(pHSL->myCargo.myFrictionGlide), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Cargo Friction Static", &(pHSL->myCargo.myFrictionStatic), 0.01, 0.01, "%.3f", 0);
 		InputVector(pHSL->myCargo.myVectorCargoOffset, "Cargo Offset");
 		InputVector(pHSL->myCargo.myVectorCargoRotation, "Cargo Rotation");
 
@@ -210,12 +240,14 @@ void HSLImguiWidget::buildInterface()
 
 		ImGui::Text("Sling:");
 
-		ImGui::Text("CargoDevX:      %.9f", pHSL->myCargoDataShared.myVectorHelicopterVelocity(0));
-		ImGui::Text("CargoDevY:      %.9f", pHSL->myCargoDataShared.myVectorHelicopterVelocity(1));
-		ImGui::Text("CargoDevZ:      %.9f", pHSL->myCargoDataShared.myVectorHelicopterVelocity(2));
+		//ImGui::Text("CargoDevX:      %.9f", pHSL->myCargoDataShared.myVectorHelicopterVelocity(0));
+		//ImGui::Text("CargoDevY:      %.9f", pHSL->myCargoDataShared.myVectorHelicopterVelocity(1));
+		//ImGui::Text("CargoDevZ:      %.9f", pHSL->myCargoDataShared.myVectorHelicopterVelocity(2));
 
 		OutputVector(pHSL->myCargo.myVectorHelicopterPositionDeviation, "Cargo Dev");
 		OutputVector(pHSL->myHook.myVectorHelicopterPositionDeviation, "Hook Dev");
+		OutputVector(pHSL->myCargo.myVectorHelicopterVelocityApprox, "Cargo Vel");
+		OutputVector(pHSL->myHook.myVectorHelicopterVelocityApprox, "Hook Vel");
 		OutputVector(pHSL->myCargoDataShared.myVectorHookPosition, "Hook Pos");
 		OutputVector(pHSL->myCargoDataShared.myVectorRope, "Rope");
 		OutputVector(pHSL->myCargoDataShared.myVectorWinchPosition, "WinchPosition");
@@ -350,7 +382,7 @@ void HSLImguiWidget::buildInterface()
 	if (ImGui::Button("Release Load")) pHSL->SlingRelease();
 	if (ImGui::Button("Cut Rope")) pHSL->myCargoDataShared.myRopeRuptured = true;
 
-	if (ImGui::Button("Fill BambiBucket")) pHSL->myCargo.myBambiBucketWaterLevel = 1.0f;
+	if (ImGui::Button("Fill BambiBucket")) pHSL->myCargo.myBambiBucketWaterLevel = 1.0;
 
 
 	
@@ -866,7 +898,7 @@ void HSLImguiWidget::buildInterface()
 		output_dh = XPLMGetDataf(pHRM->m_f_decision_height);
 		
 		//output_dh = XPLMGetDataf(pHRM->m_f_decision_height);
-		ImGui::InputFloat("DH", &output_dh,1,1,0,0);
+		ImGui::InputDouble("DH", &output_dh,1,1,0,0);
 		XPLMSetDataf(pHRM->m_f_decision_height, output_dh);
 		
 		ImGui::NextColumn();
@@ -903,10 +935,10 @@ void HSLImguiWidget::buildInterface()
 		// Altitude
 		if (selected_graph == 1)
 		{
-			float *p_values = pHRM->m_graph_altitude;
+			double *p_values = pHRM->m_graph_altitude;
 
-			float max_value = 0;
-			float min_value = p_values[0];
+			double max_value = 0;
+			double min_value = p_values[0];
 			for (int index = 0; index < MAX_GRAPH_DATA; index++)
 			{
 				if (max_value < p_values[index])
@@ -929,12 +961,12 @@ void HSLImguiWidget::buildInterface()
 		// Climb Rate
 		else if (selected_graph == 2)
 		{
-			float *p_values = pHRM->m_graph_climb;
+			double *p_values = pHRM->m_graph_climb;
 
-			float max_value = 0;
-			float min_value = p_values[0];
+			double max_value = 0;
+			double min_value = p_values[0];
 
-			float abs_max = 0;
+			double abs_max = 0;
 
 			for (int index = 0; index < MAX_GRAPH_DATA; index++)
 			{
@@ -965,12 +997,12 @@ void HSLImguiWidget::buildInterface()
 		// G Vertical
 		else if (selected_graph == 3)
 		{
-			float *p_values = pHRM->m_graph_g_vert;
+			double *p_values = pHRM->m_graph_g_vert;
 
-			float max_value = 0;
-			float min_value = p_values[0];
+			double max_value = 0;
+			double min_value = p_values[0];
 
-			float abs_max = 0;
+			double abs_max = 0;
 
 			for (int index = 0; index < MAX_GRAPH_DATA; index++)
 			{
@@ -1003,12 +1035,12 @@ void HSLImguiWidget::buildInterface()
 		// Forward G
 		else if (selected_graph == 4)
 		{
-			float *p_values = pHRM->m_graph_g_horiz;
+			double *p_values = pHRM->m_graph_g_horiz;
 
-			float max_value = 0;
-			float min_value = p_values[0];
+			double max_value = 0;
+			double min_value = p_values[0];
 
-			float abs_max = 0;
+			double abs_max = 0;
 
 			for (int index = 0; index < MAX_GRAPH_DATA; index++)
 			{
@@ -1041,12 +1073,12 @@ void HSLImguiWidget::buildInterface()
 		// Side G
 		else if (selected_graph == 5)
 		{
-			float *p_values = pHRM->m_graph_g_side;
+			double *p_values = pHRM->m_graph_g_side;
 
-			float max_value = 0;
-			float min_value = p_values[0];
+			double max_value = 0;
+			double min_value = p_values[0];
 
-			float abs_max = 0;
+			double abs_max = 0;
 
 			for (int index = 0; index < MAX_GRAPH_DATA; index++)
 			{
@@ -1250,9 +1282,9 @@ void HSLImguiWidget::buildInterface()
 			ImGui::PushItemWidth(100);
 			ImGui::Checkbox("Enable Slats", &(pHRM->m_ivyAircraft->m_slats_enabled));
 			//ImGui::SameLine();
-			ImGui::InputFloat("Slats Tolerance", &(pHRM->m_ivyAircraft->m_slats_tolerance), 0.01, 0.01, 2, 0);
+			ImGui::InputDouble("Slats Tolerance", &(pHRM->m_ivyAircraft->m_slats_tolerance), 0.01, 0.01, 2, 0);
 			ImGui::SameLine();
-			ImGui::InputFloat("Slats Value", &(pHRM->m_ivyAircraft->m_lf_slats), 0.01, 0.01, 2, ImGuiInputTextFlags_ReadOnly);
+			ImGui::InputDouble("Slats Value", &(pHRM->m_ivyAircraft->m_lf_slats), 0.01, 0.01, 2, ImGuiInputTextFlags_ReadOnly);
 
 			ImGui::PopItemWidth();
 			ImGui::PushItemWidth(350);
@@ -1272,7 +1304,7 @@ void HSLImguiWidget::buildInterface()
 				ImGui::SameLine();
 
 				sprintf(buffer, "Val S%2i", index + 1);
-				ImGui::InputFloat(buffer, &(pHRM->m_ivyAircraft->m_slats_deploy_value[index]), 0.01, 0.01, "%.2f", ImGuiInputTextFlags_ReadOnly );
+				ImGui::InputDouble(buffer, &(pHRM->m_ivyAircraft->m_slats_deploy_value[index]), 0.01, 0.01, "%.2f", ImGuiInputTextFlags_ReadOnly );
 				ImGui::SameLine();
 
 				ImGui::PopItemWidth();
@@ -1296,9 +1328,9 @@ void HSLImguiWidget::buildInterface()
 			ImGui::PushItemWidth(100);
 			ImGui::Checkbox("Enable Flaps", &(pHRM->m_ivyAircraft->m_flaps_enabled));
 			//ImGui::SameLine();
-			ImGui::InputFloat("Flaps Tolerance", &(pHRM->m_ivyAircraft->m_flaps_tolerance), 0.01, 0.01, 2, 0);
+			ImGui::InputDouble("Flaps Tolerance", &(pHRM->m_ivyAircraft->m_flaps_tolerance), 0.01, 0.01, 2, 0);
 			ImGui::SameLine();
-			ImGui::InputFloat("Flaps Value", &(pHRM->m_ivyAircraft->m_lf_flaps), 0.01, 0.01, 2, ImGuiInputTextFlags_ReadOnly);
+			ImGui::InputDouble("Flaps Value", &(pHRM->m_ivyAircraft->m_lf_flaps), 0.01, 0.01, 2, ImGuiInputTextFlags_ReadOnly);
 
 			ImGui::PopItemWidth();
 			ImGui::PushItemWidth(350);
@@ -1318,7 +1350,7 @@ void HSLImguiWidget::buildInterface()
 				ImGui::SameLine();
 
 				sprintf(buffer, "F Val #%2i", index + 1);
-				ImGui::InputFloat(buffer, &(pHRM->m_ivyAircraft->m_flaps_deploy_value[index]), 0.01, 0.01, "%.2f", ImGuiInputTextFlags_ReadOnly);
+				ImGui::InputDouble(buffer, &(pHRM->m_ivyAircraft->m_flaps_deploy_value[index]), 0.01, 0.01, "%.2f", ImGuiInputTextFlags_ReadOnly);
 				ImGui::SameLine();
 
 				ImGui::PopItemWidth();

@@ -16,8 +16,8 @@ public:
 
 protected:
 	void configureImguiContext() override;
-	void InputVector(vector<float>& vectorIn, std::string nameIn);
-	void OutputVector(vector<float>& vectorOut, std::string nameOut);
+	void InputVector(vector<double>& vectorIn, std::string nameIn);
+	void OutputVector(vector<double>& vectorOut, std::string nameOut);
 	void buildInterface() override;
 private:
 

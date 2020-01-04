@@ -1,7 +1,7 @@
 #include "FireObject.h"
 #include "HSL_PlugIn.h"
 
-FireObject::FireObject(HSL_PlugIn *pHSL, int inPlaneIndex, vector<float> inVectorFireObjectPosition, bool inAtCoordinates)
+FireObject::FireObject(HSL_PlugIn *pHSL, int inPlaneIndex, vector<double> inVectorFireObjectPosition, bool inAtCoordinates)
 {
 	myPlaneIndex = inPlaneIndex;
 
@@ -62,7 +62,7 @@ void FireObject::UpdateWorldCoordinates(void)
 	XPLMProbeInfo_t info;
 	info.structSize = sizeof(info);
 
-	XPLMProbeResult result = XPLMProbeTerrainXYZ(pHSL->myGroundProbe, zero_x, zero_y, zero_z, &info);
+	XPLMProbeResult result = XPLMProbeTerrainXYZ(pHSL->myGroundProbe, (float)zero_x, (float)zero_y, (float)zero_z, &info);
 
 	double local_long;
 	double local_lat;
@@ -74,16 +74,16 @@ void FireObject::UpdateWorldCoordinates(void)
 	myVectorFireObjectPosition(0) = zero_x;
 	myVectorFireObjectPosition(2) = zero_z;
 	
-	XPLMProbeTerrainXYZ(pHSL->myGroundProbe, zero_x, zero_y, zero_z, &info); // Once again for improved precision
+	XPLMProbeTerrainXYZ(pHSL->myGroundProbe, (float)zero_x, (float)zero_y, (float)zero_z, &info); // Once again for improved precision
 	myVectorFireObjectPosition(1) = info.locationY + myElev;
 	SetPosition();
 }
 
 void FireObject::SetPosition(void)
 {
-	XPLMSetDataf(myDrXPos, myVectorFireObjectPosition(0));
-	XPLMSetDataf(myDrYPos, myVectorFireObjectPosition(1));
-	XPLMSetDataf(myDrZPos, myVectorFireObjectPosition(2) + 0.5f);
+	XPLMSetDataf(myDrXPos, (float)myVectorFireObjectPosition(0));
+	XPLMSetDataf(myDrYPos, (float)myVectorFireObjectPosition(1));
+	XPLMSetDataf(myDrZPos, (float)myVectorFireObjectPosition(2) + 0.5f);
 
 	// Does not always work on first try, so we do it every time. 
 	XPLMSetDataf(myDrXV, 0);
@@ -119,12 +119,12 @@ void FireObject::Remove(void)
 
 }
 
-bool FireObject::CheckWaterDrop(vector<float> inDropPosition, float inWaterAmount)
+bool FireObject::CheckWaterDrop(vector<double> inDropPosition, double inWaterAmount)
 {
-	float distance_x = myVectorFireObjectPosition(0) - inDropPosition(0);
-	float distance_z = myVectorFireObjectPosition(2) - inDropPosition(2);
+	double distance_x = myVectorFireObjectPosition(0) - inDropPosition(0);
+	double distance_z = myVectorFireObjectPosition(2) - inDropPosition(2);
 
-	float distance_h = sqrt((distance_x * distance_x) + (distance_z * distance_z));
+	double distance_h = sqrt((distance_x * distance_x) + (distance_z * distance_z));
 
 	if (distance_h <= myFireWaterRadius)
 	{

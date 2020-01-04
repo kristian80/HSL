@@ -95,17 +95,17 @@ extern std::recursive_mutex cargoDataSharedMutex;
 
 struct DropHSLData
 {
-	float myFrameTime = 0;
-	float myLfAirDensity = 0;
-	float myLfGravitation = 0;
-	vector<float> myVectorWindVelocity;
+	double myFrameTime = 0;
+	double myLfAirDensity = 0;
+	double myLfGravitation = 0;
+	vector<double> myVectorWindVelocity;
 };
 
 struct ForceData
 {
-	vector<float> myVectorForce = vector<float>(3);
-	vector<float> myVectorMomentum = vector<float>(3);
-	float myTimeApplied = 0;
+	vector<double> myVectorForce = vector<double>(3);
+	vector<double> myVectorMomentum = vector<double>(3);
+	double myTimeApplied = 0;
 };
 
 
@@ -113,32 +113,32 @@ struct RainDropDrawData
 {
 	bool dataValid = false;
 	XPLMInstanceRef myDrawInstance = NULL;
-	vector<float> myVectorPosition = vector<float>(3);
-	vector<float> myVectorVelocity = vector<float>(3);
-	vector<float> myVectorDisplayAngle = vector<float>(3);
+	vector<double> myVectorPosition = vector<double>(3);
+	vector<double> myVectorVelocity = vector<double>(3);
+	vector<double> myVectorDisplayAngle = vector<double>(3);
 };
 
 
-inline bool check_below_ground(vector<float>& pos, XPLMProbeRef groundProbe)
+inline bool check_below_ground(vector<double>& pos, XPLMProbeRef groundProbe)
 {
 	XPLMProbeInfo_t info;
 	info.structSize = sizeof(info);
-	XPLMProbeResult	result = XPLMProbeTerrainXYZ(groundProbe, pos(0), pos(1), pos(2), &info);
+	XPLMProbeResult	result = XPLMProbeTerrainXYZ(groundProbe, (float) pos(0), (float) pos(1), (float) pos(2), &info);
 	if (info.locationY < pos(1)) return false;
 	return true;
 }
 
-inline vector<float> get_unit_vector(vector<float>& v_in)
+inline vector<double> get_unit_vector(vector<double>& v_in)
 {
-	vector<float> ret = v_in;
-	float length = norm_2(v_in);
+	vector<double> ret = v_in;
+	double length = norm_2(v_in);
 	if (length != 0) ret = v_in / length;
 	return ret;
 }
 
-inline vector<float> cross_product(vector<float>& a, vector<float>& b)
+inline vector<double> cross_product(vector<double>& a, vector<double>& b)
 {
-	vector<float> ret(3);
+	vector<double> ret(3);
 
 	ret(0) = a(1) * b(2) - a(2) * b(1);
 	ret(1) = a(2) * b(0) - a(0) * b(2);
@@ -152,7 +152,7 @@ inline bool file_exists(const std::string& name)
 	return (stat(name.c_str(), &buffer) == 0);
 }
 
-inline bool is_int(float f)
+inline bool is_int(double f)
 {
 	if (f == ((int)f)) return true;
 	return false;
@@ -164,17 +164,17 @@ inline void HSLDebugString(std::string output)
 	hsl_output_file.flush();
 }
 
-inline void check_nan(float& f)
+inline void check_nan(double& f)
 {
 	if (isnan(f)) f = 0;
 }
 
-inline void check_nan(vector<float>& vec)
+inline void check_nan(vector<double>& vec)
 {
 	for (int i = 0; i < vec.size(); i++) check_nan(vec(i));
 }
 
-inline void limit_max(vector<float>& vec, float max_value)
+inline void limit_max(vector<double>& vec, double max_value)
 {
 	for (int i = 0; i < vec.size(); i++)
 	{
@@ -184,14 +184,14 @@ inline void limit_max(vector<float>& vec, float max_value)
 
 void SetHighPerformance(bool performanceIn);
 
-inline vector<float> XPlaneCartToSphere(vector<float>& cart)
+inline vector<double> XPlaneCartToSphere(vector<double>& cart)
 {
 	// Opengl to sphere coordinates																																																																		
 	//r = sqrt(x * x + y * y + z * z);
 	//theta = atan2(y, x);
 	//phi = atan2(sqrt(x * x + y * y), z);
 
-	vector<float> sphere(3);
+	vector<double> sphere(3);
 
 	/*
 	// Using Heading
@@ -217,13 +217,13 @@ inline vector<float> XPlaneCartToSphere(vector<float>& cart)
 	return sphere;
 }
 
-inline vector<float> XPlaneSphereToCart(vector<float>& sphere)
+inline vector<double> XPlaneSphereToCart(vector<double>& sphere)
 {
 	//_pos[0] = _r* sin_theta * cos_phi;
 	//_pos[1] = _r* sin_theta * sin_phi;
 	//_pos[2] = _r* cos_theta;
 
-	vector<float> cart(3);
+	vector<double> cart(3);
 
 	cart(0) = sphere(0) * sin(sphere(2));
 	cart(1) = sphere(0) * cos(sphere(1)) * cos(sphere(2));
@@ -255,7 +255,7 @@ inline void DrawInstanceDestroy(XPLMInstanceRef& instanceIn)
 	}
 }
 
-inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef &objectIn, vector<float> &positionInVec, bool instanced_drawing)
+inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef &objectIn, vector<double> &positionInVec, bool instanced_drawing)
 {
 	if ((instanceIn != NULL) || (instanced_drawing == 0))
 	{
@@ -263,9 +263,9 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef &
 
 		XPLMDrawInfo_t		drawInfo;
 		drawInfo.structSize = sizeof(drawInfo);
-		drawInfo.x = positionInVec(0);
-		drawInfo.y = positionInVec(1);
-		drawInfo.z = positionInVec(2);
+		drawInfo.x = (float) positionInVec(0);
+		drawInfo.y = (float) positionInVec(1);
+		drawInfo.z = (float) positionInVec(2);
 		drawInfo.pitch = 0;
 		drawInfo.heading = 0;
 		drawInfo.roll = 0;
@@ -281,18 +281,18 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef &
 	}
 }
 
-inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef& objectIn, vector<float>& positionInVec, vector<float>& angleInVec, bool instanced_drawing)
+inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef& objectIn, vector<double>& positionInVec, vector<double>& angleInVec, bool instanced_drawing)
 {
 	if ((instanceIn != NULL) || (instanced_drawing == 0))
 	{
 		XPLMDrawInfo_t		drawInfo;
 		drawInfo.structSize = sizeof(drawInfo);
-		drawInfo.x = positionInVec(0);
-		drawInfo.y = positionInVec(1);
-		drawInfo.z = positionInVec(2);
-		drawInfo.pitch = angleInVec(0);
-		drawInfo.roll = angleInVec(1);
-		drawInfo.heading = angleInVec(2);
+		drawInfo.x = (float) positionInVec(0);
+		drawInfo.y = (float)positionInVec(1);
+		drawInfo.z = (float)positionInVec(2);
+		drawInfo.pitch = (float)angleInVec(0);
+		drawInfo.roll = (float)angleInVec(1);
+		drawInfo.heading = (float)angleInVec(2);
 		
 
 		try
@@ -307,9 +307,9 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef& 
 	}
 }
 /*
-inline vector<float> AdjustFrameMovement(vector<float> coordsAircraft)
+inline vector<double> AdjustFrameMovement(vector<double> coordsAircraft)
 {
-	vector<float> world_coords = coordsAircraft;
+	vector<double> world_coords = coordsAircraft;
 
 	//world_coords(0) += myLdLocalX - myLastLocalX;
 	//world_coords(1) += myLdLocalY - myLastLocalY;
@@ -332,16 +332,16 @@ namespace HSL_Data
 	const int wp_code = 28;
 	const int max_scenery = 100;
 
-	const float patient_weight = 75;
-	const float crew_weight = 225;
-	const float ems_equippment_weight = 350;
+	const double patient_weight = 75;
+	const double crew_weight = 225;
+	const double ems_equippment_weight = 350;
 
 	const int pickup_max_distance = 100;
 	const int hospital_max_distance = 500;
 
-	const float fse_min_park_brake = 0.5;
+	const double fse_min_park_brake = 0.5;
 
-	const float coord_invalid = -10000;
+	const double coord_invalid = -10000;
 
 	const int type_sling = 3;
 
@@ -371,65 +371,65 @@ namespace HSL_Data
 		Scenario_ICAO
 	};
 
-	const float preflight_time_easy = 300;
-	const float preflight_time_normal = 150;
-	const float preflight_time_hard = 90;
+	const double preflight_time_easy = 300;
+	const double preflight_time_normal = 150;
+	const double preflight_time_hard = 90;
 
-	const float flight_time_up_down_easy = 60;
-	const float flight_time_up_down_normal = 45;
-	const float flight_time_up_down_hard = 30;
+	const double flight_time_up_down_easy = 60;
+	const double flight_time_up_down_normal = 45;
+	const double flight_time_up_down_hard = 30;
 
-	const float flight_time_per_nm_easy = 60;
-	const float flight_time_per_nm_normal = 45;
-	const float flight_time_per_nm_hard = 30;
+	const double flight_time_per_nm_easy = 60;
+	const double flight_time_per_nm_normal = 45;
+	const double flight_time_per_nm_hard = 30;
 
-	const float flight_time_search_easy = 300;
-	const float flight_time_search_normal = 180;
-	const float flight_time_search_hard = 150;
+	const double flight_time_search_easy = 300;
+	const double flight_time_search_normal = 180;
+	const double flight_time_search_hard = 150;
 
-	const float flight_time_sling_easy = 600;
-	const float flight_time_sling_normal = 300;
-	const float flight_time_sling_hard = 150;
+	const double flight_time_sling_easy = 600;
+	const double flight_time_sling_normal = 300;
+	const double flight_time_sling_hard = 150;
 
-	//const float threshold_g_mult_easy = 1;
-	//const float threshold_g_mult_normal = 1;
-	//const float threshold_g_mult_hard = 1;
+	//const double threshold_g_mult_easy = 1;
+	//const double threshold_g_mult_normal = 1;
+	//const double threshold_g_mult_hard = 1;
 
-	//const float threshold_g_mult_flight1 = 1.2;
+	//const double threshold_g_mult_flight1 = 1.2;
 
-	const float threshold_g_mult_flight2 = 1;
+	const double threshold_g_mult_flight2 = 1;
 
-	const float threshold_gf_low = 0.2;
-	const float threshold_gf_med = 0.35;
-	const float threshold_gf_high = 0.5;
+	const double threshold_gf_low = 0.2;
+	const double threshold_gf_med = 0.35;
+	const double threshold_gf_high = 0.5;
 
-	const float threshold_gs_low = 0.15;
-	const float threshold_gs_med = 0.35;
-	const float threshold_gs_high = 0.5;
+	const double threshold_gs_low = 0.15;
+	const double threshold_gs_med = 0.35;
+	const double threshold_gs_high = 0.5;
 
-	const float threshold_gv_pos_low = 1.2;
-	const float threshold_gv_pos_med = 1.5;
-	const float threshold_gv_pos_high = 1.8;
+	const double threshold_gv_pos_low = 1.2;
+	const double threshold_gv_pos_med = 1.5;
+	const double threshold_gv_pos_high = 1.8;
 
-	const float threshold_gv_neg_low = 0;
-	const float threshold_gv_neg_med = 0;
-	const float threshold_gv_neg_high = 0;
+	const double threshold_gv_neg_low = 0;
+	const double threshold_gv_neg_med = 0;
+	const double threshold_gv_neg_high = 0;
 
 	const int points_speed_flight1 = 25;
 	const int points_speed_flight2 = 25;
 	const int points_g_flight2 = 50;
 
-	const float eval_g_total_factor = 1;
+	const double eval_g_total_factor = 1;
 
-	const float eval_g_low_factor = 1;
-	const float eval_g_med_factor = 2;
-	const float eval_g_high_factor = 3;
+	const double eval_g_low_factor = 1;
+	const double eval_g_med_factor = 2;
+	const double eval_g_high_factor = 3;
 
-	const float eval_flight1_nominal_speed = 120;
-	const float eval_flight2_nominal_speed = 120;
-	const float eval_flight2_sling_nominal_speed = 50;
+	const double eval_flight1_nominal_speed = 120;
+	const double eval_flight2_nominal_speed = 120;
+	const double eval_flight2_sling_nominal_speed = 50;
 
-	const float density_water = 997;
+	const double density_water = 997;
 
 
 
@@ -447,11 +447,11 @@ namespace HSL {
 double calc_distance_m(double lat1, double long1, double lat2, double long2);
 double calc_distance_nm(double lat1, double long1, double lat2, double long2);
 
-
+/*
 int WrapVSpeedHandler(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t inParam1, intptr_t inParam2);
 int WrapLogbookHandler(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t  inParam2);
 int WrapLogbookScrollHandler(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t inParam1, intptr_t inParam2);
-
+*/
 
 void WrapDrawOutputWindow(XPLMWindowID in_window_id, void * in_refcon);
 void WrapMenuHandler(void * in_menu_ref, void * in_item_ref);
@@ -462,8 +462,8 @@ int WrapResetHRMCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void *refco
 int WrapToogleWindowCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void *refcon);
 int WrapUpdateObjectCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 
-float WrapReadFloatCallback(void* inRefcon);
-void WrapWriteFloatCallback(void* inRefcon, float inValue);
+//double WrapReaddoubleCallback(void* inRefcon);
+//void WrapWritedoubleCallback(void* inRefcon, double inValue);
 double WrapReadDoubleCallback(void* inRefcon);
 void WrapWriteDoubleCallback(void* inRefcon, double inValue);
 
@@ -481,24 +481,24 @@ void WrapWriteStringCallback(
 	int                  inOffset,
 	int                  inLength);
 
-int WrapReadVectorFloatCallback(
+int WrapReadVectordoubleCallback(
 	void* inRefcon,
 	float* outValues,    /* Can be NULL */
 	int                  inOffset,
 	int                  inMax);
-void WrapWriteVectorFloatCallback(
+void WrapWriteVectordoubleCallback(
 	void* inRefcon,
 	float* inValues,
 	int                  inOffset,
 	int                  inCount);
 
-int WrapReadFloatArrayCallback(
+int WrapReaddoubleArrayCallback(
 	void* inRefcon,
 	float* outValues,    /* Can be NULL */
 	int                  inOffset,
 	int                  inMax);
 
-void WrapWriteFloatArrayCallback(
+void WrapWritedoubleArrayCallback(
 	void* inRefcon,
 	float* inValues,
 	int                  inOffset,

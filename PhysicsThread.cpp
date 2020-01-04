@@ -13,12 +13,20 @@ void PhysicsThread::RunPhysicsThread(int index)
 
 	std::unique_lock<std::recursive_mutex> physics_shm_lock(cargoDataSharedMutex, std::defer_lock);
 
-	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
+	//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
 
 	while (myRunFlag)
 	{
 		if (physics_shm_lock.try_lock()) // Non-Blocking Lock
 		{
+			if (HIGH_PERFORMANCE != HSL.myCargoDataShared.myHighPerformace)
+			{
+				if (HSL.myCargoDataShared.myHighPerformace == true)
+					SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
+				else
+					SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
+			}
+
 			HIGH_PERFORMANCE = HSL.myCargoDataShared.myHighPerformace;
 			myRunFlag = HSL.myCargoDataShared.myThreadRunFlag;
 

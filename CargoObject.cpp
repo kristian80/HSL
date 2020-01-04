@@ -51,7 +51,7 @@ CargoObject::CargoObject(HSL_PlugIn& HSLNew) :
 	myVectorCW = myVectorSize * 0.9; //0.9 == Cube
 }
 
-CargoObject::CargoObject(HSL_PlugIn& HSLNew, vector<float> pos, vector<float> vel) : 
+CargoObject::CargoObject(HSL_PlugIn& HSLNew, vector<double> pos, vector<double> vel) : 
 	//HSL(HSLNew),
 	myCargoDataShared(HSLNew.myCargoDataShared)
 {
@@ -155,16 +155,23 @@ void CargoObject::CalculatePhysics()
 
 
 	// Not more than 100 kHz, otherwise values might get too small
-	float frameTimeNano = std::chrono::duration_cast<std::chrono::nanoseconds>(timeNow - myStartTime).count(); //* myCargoDataShared.myLfTimeActual;
-	if (frameTimeNano < 10000) 
+	double frameTimeNano = (double) std::chrono::duration_cast<std::chrono::nanoseconds>(timeNow - myStartTime).count();// *myCargoDataShared.myLfTimeActual;
+
+	double minFrameTimeNano = 1000000000.0 /(sqrt(myCargoDataShared.myRopeK / myMass) / (2.0 * M_PI) * 20);
+
+	if (minFrameTimeNano > (1000000000.0 / 250.0))
+		minFrameTimeNano = (1000000000.0 / 250.0);
+
+	if (frameTimeNano < 100000) 
+	//if (frameTimeNano < minFrameTimeNano)
 		return;
 	
-	float frameTime = frameTimeNano / (1000000000.0f);
+	double frameTime = frameTimeNano / (1000000000.0);
 	myStartTime = timeNow;
 
 	myCargoDataShared.myFrameTimeMax = max(myCargoDataShared.myFrameTimeMax, frameTimeNano);
 	
-	//float frameTime = myCargoDataShared.myFrameTime;
+	//double frameTime = myCargoDataShared.myFrameTime;
 
 	if (frameTime == 0) return;
 
@@ -182,7 +189,12 @@ void CargoObject::CalculatePhysics()
 
 
 	// Update Position and Velocity
-	myVectorHelicopterPositionApprox += myCargoDataShared.myVectorHelicopterVelocity * frameTime;
+	if (myStopMovement == false)
+	{
+		myVectorHelicopterPositionApprox += myCargoDataShared.myVectorHelicopterVelocity * frameTime;
+		myVectorHelicopterVelocityApprox += myCargoDataShared.myVectorHelicopterAcceleration * frameTime;
+	}
+		
 	//myVectorHelicopterPositionApprox += myVectorHelicopterVelocityApprox * frameTime;
 	//myVectorHelicopterVelocityApprox += myCargoDataShared.myVectorHelicopterAcceleration * frameTime;
 	
@@ -191,22 +203,23 @@ void CargoObject::CalculatePhysics()
 	{
 		myVectorVelocity = (myCargoDataShared.myVectorHookPosition - myVectorPosition) / frameTime;
 		myVectorPosition = myCargoDataShared.myVectorHookPosition;
-
+		myVectorHelicopterPositionApprox = myCargoDataShared.myVectorHelicopterPosition;
+		myVectorHelicopterVelocityApprox = myCargoDataShared.myVectorHelicopterVelocity;
 		return;
 	}
 
 	// Check for unconsistent Movement
-	vector<float> heliMovement = myVectorHelicopterPositionApprox - myVectorHelicopterPositionApproxOld;
+	vector<double> heliMovement = myVectorHelicopterPositionApprox - myVectorHelicopterPositionApproxOld;
 
-	float heliDistance = norm_2(heliMovement);
-	float heliSpeedDistance = norm_2(myVectorHelicopterVelocityApprox) * frameTime;
+	double heliDistance = norm_2(heliMovement);
+	double heliSpeedDistance = norm_2(myVectorHelicopterVelocityApprox) * frameTime;
 
 	/*if (heliDistance > heliSpeedDistance)
 	{
-		vector<float> heliOldCorrected = myVectorHelicopterPositionApprox - (myVectorHelicopterVelocityApprox * frameTime);
-		vector<float> heliCompensate = heliOldCorrected - myVectorHelicopterPositionApproxOld;
+		vector<double> heliOldCorrected = myVectorHelicopterPositionApprox - (myVectorHelicopterVelocityApprox * frameTime);
+		vector<double> heliCompensate = heliOldCorrected - myVectorHelicopterPositionApproxOld;
 
-		float compensation = norm_2(heliCompensate);
+		double compensation = norm_2(heliCompensate);
 
 		myVectorPosition += heliCompensate;
 	}*/
@@ -218,7 +231,7 @@ void CargoObject::CalculatePhysics()
 
 
 	// If we are below the ground, correct vertical position and velocity
-	if ((myVectorPosition(VERT_AXIS) <= myObjectTerrainLevel) && (myTerrainIsWet == false))
+	if ((myVectorPosition(VERT_AXIS) <= (myObjectTerrainLevel+0.0001)) && (myTerrainIsWet == false))
 	{
 		myTerrainHit = true;
 
@@ -230,7 +243,7 @@ void CargoObject::CalculatePhysics()
 	{
 		if (myVectorSize(2) == 0) return;
 
-		float sink = myObjectTerrainLevel - myVectorPosition(VERT_AXIS);
+		double sink = myObjectTerrainLevel - myVectorPosition(VERT_AXIS);
 		myWaterLevel = sink / myVectorSize(2);
 		if (myWaterLevel > 1) myWaterLevel = 1;
 		
@@ -250,7 +263,7 @@ void CargoObject::CalculatePhysics()
 
 	if ((myBambiBucketRelease == true) && (myBambiBucketWaterWeight > 0))
 	{
-		float releasedWater = myCargoDataShared.myBambiBucketWaterFlow * frameTime;
+		double releasedWater = myCargoDataShared.myBambiBucketWaterFlow * frameTime;
 		myBambiBucketWaterWeight -= releasedWater;
 		if (myBambiBucketWaterWeight < 0) myBambiBucketWaterWeight = 0;
 		
@@ -265,35 +278,35 @@ void CargoObject::CalculatePhysics()
 	myCargoDataShared.myNewRopeLength = norm_2(myCargoDataShared.myVectorRope);
 
 	// Check for Div/0
-	if (myCargoDataShared.myRopeLengthNormal == 0.0f) return;
+	if (myCargoDataShared.myRopeLengthNormal == 0.0) return;
 
 	// Compute the length stretch
 	myCargoDataShared.myRopeStretchRelative = (myCargoDataShared.myNewRopeLength / myCargoDataShared.myRopeLengthNormal) - 1;
-	myCargoDataShared.myRopeForceScalar = 0.0f;
+	myCargoDataShared.myRopeForceScalar = 0.0;
 
 
 	// if rope is streched, calcuate the rope force
-	if ((myCargoDataShared.myRopeStretchRelative > 0.0f) && (myCargoDataShared.myRopeRuptured == false) && (myRopeConnected == true))
+	if ((myCargoDataShared.myRopeStretchRelative > 0.0) && (myCargoDataShared.myRopeRuptured == false) && (myRopeConnected == true))
 	{
 		myCargoDataShared.myRopeLengthDelta = myCargoDataShared.myNewRopeLength - myCargoDataShared.myCurrentRopeLength;
 
 		// Check for Div/0
-		if (frameTime == 0.0f) return;
+		if (frameTime == 0.0) return;
 
 		myCargoDataShared.myRopeStretchSpeed = myCargoDataShared.myRopeLengthDelta / frameTime;
 
-		if (myCargoDataShared.myRopeStretchSpeed < 0.0f) myCargoDataShared.myDebugValue3 = 100;
+		if (myCargoDataShared.myRopeStretchSpeed < 0.0) myCargoDataShared.myDebugValue3 = 100;
 		myCargoDataShared.myRopeCorrectedD = myCargoDataShared.myRopeDamping * 2 * sqrt((myMass + myBambiBucketWaterWeight) * myCargoDataShared.myRopeK);
 
 		check_nan(myCargoDataShared.myRopeCorrectedD);
 
-		float ropeForceDamping = myCargoDataShared.myRopeCorrectedD * myCargoDataShared.myRopeStretchSpeed;
-		float ropeForceStrech = myCargoDataShared.myRopeK * myCargoDataShared.myRopeStretchRelative;
+		double ropeForceDamping = myCargoDataShared.myRopeCorrectedD * myCargoDataShared.myRopeStretchSpeed;
+		double ropeForceStrech = myCargoDataShared.myRopeK * myCargoDataShared.myRopeStretchRelative;
 
 		// Apply damping only when rope is retracting. 
 		// Otherwise it is difficult to ensure that it's not the damping which is shooting the load back at the helicopter (which damping could never do).
 		// That's once of the problems that it's a difference and not a differential equations.
-		/*if (ropeForceDamping > 0.0f)
+		/*if (ropeForceDamping > 0.0)
 		{
 			// Damping can never be stronger than spring force
 			if ((-1 * ropeForceDamping) > ropeForceStrech) ropeForceDamping = -1 * ropeForceStrech;
@@ -305,33 +318,33 @@ void CargoObject::CalculatePhysics()
 		}*/
 
 		myCargoDataShared.myRopeForceScalar = ropeForceStrech + ropeForceDamping;
-		if (myCargoDataShared.myRopeForceScalar < 0.0f)
+		if (myCargoDataShared.myRopeForceScalar < 0.0)
 		{
 			myCargoDataShared.myRopeForceScalar = 0;  // Rope can never apply negative forces, our damping could ;-)
-			myCargoDataShared.myDebugValue2 = 100.f;
+			//myCargoDataShared.myDebugValue2 = 100.;
 		}
 
 		// If we are still in the stretching phase, we want to make sure we do not shoot down the helicopter after an fps lag
 		// Hence, we make sure that we will have at least another computation in the negative stretching phase
 
 		// Debug: We just put critical damping on the rope. FPS Stuttering is just too much
-		//if (myRopeStretchSpeed > 0.0f)
+		//if (myRopeStretchSpeed > 0.0)
 		/*{
 			// force to stop the object at the current point in time
-			float ropeStopForce = myCargoDataShared.myRopeStretchSpeed * (myMass + myBambiBucketWaterWeight);
+			double ropeStopForce = myCargoDataShared.myRopeStretchSpeed * (myMass + myBambiBucketWaterWeight);
 
 			// calcuate the required speed to reach the unstreched rope length in a single frame (= excactly a bit too much):
-			float ropeTotalStretchMeters = myCargoDataShared.myNewRopeLength - myCargoDataShared.myRopeLengthNormal;
-			float ropeEscapeSpeed = ropeTotalStretchMeters / frameTime;
+			double ropeTotalStretchMeters = myCargoDataShared.myNewRopeLength - myCargoDataShared.myRopeLengthNormal;
+			double ropeEscapeSpeed = ropeTotalStretchMeters / frameTime;
 
 
-			if (myCargoDataShared.myMaxAccRopeFactor != 0.0f)
+			if (myCargoDataShared.myMaxAccRopeFactor != 0.0)
 			{
 				// divide this speed by the myMaxAccRopeFactor to be within limits
 				ropeEscapeSpeed /= myCargoDataShared.myMaxAccRopeFactor;
 
 				//cacluate the max force to stop and accelerate in the other direction and still be within the streched rope
-				float ropeMaxEscapeForce = ropeStopForce + (ropeEscapeSpeed * (myMass + myBambiBucketWaterWeight));
+				double ropeMaxEscapeForce = ropeStopForce + (ropeEscapeSpeed * (myMass + myBambiBucketWaterWeight));
 
 				myCargoDataShared.myDebugValue1 = ropeMaxEscapeForce;
 
@@ -349,7 +362,7 @@ void CargoObject::CalculatePhysics()
 		/*if (myCargoDataShared.myRopeRuptureForce <= myCargoDataShared.myRopeForceScalar)
 		{
 			myCargoDataShared.myRopeRuptured = true;
-			myCargoDataShared.myRopeForceScalar = 0.0f;
+			myCargoDataShared.myRopeForceScalar = 0.0;
 			myCargoDataShared.myCurrentRopeLength = myCargoDataShared.myRopeLengthNormal;
 		}
 		else*/
@@ -376,67 +389,67 @@ void CargoObject::CalculatePhysics()
 	//myAirResistance = HSL.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * myAirSpeed * myAirSpeed / 2.0; // If we are in the water, we would just need to correct for the density (+ split into air and water part).
 	//myVectorForceAir = get_unit_vector(myVectorAirVelocity) * myAirResistance;
 
-	vector<float> vectorRopeStart = myVectorHelicopterPositionApprox - myCargoDataShared.myVectorHookPosition;
-	vector<float> vectorRopeUnitStart = get_unit_vector(vectorRopeStart);
+	vector<double> vectorRopeStart = myVectorHelicopterPositionApprox - myCargoDataShared.myVectorHookPosition;
+	vector<double> vectorRopeUnitStart = get_unit_vector(vectorRopeStart);
 
-	vector<float> ropeUnitSphere = XPlaneCartToSphere(vectorRopeUnitStart);
+	vector<double> ropeUnitSphere = XPlaneCartToSphere(vectorRopeUnitStart);
 
-	//vector<float> negativeVelocity = -1 * myVectorVelocity;
+	//vector<double> negativeVelocity = -1 * myVectorVelocity;
 
 
-	vector<float> vectorAirVelocityTurnedSphere = XPlaneCartToSphere(myVectorAirVelocity);
+	vector<double> vectorAirVelocityTurnedSphere = XPlaneCartToSphere(myVectorAirVelocity);
 
 	vectorAirVelocityTurnedSphere(1) -= ropeUnitSphere(1);
 	vectorAirVelocityTurnedSphere(2) -= ropeUnitSphere(2);
 
-	float angle1 = ropeUnitSphere(1);
-	float angle2 = ropeUnitSphere(2);
+	double angle1 = ropeUnitSphere(1);
+	double angle2 = ropeUnitSphere(2);
 
-	float n1 = norm_2(myVectorAirVelocity);
-	float n2 = vectorAirVelocityTurnedSphere(0);
+	double n1 = norm_2(myVectorAirVelocity);
+	double n2 = vectorAirVelocityTurnedSphere(0);
 
 
-	vector<float> vectorAirVelocityTurnedCart = XPlaneSphereToCart(vectorAirVelocityTurnedSphere);
+	vector<double> vectorAirVelocityTurnedCart = XPlaneSphereToCart(vectorAirVelocityTurnedSphere);
 
-	float n3 = norm_2(vectorAirVelocityTurnedCart);
+	double n3 = norm_2(vectorAirVelocityTurnedCart);
 
 	myVectorForceAirCart = myVectorZeroVector;
 
 
 
 
-	myVectorForceAirCart(0) = (1.0f - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * vectorAirVelocityTurnedCart(0) * vectorAirVelocityTurnedCart(0) / 2.0f;
-	myVectorForceAirCart(1) = (1.0f - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(1) * myVectorCrossSection(1) * vectorAirVelocityTurnedCart(1) * vectorAirVelocityTurnedCart(1) / 2.0f;
-	myVectorForceAirCart(2) = (1.0f - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(2) * myVectorCrossSection(2) * vectorAirVelocityTurnedCart(2) * vectorAirVelocityTurnedCart(2) / 2.0f;
+	myVectorForceAirCart(0) = (1.0 - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * vectorAirVelocityTurnedCart(0) * vectorAirVelocityTurnedCart(0) / 2.0;
+	myVectorForceAirCart(1) = (1.0 - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(1) * myVectorCrossSection(1) * vectorAirVelocityTurnedCart(1) * vectorAirVelocityTurnedCart(1) / 2.0;
+	myVectorForceAirCart(2) = (1.0 - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(2) * myVectorCrossSection(2) * vectorAirVelocityTurnedCart(2) * vectorAirVelocityTurnedCart(2) / 2.0;
 
 	if (vectorAirVelocityTurnedCart(0) < 0) myVectorForceAirCart(0) *= -1;
 	if (vectorAirVelocityTurnedCart(1) < 0) myVectorForceAirCart(1) *= -1;
 	if (vectorAirVelocityTurnedCart(2) < 0) myVectorForceAirCart(2) *= -1;
 
-	float v1 = norm_2(myVectorForceAirCart);
+	double v1 = norm_2(myVectorForceAirCart);
 
-	vector<float> vectorForceAirSphere = XPlaneCartToSphere(myVectorForceAirCart);
+	vector<double> vectorForceAirSphere = XPlaneCartToSphere(myVectorForceAirCart);
 
 	vectorForceAirSphere(1) += ropeUnitSphere(1);
 	vectorForceAirSphere(2) += ropeUnitSphere(2);
 
-	float v2 = vectorForceAirSphere(0);
+	double v2 = vectorForceAirSphere(0);
 
 	myVectorForceAirNew = XPlaneSphereToCart(vectorForceAirSphere);
 
-	float v3 = norm_2(myVectorForceAirNew);
+	double v3 = norm_2(myVectorForceAirNew);
 
 
 	
-	myVectorForceAir(0) = (1.0f - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * myVectorAirVelocity(0) * myVectorAirVelocity(0) / 2.0;
-	myVectorForceAir(1) = (1.0f - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(1) * myVectorCrossSection(1) * myVectorAirVelocity(1) * myVectorAirVelocity(1) / 2.0;
-	myVectorForceAir(2) = (1.0f - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(2) * myVectorCrossSection(2) * myVectorAirVelocity(2) * myVectorAirVelocity(2) / 2.0;
+	myVectorForceAir(0) = (1.0 - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * myVectorAirVelocity(0) * myVectorAirVelocity(0) / 2.0;
+	myVectorForceAir(1) = (1.0 - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(1) * myVectorCrossSection(1) * myVectorAirVelocity(1) * myVectorAirVelocity(1) / 2.0;
+	myVectorForceAir(2) = (1.0 - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(2) * myVectorCrossSection(2) * myVectorAirVelocity(2) * myVectorAirVelocity(2) / 2.0;
 
 	if (myVectorAirVelocity(0) < 0) myVectorForceAir(0) *= -1;
 	if (myVectorAirVelocity(1) < 0) myVectorForceAir(1) *= -1;
 	if (myVectorAirVelocity(2) < 0) myVectorForceAir(2) *= -1;
 
-	float v4 = norm_2(myVectorForceAir);
+	double v4 = norm_2(myVectorForceAir);
 
 	myAirResistance = norm_2(myVectorForceAir);
 
@@ -450,19 +463,19 @@ void CargoObject::CalculatePhysics()
 	if (myVectorWaterVelocity(1) < 0) myVectorForceWater(1) *= -1;
 	if (myVectorWaterVelocity(2) < 0) myVectorForceWater(2) *= -1;
 
-	float waterResistance = norm_2(myVectorForceWater);
+	double waterResistance = norm_2(myVectorForceWater);
 
 	myVectorForceSwim(VERT_AXIS) = 0;
 	if (myIsBambiBucket == false) myVectorForceSwim(VERT_AXIS) = -1 * HSL_Data::density_water * myVolume * myWaterLevel * myCargoDataShared.myLfGravitation;
 
 
 	// Get the force of the gravity
-	myVectorForceGravity(VERT_AXIS) = myCargoDataShared.myLfGravitation * (myMass + (myBambiBucketWaterWeight * (1.0f - myWaterLevel)));
+	myVectorForceGravity(VERT_AXIS) = myCargoDataShared.myLfGravitation * (myMass + (myBambiBucketWaterWeight * (1.0 - myWaterLevel)));
 
 
 	// Sum up the forces
 	myVectorForceTotal = myVectorForceRope + myVectorForceAir + myVectorForceGravity + myVectorForceWater + myVectorForceSwim;
-
+	myStopMovement = false;
 	// If we are on the ground and not pulled up, we need to compute the friction
 	if (myTerrainHit == true)
 	{
@@ -476,7 +489,7 @@ void CargoObject::CalculatePhysics()
 			myVectorForceFriction = get_unit_vector(myVectorHorizontalVelocity) * myVectorForceTotal(VERT_AXIS) * myFrictionGlide;
 
 			// Compute the speed, where the static friction would stop us within a frame. Multiply with 3 to be on the safe side for fps drop
-			if ((myMass + myBambiBucketWaterWeight) == 0.0f) return;
+			if ((myMass + myBambiBucketWaterWeight) == 0.0) return;
 			mySpeedStaticFriction = std::abs(3 * frameTime * myVectorForceTotal(VERT_AXIS) * myFrictionStatic / (myMass + myBambiBucketWaterWeight)); // adapt stop speed to frame rate
 
 			// if we are below static friction speed
@@ -490,9 +503,15 @@ void CargoObject::CalculatePhysics()
 				if (norm_2(myVectorForceFriction) > norm_2(myVectorForceTotal))
 				{
 					// Stop movement
+					myStopMovement = true;
 					myVectorVelocity = myVectorZeroVector;
 					myVectorForceTotal = myVectorZeroVector;
 					myVectorForceFriction = myVectorZeroVector;
+				}
+				else
+				{
+					int i;
+					i = 0;
 				}
 			}
 
@@ -504,7 +523,7 @@ void CargoObject::CalculatePhysics()
 
 
 	// Get the acceleration
-	if ((myMass + myBambiBucketWaterWeight) == 0.0f) return;
+	if ((myMass + myBambiBucketWaterWeight) == 0.0) return;
 	myVectorAccTotal = myVectorForceTotal / (myMass + myBambiBucketWaterWeight);
 
 	// calcualte the new velocity
@@ -541,6 +560,14 @@ void CargoObject::CalculatePhysics()
 		forceChopper.myTimeApplied = frameTime;
 		myCargoDataShared.myHelicopterForceQueue.push(forceChopper);
 	}
+	else
+	{
+		ForceData forceChopper;
+		forceChopper.myVectorForce = myVectorZeroVector;
+		forceChopper.myVectorMomentum = myVectorZeroVector;
+		forceChopper.myTimeApplied = frameTime;
+		myCargoDataShared.myHelicopterForceQueue.push(forceChopper);
+	}
 
 
 	if ((myCargoDataShared.myRopeRuptured == false) && (myRopeConnected == true) && (myFollowOnly == false))
@@ -549,25 +576,25 @@ void CargoObject::CalculatePhysics()
 	}
 
 	// Calculate Object Offset
-	float scalarObjectOffset = norm_2(myVectorCargoOffset);
-	vector<float>  myVectorFinalRope = myVectorHelicopterPositionApprox - myCargoDataShared.myVectorHookPosition;
-	vector<float> vectorRopeUnit = get_unit_vector(myVectorFinalRope);
+	double scalarObjectOffset = norm_2(myVectorCargoOffset);
+	vector<double>  myVectorFinalRope = myVectorHelicopterPositionApprox - myCargoDataShared.myVectorHookPosition;
+	vector<double> vectorRopeUnit = get_unit_vector(myVectorFinalRope);
 
 
 	// If ruptured, keep offset and angle
 
 	if (((myCargoDataShared.myRopeRuptured == false) && (myRopeConnected == true)) || (myOrientationFollowsDirection == true))
 	{
-		vector<float> normalPosition(3);
+		vector<double> normalPosition(3);
 
 		normalPosition(0) = 0;
 		normalPosition(1) = 1;
 		normalPosition(2) = 0;
 
-		vector<float> normalPositionSphere = XPlaneCartToSphere(normalPosition);
-		vector<float> ropeUnitSphere = XPlaneCartToSphere(vectorRopeUnit);
+		vector<double> normalPositionSphere = XPlaneCartToSphere(normalPosition);
+		vector<double> ropeUnitSphere = XPlaneCartToSphere(vectorRopeUnit);
 
-		vector<float> negativeVelocity = -1 * myVectorVelocity;
+		vector<double> negativeVelocity = -1 * myVectorVelocity;
 
 		if (myOrientationFollowsDirection == true) ropeUnitSphere = XPlaneCartToSphere(get_unit_vector(negativeVelocity));
 
@@ -578,8 +605,8 @@ void CargoObject::CalculatePhysics()
 		if (myTerrainHit == false)
 		{
 			// Using Pitch/Roll
-			myVectorDisplayAngle(0) = myVectorCargoRotation(0) + ropeUnitSphere(1) * 180.0f / M_PI; // Pitch
-			myVectorDisplayAngle(1) = myVectorCargoRotation(1) + ropeUnitSphere(2) * 180.0f / M_PI; // Roll
+			myVectorDisplayAngle(0) = myVectorCargoRotation(0) + ropeUnitSphere(1) * 180.0 / M_PI; // Pitch
+			myVectorDisplayAngle(1) = myVectorCargoRotation(1) + ropeUnitSphere(2) * 180.0 / M_PI; // Roll
 			myVectorDisplayAngle(2) = myVectorCargoRotation(2); //heading
 		}
 		else
@@ -593,17 +620,17 @@ void CargoObject::CalculatePhysics()
 		if (scalarObjectOffset > 0)
 		{
 
-			vector<float> myVectorCargoOffsetRotated = myVectorCargoOffset;
+			vector<double> myVectorCargoOffsetRotated = myVectorCargoOffset;
 
-			float length = sqrt((myVectorCargoOffset(0) * myVectorCargoOffset(0)) + (myVectorCargoOffset(2) * myVectorCargoOffset(2)));
-			float angle = atan2(myVectorCargoOffset(2), myVectorCargoOffset(0));
+			double length = sqrt((myVectorCargoOffset(0) * myVectorCargoOffset(0)) + (myVectorCargoOffset(2) * myVectorCargoOffset(2)));
+			double angle = atan2(myVectorCargoOffset(2), myVectorCargoOffset(0));
 
-			angle += myVectorDisplayAngle(2) * M_PI / 180.0f;
+			angle += myVectorDisplayAngle(2) * M_PI / 180.0;
 
 			//myVectorCargoOffsetRotated(0) = length * cos(angle);
 			//myVectorCargoOffsetRotated(2) = length * sin(angle);
 
-			vector<float> vectorObjectOffsetSphere = XPlaneCartToSphere(myVectorCargoOffsetRotated);
+			vector<double> vectorObjectOffsetSphere = XPlaneCartToSphere(myVectorCargoOffsetRotated);
 			if (myTerrainHit == false)
 			{
 				vectorObjectOffsetSphere(1) += ropeUnitSphere(1);
@@ -629,14 +656,32 @@ void CargoObject::CalculatePhysics()
 
 	if (myUpdateHelicopterPosition == true)
 	{
-		// Move the Object by the deviation of the helicopter position approximation
+		double dev_old = norm_2(myVectorHelicopterPositionDeviation);
 		myVectorHelicopterPositionDeviation = myCargoDataShared.myVectorHelicopterPosition - myVectorHelicopterPositionApprox;
+		
+		myVectorHelicopterVelocityApprox = myCargoDataShared.myVectorHelicopterVelocity;
+
+		if ((myTerrainHit == true) || (myRopeConnected == false))
+		{
+			if (dev_old > 0) 
+				myVectorPosition += myVectorHelicopterPositionDeviation;
+			myVectorHelicopterPositionApprox = myCargoDataShared.myVectorHelicopterPosition;
+			myVectorHelicopterPositionDeviation = myVectorZeroVector;
+		}
+		else
+		{
+			//myVectorHelicopterVelocityApprox += myVectorHelicopterPositionDeviation * 10.0;
+			//myVectorHelicopterPositionDeviation = myCargoDataShared.myVectorHelicopterPosition - myVectorHelicopterPositionApprox;
+		}
+
+		// Move the Object by the deviation of the helicopter position approximation
+		
 		//myVectorPosition += myVectorHelicopterPositionDeviation;
 		//myVectorHelicopterPositionApprox += myVectorHelicopterPositionDeviation;
 
 		// Assign New Values
 		
-		myVectorHelicopterVelocityApprox = myCargoDataShared.myVectorHelicopterVelocity;
+		
 		myUpdateHelicopterPosition = false;
 	}
 

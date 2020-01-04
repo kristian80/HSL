@@ -196,16 +196,16 @@ int WrapUpdateObjectCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* r
 	return pHSL->UpdateObjectsCallback(cmd, phase, refcon);
 }
 
-float WrapReadFloatCallback(void* inRefcon)
+double WrapReaddoubleCallback(void* inRefcon)
 {
 	CARGO_SHM_SECTION_START
-	return *((float*)inRefcon);
+	return *((double*)inRefcon);
 }
 
-void WrapWriteFloatCallback(void* inRefcon, float inValue)
+void WrapWritedoubleCallback(void* inRefcon, double inValue)
 {
 	CARGO_SHM_SECTION_START
-	*((float*)inRefcon) = inValue;
+	*((double*)inRefcon) = inValue;
 }
 double WrapReadDoubleCallback(void* inRefcon)
 {
@@ -219,7 +219,7 @@ void WrapWriteDoubleCallback(void* inRefcon, double inValue)
 	*((double*)inRefcon) = inValue;
 }
 
-int WrapReadVectorFloatCallback(
+int WrapReadVectordoubleCallback(
 	void* inRefcon,
 	float* outValues,    /* Can be NULL */
 	int                  inOffset,
@@ -227,14 +227,14 @@ int WrapReadVectorFloatCallback(
 {
 	CARGO_SHM_SECTION_START
 	if (inMax < 3) return 0;
-	vector<float>* pVector = (vector<float>*) inRefcon;
-	outValues[0] = (*pVector)(0);
-	outValues[1] = (*pVector)(1);
-	outValues[2] = (*pVector)(2);
+	vector<double>* pVector = (vector<double>*) inRefcon;
+	outValues[0] = (float) (*pVector)(0);
+	outValues[1] = (float)(*pVector)(1);
+	outValues[2] = (float)(*pVector)(2);
 	return 1;
 }
 
-void WrapWriteVectorFloatCallback(
+void WrapWriteVectordoubleCallback(
 	void* inRefcon,
 	float* inValues,
 	int                  inOffset,
@@ -242,7 +242,7 @@ void WrapWriteVectorFloatCallback(
 {
 	CARGO_SHM_SECTION_START
 	if (inCount < 3) return;
-	vector<float>* pVector = (vector<float>*) inRefcon;
+	vector<double>* pVector = (vector<double>*) inRefcon;
 
 	(*pVector)(0) = inValues[0];
 	(*pVector)(1) = inValues[1];
@@ -250,27 +250,29 @@ void WrapWriteVectorFloatCallback(
 
 }
 
-int WrapReadFloatArrayCallback(
+int WrapReaddoubleArrayCallback(
 	void* inRefcon,
 	float* outValues,    /* Can be NULL */
 	int                  inOffset,
 	int                  inMax)
 {
 	CARGO_SHM_SECTION_START
-	float* array = (float*)inRefcon;
-	memcpy(outValues, array + inOffset, sizeof(float) * inMax);
+	double* array = (double*)inRefcon;
+	for (int i = 0; i < inMax; i++) outValues[i] = (float) array[i+inOffset];
 	return 1;
 }
 
-void WrapWriteFloatArrayCallback(
+void WrapWritedoubleArrayCallback(
 	void* inRefcon,
 	float* inValues,
 	int                  inOffset,
 	int                  inCount)
 {
 	CARGO_SHM_SECTION_START
-	float* array = (float*)inRefcon;
-	memcpy(array + inOffset, inValues, sizeof(float) * inCount);
+	double* array = (double*)inRefcon;
+	for (int i = 0; i < inCount; i++) array[i + inOffset] = inValues[i];
+
+	memcpy(array + inOffset, inValues, sizeof(double) * inCount);
 }
 
 int WrapReadIntCallback(void* inRefcon)

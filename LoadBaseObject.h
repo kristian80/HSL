@@ -3,7 +3,7 @@
 class LoadBaseObject
 {
 public:
-	vector<float> myVectorPosition = vector<float>(3);
+	vector<double> myVectorPosition = vector<double>(3);
 
 };
 

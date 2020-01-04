@@ -25,56 +25,56 @@ struct CargoDataShared
 	bool myComputationRunFlag = false;
 	bool myHighPerformace = false;
 
-	float myFrameTime = 0;
+	double myFrameTime = 0;
 	
-	float myFrameTimeMax = 0;
+	double myFrameTimeMax = 0;
 	bool myNewFrame = false;
 
 	
 
-	vector<float> myVectorRope = vector<float>(3);
+	vector<double> myVectorRope = vector<double>(3);
 
-	//vector<float> myVectorHelicopterPositionFlightLoop = vector<float>(3);
-	vector<float> myVectorHelicopterVelocity = vector<float>(3);
-	vector<float> myVectorHelicopterAcceleration = vector<float>(3);
+	//vector<double> myVectorHelicopterPositionFlightLoop = vector<double>(3);
+	vector<double> myVectorHelicopterVelocity = vector<double>(3);
+	vector<double> myVectorHelicopterAcceleration = vector<double>(3);
 
-	vector<float> myVectorHelicopterPosition = vector<float>(3);
-	vector<float> myVectorHookPosition = vector<float>(3);
-	vector<float> myVectorWinchPosition = vector<float>(3);
-	vector<float> myVectorWindVelocity = vector<float>(3);
+	vector<double> myVectorHelicopterPosition = vector<double>(3);
+	vector<double> myVectorHookPosition = vector<double>(3);
+	vector<double> myVectorWinchPosition = vector<double>(3);
+	vector<double> myVectorWindVelocity = vector<double>(3);
 
 	std::queue<ForceData> myHelicopterForceQueue;
 
 	bool mySlingLineEnabled = false;
 	bool myPhysicsEnabled = true;
 
-	float myRopeLengthStart = 2.0f;
-	float myRopeLengthNormal = 2.2f;
-	float myRopeDamping = 0.03f;
-	float myRopeK = 55000.0f;
-	float myRopeRuptureForce = 100000.0f; //10t max
+	double myRopeLengthStart = 2.0;
+	double myRopeLengthNormal = 2.2;
+	double myRopeDamping = 0.03;
+	double myRopeK = 55000.0;
+	double myRopeRuptureForce = 100000.0; //10t max
 	bool  myRopeRuptured = false;
-	float myMaxAccRopeFactor = 2.0f;
+	double myMaxAccRopeFactor = 2.0;
 
 	double myCargoSetLatitutde = 0.0;
 	double myCargoSetLongitude = 0.0;
-	float myCargoSetHeading = 0.0;
+	double myCargoSetHeading = 0.0;
 	bool myCargoSetPosition = false;
-	float myWinchSpeed = 0.5f;
-	float myCurrentRopeLength = 2.2f;
-	float myBambiBucketWaterFlow = 250.0f;
+	double myWinchSpeed = 0.5;
+	double myCurrentRopeLength = 2.2;
+	double myBambiBucketWaterFlow = 250.0;
 
-	float myNewRopeLength = 0;
-	float myRopeStretchRelative = 0;
-	float myRopeForceScalar = 0;
-	float myRopeLengthDelta = 0;
-	float myRopeStretchSpeed = 0;
-	float myRopeCorrectedD = 0;
+	double myNewRopeLength = 0;
+	double myRopeStretchRelative = 0;
+	double myRopeForceScalar = 0;
+	double myRopeLengthDelta = 0;
+	double myRopeStretchSpeed = 0;
+	double myRopeCorrectedD = 0;
 
-	float myDebugValue1 = 0.0f;
-	float myDebugValue2 = 0.0f;
-	float myDebugValue3 = 0.0f;
-	float myDebugValue4 = 0.0f;
+	double myDebugValue1 = 0.0;
+	double myDebugValue2 = 0.0;
+	double myDebugValue3 = 0.0;
+	double myDebugValue4 = 0.0;
 	bool myDebugStatement = true;
 
 
@@ -82,25 +82,25 @@ struct CargoDataShared
 	double myLdLocalY = 0;
 	double myLdLocalZ = 0;
 
-	float myLfLocalXv = 0;
-	float myLfLocalYv = 0;
-	float myLfLocalZv = 0;
+	double myLfLocalXv = 0;
+	double myLfLocalYv = 0;
+	double myLfLocalZv = 0;
 
-	float myLfLocalXa = 0;
-	float myLfLocalYa = 0;
-	float myLfLocalZa = 0;
+	double myLfLocalXa = 0;
+	double myLfLocalYa = 0;
+	double myLfLocalZa = 0;
 
-	float myLfGravitation = 0;
-	float myLfAirDensity = 0;
+	double myLfGravitation = 0;
+	double myLfAirDensity = 0;
 
-	float myLfLocalPhi = 0;
-	float myLfLocalPsi = 0;
-	float myLfLocalTheta = 0;
+	double myLfLocalPhi = 0;
+	double myLfLocalPsi = 0;
+	double myLfLocalTheta = 0;
 
 	int   myLiPause = 0;
-	float myLfTimeActual = 1.0f;
-	float myLfWindDirection = 0;
-	float myLfWindSpeed = 0;
+	double myLfTimeActual = 1.0;
+	double myLfWindDirection = 0;
+	double myLfWindSpeed = 0;
 
 };
 
@@ -141,7 +141,7 @@ public:
 
 
 
-	float myDataRate = -1;
+	double myDataRate = -1;
 	int myCompuationsPerFlightLoop = 0;
 	int myComputationFrequency = 0;
 	bool mySlingLineEnabled = false;
@@ -190,12 +190,12 @@ public:
 	
 	float myDummyAngle = 0;
 
-	vector<float> myRopePoints[HSL_ROPE_POINTS_MAX];
+	vector<double> myRopePoints[HSL_ROPE_POINTS_MAX];
 	XPLMInstanceRef myRopeInstances[HSL_ROPE_POINTS_MAX];
 	HSL::WinchDirection myWinchDirection = HSL::Stop;
 
-	vector<float> myVectorHelicopterForceApplied = vector<float>(3);
-	vector<float> myVectorHelicopterMomentumApplied = vector<float>(3);
+	vector<double> myVectorHelicopterForceApplied = vector<double>(3);
+	vector<double> myVectorHelicopterMomentumApplied = vector<double>(3);
 
 	/////////////////////////////////////////////////////////
 	// Fire Variables
@@ -205,24 +205,24 @@ public:
 	std::string myNoFireAircraftPath = "NoFire_Aircraft\\nofire_aircraft.acf";
 	XPLMObjectRef myFireObjectRef = NULL;
 
-	vector<float> myVectorFireEmitterOffset = vector<float>(3);
+	vector<double> myVectorFireEmitterOffset = vector<double>(3);
 
-	float myFireWaterRadius = 3.0f;
-	float myFireLiftNom = 77.0f;
-	float myFireLiftDenom = 5.7f;
-	float myFireDistDemon = 20.0f;
+	double myFireWaterRadius = 3.0;
+	double myFireLiftNom = 77.0;
+	double myFireLiftDenom = 5.7;
+	double myFireDistDemon = 20.0;
 
-	float myFireStrengthStart = 1.0f;
-	float myFireStrengthMax = 1000.0f;
-	float myFireStrengthIncrease = 0;
+	double myFireStrengthStart = 1.0;
+	double myFireStrengthMax = 1000.0;
+	double myFireStrengthIncrease = 0;
 
 
 	double myFireSetLatitutde = 0.0;
 	double myFireSetLongitude = 0.0;
-	float myFireSetElevation = 0.0;
+	double myFireSetElevation = 0.0;
 
-	float myFireCount = 0;
-	float myFireStrength[MAX_FIRES];
+	double myFireCount = 0;
+	double myFireStrength[MAX_FIRES];
 
 	bool myFireCreateFailed = 0;
 	bool myUpdateFirePositions = 0;
@@ -233,7 +233,7 @@ public:
 	CargoObject myCargo;
 	CargoObject myHook;
 
-	vector<float> myVectorZeroVector = vector<float>(3);
+	vector<double> myVectorZeroVector = vector<double>(3);
 
 	
 
@@ -244,18 +244,18 @@ public:
 	
 
 
-	float myBambiBucketWaterPerDrop = 0;
+	double myBambiBucketWaterPerDrop = 0;
 
 	
 
 	
 
 
-	float myRainSpeed = 3.5f;
+	double myRainSpeed = 3.5;
 	int myRainDirections = 10;
 	int myRainVariance = 3;
-	float myRainReleasePeriod = 0.1f;
-	float myRainReleaseTime = 0.0f;
+	double myRainReleasePeriod = 0.1;
+	double myRainReleaseTime = 0.0;
 
 	int myRainDropNumber = 0;
 	int myRainDropOverflow = 0;
@@ -269,7 +269,7 @@ public:
 
 
 
-	vector<float> myVectorDefaultWinchPosition = vector<float>(3);
+	vector<double> myVectorDefaultWinchPosition = vector<double>(3);
 
 	
 
@@ -328,17 +328,17 @@ public:
 
 
 
-	float myLfForceX = 0;
-	float myLfForceY = 0;
-	float myLfForceZ = 0;
+	double myLfForceX = 0;
+	double myLfForceY = 0;
+	double myLfForceZ = 0;
 
-	float myLfWindX = 0;
-	float myLfWindY = 0;
-	float myLfWindZ = 0;
+	double myLfWindX = 0;
+	double myLfWindY = 0;
+	double myLfWindZ = 0;
 
-	float myLfMomentumX = 0;
-	float myLfMomentumY = 0;
-	float myLfMomentumZ = 0;
+	double myLfMomentumX = 0;
+	double myLfMomentumY = 0;
+	double myLfMomentumZ = 0;
 
 
 
@@ -372,11 +372,12 @@ public:
 
 	void AircraftConfigSave();
 	void AircraftConfigRead();
-	void ConfigWriteVector(boost::property_tree::ptree &pt, vector<float> &vectorIn, std::string nameIn);
-	void ConfigReadVector(boost::property_tree::ptree& pt, vector<float> &vectorOut, std::string nameIn);
-	void ConfigReadFloat(boost::property_tree::ptree& pt, std::string nameIn, float& floatOut);
+	void ConfigWriteVector(boost::property_tree::ptree &pt, vector<double> &vectorIn, std::string nameIn);
+	void ConfigReadVector(boost::property_tree::ptree& pt, vector<double> &vectorOut, std::string nameIn);
+	void ConfigReaddouble(boost::property_tree::ptree& pt, std::string nameIn, double& doubleOut);
 	void ConfigReadInt(boost::property_tree::ptree& pt, std::string nameIn, int& intOut);
 	void ConfigReadString(boost::property_tree::ptree& pt, std::string nameIn, std::string& stringOut);
+	void ConfigReadBool(boost::property_tree::ptree& pt, std::string nameIn, bool& boolOut);
 
 	void SlingEnable();
 	void SlingDisable();
@@ -390,7 +391,7 @@ public:
 	void FirePlaceOnGround();
 	void FirePlaceCoordinates();
 	void BambiBucketRelease();
-	void FirePlaceAtCoordinates(vector<float> * pinVectorFireObjectPosition);
+	void FirePlaceAtCoordinates(vector<double> * pinVectorFireObjectPosition);
 
 	int WinchUpCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 	int WinchDownCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
@@ -405,21 +406,21 @@ public:
 	int ToggleControlWindowCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 	int UpdateObjectsCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 
-	void RegisterFloatDataref(float &valueIn, std::string nameIn);
-	void RegisterFloatArrayDataref(float *valueIn, std::string nameIn, int sizeIn);
+	//void RegisterDoubleDataref(double &valueIn, std::string nameIn);
+	void RegisterDoubleArrayDataref(double *valueIn, std::string nameIn, int sizeIn);
 	void RegisterDoubleDataref(double& valueIn, std::string nameIn);
-	void RegisterVectorDataref(vector<float> & vectorIn, std::string nameIn);
+	void RegisterVectorDataref(vector<double> & vectorIn, std::string nameIn);
 
 	void RegisterIntDataref(bool& valueIn, std::string nameIn);
 	void RegisterStringDataref(std::string& valueIn, std::string nameIn);
 
 
-	static vector<float> TurnWorldToAircraft(vector<float> coordsAircraft, CargoDataShared& cargoDataSharedIn);
-	vector<float> AircraftToWorld(vector<float> coordsAircraft);
-	vector<float> AdjustFrameMovement(vector<float> coordsAircraft);
+	static vector<double> TurnWorldToAircraft(vector<double> coordsAircraft, CargoDataShared& cargoDataSharedIn);
+	vector<double> AircraftToWorld(vector<double> coordsAircraft);
+	vector<double> AdjustFrameMovement(vector<double> coordsAircraft);
 
 
-	float PluginFlightLoopCallback(float elapsedMe, float elapsedSim, int counter, void* refcon);
+	float PluginFlightLoopCallback(double elapsedMe, double elapsedSim, int counter, void* refcon);
 	void DrawObjects();
 	void ReadDataRefs();
 

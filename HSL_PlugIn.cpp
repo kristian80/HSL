@@ -21,12 +21,12 @@ HSL_PlugIn::HSL_PlugIn() :
 	}
 
 	myCargo.myHeight = 0.9;
-	myCargo.myMass = 75.0f;
+	myCargo.myMass = 75.0;
 	myCargo.myFrictionGlide = 0.35;
 	myCargo.myFrictionStatic = 0.65;
 
 	myHook.myHeight = 0.1;
-	myHook.myMass = 5.0f;
+	myHook.myMass = 5.0;
 	myHook.myFrictionGlide = 0.35;
 	myHook.myFrictionStatic = 0.65;
 
@@ -46,9 +46,9 @@ HSL_PlugIn::HSL_PlugIn() :
 
 	myCargoDataShared.myVectorRope = myVectorZeroVector;
 
-	myVectorDefaultWinchPosition(0) = 0.0f;
-	myVectorDefaultWinchPosition(1) = -0.75f;
-	myVectorDefaultWinchPosition(2) = 0.0f;
+	myVectorDefaultWinchPosition(0) = 0.0;
+	myVectorDefaultWinchPosition(1) = -0.75;
+	myVectorDefaultWinchPosition(2) = 0.0;
 
 	memset(myRopeInstances, 0, sizeof(XPLMInstanceRef) * HSL_ROPE_POINTS_MAX);
 
@@ -140,7 +140,7 @@ void HSL_PlugIn::PluginStart()
 
 
 
-	//myDrShRopeLengthStart = XPLMRegisterDataAccessor("HSL/RopeLengthStart", xplmType_Float, 1, NULL, NULL, WrapReadFloatCallback, WrapWriteFloatCallback, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &myRopeLengthStart, &myRopeLengthStart);
+	//myDrShRopeLengthStart = XPLMRegisterDataAccessor("HSL/RopeLengthStart", xplmType_double, 1, NULL, NULL, WrapReaddoubleCallback, WrapWritedoubleCallback, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &myRopeLengthStart, &myRopeLengthStart);
 
 	
 	
@@ -154,14 +154,14 @@ void HSL_PlugIn::PluginStart()
 	RegisterDoubleDataref(myCargoDataShared.myCargoSetLatitutde,				"HSL/Cargo/SetLatitude");
 	RegisterDoubleDataref(myCargoDataShared.myCargoSetLongitude,				"HSL/Cargo/SetLongitude");
 	
-	RegisterFloatDataref(myCargoDataShared.myWinchSpeed,						"HSL/WinchSpeed");
+	RegisterDoubleDataref(myCargoDataShared.myWinchSpeed,						"HSL/WinchSpeed");
 	RegisterVectorDataref(myCargoDataShared.myVectorWinchPosition,			"HSL/VectorWinchPosition");
-	RegisterFloatDataref(myCargoDataShared.myRopeLengthStart,					"HSL/RopeLengthStart");
-	RegisterFloatDataref(myCargoDataShared.myRopeLengthNormal,				"HSL/RopeLengthNormal");
-	RegisterFloatDataref(myCargoDataShared.myRopeDamping,						"HSL/RopeDamping");
-	RegisterFloatDataref(myCargoDataShared.myRopeK,							"HSL/RopeK");
-	RegisterFloatDataref(myCargoDataShared.myRopeRuptureForce,				"HSL/Rope/RuptureForce");
-	RegisterFloatDataref(myCargoDataShared.myMaxAccRopeFactor,				"HSL/Rope/MaxAccRopeFactor");
+	RegisterDoubleDataref(myCargoDataShared.myRopeLengthStart,					"HSL/RopeLengthStart");
+	RegisterDoubleDataref(myCargoDataShared.myRopeLengthNormal,				"HSL/RopeLengthNormal");
+	RegisterDoubleDataref(myCargoDataShared.myRopeDamping,						"HSL/RopeDamping");
+	RegisterDoubleDataref(myCargoDataShared.myRopeK,							"HSL/RopeK");
+	RegisterDoubleDataref(myCargoDataShared.myRopeRuptureForce,				"HSL/Rope/RuptureForce");
+	RegisterDoubleDataref(myCargoDataShared.myMaxAccRopeFactor,				"HSL/Rope/MaxAccRopeFactor");
 
 	// Hook 
 	RegisterIntDataref(myHook.myRopeConnected,				"HSL/Hook/Connected");
@@ -169,12 +169,12 @@ void HSL_PlugIn::PluginStart()
 	RegisterIntDataref(myHook.myDrawingEnabled,				"HSL/Hook/DrawingEnabled");
 	RegisterIntDataref(myHook.myInstancedDrawing,			"HSL/Hook/InstancedDrawing");
 
-	RegisterFloatDataref(myHook.myHeight,					"HSL/Hook/Height");
-	RegisterFloatDataref(myHook.myMass,						"HSL/Hook/Mass");
+	RegisterDoubleDataref(myHook.myHeight,					"HSL/Hook/Height");
+	RegisterDoubleDataref(myHook.myMass,						"HSL/Hook/Mass");
 	RegisterVectorDataref(myHook.myVectorSize,				"HSL/Hook/Size");
 	RegisterVectorDataref(myHook.myVectorCW,				"HSL/Hook/CW");
-	RegisterFloatDataref(myHook.myFrictionGlide,			"HSL/Hook/FrictionGlide");
-	RegisterFloatDataref(myHook.myFrictionStatic,			"HSL/Hook/FrictionStatic");
+	RegisterDoubleDataref(myHook.myFrictionGlide,			"HSL/Hook/FrictionGlide");
+	RegisterDoubleDataref(myHook.myFrictionStatic,			"HSL/Hook/FrictionStatic");
 
 	// Cargo
 	RegisterIntDataref(myCargo.myRopeConnected,				"HSL/Cargo/Connected");
@@ -183,16 +183,16 @@ void HSL_PlugIn::PluginStart()
 	RegisterIntDataref(myCargo.myInstancedDrawing,			"HSL/Cargo/InstancedDrawing");
 
 	RegisterVectorDataref(myCargo.myVectorPosition,			"HSL/Cargo/Position");
-	RegisterFloatDataref(myCargo.myHeight,					"HSL/Cargo/Height");
-	RegisterFloatDataref(myCargo.myMass,					"HSL/Cargo/Mass");
+	RegisterDoubleDataref(myCargo.myHeight,					"HSL/Cargo/Height");
+	RegisterDoubleDataref(myCargo.myMass,					"HSL/Cargo/Mass");
 	RegisterVectorDataref(myCargo.myVectorSize,				"HSL/Cargo/Size");
 	RegisterVectorDataref(myCargo.myVectorCW,				"HSL/Cargo/CWFront");
-	RegisterFloatDataref(myCargo.myFrictionGlide,			"HSL/Cargo/FrictionGlide");
-	RegisterFloatDataref(myCargo.myFrictionStatic,			"HSL/Cargo/FrictionStatic");
+	RegisterDoubleDataref(myCargo.myFrictionGlide,			"HSL/Cargo/FrictionGlide");
+	RegisterDoubleDataref(myCargo.myFrictionStatic,			"HSL/Cargo/FrictionStatic");
 	RegisterIntDataref(myCargo.myIsBambiBucket,				"HSL/Cargo/IsBambiBucket");
 	RegisterIntDataref(myCargo.myBambiBucketRelease,		"HSL/Cargo/BambiBucketReleaseWater");
-	RegisterFloatDataref(myCargo.myBambiBucketWaterWeight,	"HSL/Cargo/BambiBucketWaterWeigth");
-	RegisterFloatDataref(myCargo.myBambiBucketWaterLevel,	"HSL/Cargo/BambiBucketWaterLevel");
+	RegisterDoubleDataref(myCargo.myBambiBucketWaterWeight,	"HSL/Cargo/BambiBucketWaterWeigth");
+	RegisterDoubleDataref(myCargo.myBambiBucketWaterLevel,	"HSL/Cargo/BambiBucketWaterLevel");
 	RegisterVectorDataref(myCargo.myVectorCargoOffset,		"HSL/Cargo/RopeOffset");
 
 
@@ -201,13 +201,13 @@ void HSL_PlugIn::PluginStart()
 	RegisterVectorDataref(myCargoDataShared.myVectorHookPosition,				"HSL/Calculated/VectorHookPosition");
 
 
-	RegisterFloatDataref(myCargoDataShared.myFrameTime,						"HSL/FrameTime");
-	RegisterFloatDataref(myCargoDataShared.myNewRopeLength,					"HSL/NewRopeLength");
-	RegisterFloatDataref(myCargoDataShared.myRopeStretchRelative,				"HSL/RopeStretchRelative");
-	RegisterFloatDataref(myCargoDataShared.myRopeForceScalar,					"HSL/RopeForceScalar");
-	RegisterFloatDataref(myCargoDataShared.myRopeLengthDelta,					"HSL/RopeLengthDelta");
-	RegisterFloatDataref(myCargoDataShared.myRopeStretchSpeed,				"HSL/RopeStretchSpeed");
-	RegisterFloatDataref(myCargoDataShared.myRopeCorrectedD,					"HSL/RopeCorrectedD");
+	RegisterDoubleDataref(myCargoDataShared.myFrameTime,						"HSL/FrameTime");
+	RegisterDoubleDataref(myCargoDataShared.myNewRopeLength,					"HSL/NewRopeLength");
+	RegisterDoubleDataref(myCargoDataShared.myRopeStretchRelative,				"HSL/RopeStretchRelative");
+	RegisterDoubleDataref(myCargoDataShared.myRopeForceScalar,					"HSL/RopeForceScalar");
+	RegisterDoubleDataref(myCargoDataShared.myRopeLengthDelta,					"HSL/RopeLengthDelta");
+	RegisterDoubleDataref(myCargoDataShared.myRopeStretchSpeed,				"HSL/RopeStretchSpeed");
+	RegisterDoubleDataref(myCargoDataShared.myRopeCorrectedD,					"HSL/RopeCorrectedD");
 	RegisterIntDataref(myCargoDataShared.myRopeRuptured,		"HSL/RopeRuptured");
 
 
@@ -220,22 +220,22 @@ void HSL_PlugIn::PluginStart()
 	// Fire:
 
 	RegisterStringDataref(myFireAircraftPath,				"HSL/Fire/FireAircraftPath");
-	RegisterFloatDataref(myFireWaterRadius,					"HSL/Fire/WaterRadius");
-	RegisterFloatDataref(myFireLiftNom,						"HSL/Fire/LiftNom");
-	RegisterFloatDataref(myFireLiftDenom,					"HSL/Fire/LiftDenom");
-	RegisterFloatDataref(myFireDistDemon,					"HSL/Fire/DistDenom");
+	RegisterDoubleDataref(myFireWaterRadius,					"HSL/Fire/WaterRadius");
+	RegisterDoubleDataref(myFireLiftNom,						"HSL/Fire/LiftNom");
+	RegisterDoubleDataref(myFireLiftDenom,					"HSL/Fire/LiftDenom");
+	RegisterDoubleDataref(myFireDistDemon,					"HSL/Fire/DistDenom");
 
-	RegisterFloatDataref(myFireStrengthStart,				"HSL/Fire/StrengthStart");
-	RegisterFloatDataref(myFireStrengthMax,					"HSL/Fire/StrengthMax");
-	RegisterFloatDataref(myFireStrengthIncrease,			"HSL/Fire/StrengthIncrease");
+	RegisterDoubleDataref(myFireStrengthStart,				"HSL/Fire/StrengthStart");
+	RegisterDoubleDataref(myFireStrengthMax,					"HSL/Fire/StrengthMax");
+	RegisterDoubleDataref(myFireStrengthIncrease,			"HSL/Fire/StrengthIncrease");
 
 
 	RegisterDoubleDataref(myFireSetLatitutde,				"HSL/Fire/SetLatitude");
 	RegisterDoubleDataref(myFireSetLongitude,				"HSL/Fire/SetLongitude");
-	RegisterFloatDataref(myFireSetElevation,				"HSL/Fire/SetElevation");
+	RegisterDoubleDataref(myFireSetElevation,				"HSL/Fire/SetElevation");
 
-	RegisterFloatDataref(myFireCount,						"HSL/Fire/Count");
-	RegisterFloatArrayDataref(myFireStrength,				"HSL/Fire/FireStrength", MAX_FIRES);
+	RegisterDoubleDataref(myFireCount,						"HSL/Fire/Count");
+	RegisterDoubleArrayDataref(myFireStrength,				"HSL/Fire/FireStrength", MAX_FIRES);
 
 	RegisterIntDataref(myFireCreateFailed,					"HSL/Fire/CreateFailed");
 	RegisterIntDataref(myUpdateFirePositions,				"HSL/Fire/UpdatePositions");
@@ -288,7 +288,7 @@ void HSL_PlugIn::PluginStart()
 	myDrLocalTheta = XPLMFindDataRef("sim/flightmodel/position/theta");
 
 	myDrPause = XPLMFindDataRef("sim/time/paused");
-	myDrTimeActual = XPLMFindDataRef("sim/time/sim_speed_actual_ogl");
+	myDrTimeActual = XPLMFindDataRef("sim/time/sim_speed");
 	myDrWindDirection = XPLMFindDataRef("sim/weather/wind_direction_degt");
 	myDrWindSpeed = XPLMFindDataRef("sim/weather/wind_speed_kt");
 
@@ -451,8 +451,8 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			//XPLMDrawAircraft(fire.planeIndex, fire.posX, fire.posY, fire.posZ, 0, 0, 0, 1, &(fire.drawState));
 		}
 
-		vector<float> vectorWinchWorld = AdjustFrameMovement(myCargoDataShared.myVectorHelicopterPosition);
-		//vector<float> vectorWinchWorld = myVectorHelicopterPosition;
+		vector<double> vectorWinchWorld = AdjustFrameMovement(myCargoDataShared.myVectorHelicopterPosition);
+		//vector<double> vectorWinchWorld = myVectorHelicopterPosition;
 		DrawInstanceCreate(myWinchInstanceRef, myWinchObjectRef);
 		DrawInstanceSetPosition(myWinchInstanceRef, myWinchObjectRef, vectorWinchWorld, false);
 
@@ -462,7 +462,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 		{
 			if (index < myRopePoints.size())
 			{
-				vector<float> vectorRopePointOpenGL = AdjustFrameMovement(myRopePoints[index]);
+				vector<double> vectorRopePointOpenGL = AdjustFrameMovement(myRopePoints[index]);
 				DrawInstanceCreate(myRopeInstances[index], myRopeObjectRef);
 				DrawInstanceSetPosition(myRopeInstances[index], myRopeObjectRef, vectorRopePointOpenGL, true);
 			}
@@ -498,7 +498,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 
 			for (index = 0; index < myRopePoints.size(); index++)
 			{
-				vector<float> vectorRopePointOpenGL = AdjustFrameMovement(myRopePoints[index]);
+				vector<double> vectorRopePointOpenGL = AdjustFrameMovement(myRopePoints[index]);
 
 				drawInfo[index].x = vectorRopePointOpenGL(0);
 				drawInfo[index].y = vectorRopePointOpenGL(1);
@@ -508,8 +508,8 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			XPLMDrawObjects(myRopeObjectRef, myRopePoints.size(), drawInfo, 0, 0);
 		}*/
 
-		vector<float>  vectorFinalRope = myVectorZeroVector;
-		vector<float>  vectorFinalRopeStart = myVectorZeroVector;
+		vector<double>  vectorFinalRope = myVectorZeroVector;
+		vector<double>  vectorFinalRopeStart = myVectorZeroVector;
 		
 
 		
@@ -518,7 +518,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			
 
 			 
-			vector<float> vectorCargoPointOpenGL = myCargo.myVectorPosition; //AdjustFrameMovement(myCargo.myVectorPosition);
+			vector<double> vectorCargoPointOpenGL = myCargo.myVectorPosition; //AdjustFrameMovement(myCargo.myVectorPosition);
 			vectorCargoPointOpenGL += myCargo.myVectorHelicopterPositionDeviation;
 
 			vectorFinalRope = vectorWinchWorld - vectorCargoPointOpenGL;
@@ -529,7 +529,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			//vectorFinalRopeStart = vectorCargoPointOpenGL;
 
 			DrawInstanceCreate(myCargoInstanceRef, myCargoObjectRef);
-			DrawInstanceSetPosition(myCargoInstanceRef, myCargoObjectRef, vectorCargoPointOpenGL, myCargo.myVectorDisplayAngle, true);
+			DrawInstanceSetPosition(myCargoInstanceRef, myCargoObjectRef, vectorCargoPointOpenGL, myCargo.myVectorDisplayAngle, false);
 			
 
 		}
@@ -543,8 +543,8 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 		{
 			
 
-			vector<float> vectorHookPointOpenGL = myHook.myVectorPosition; // AdjustFrameMovement(myHook.myVectorPosition);
-			vectorHookPointOpenGL += myHook.myVectorDisplayOffset;
+			vector<double> vectorHookPointOpenGL = myHook.myVectorPosition; // AdjustFrameMovement(myHook.myVectorPosition);
+			vectorHookPointOpenGL += myHook.myVectorHelicopterPositionDeviation;
 
 			vectorFinalRope = vectorWinchWorld - vectorHookPointOpenGL;
 			vectorFinalRopeStart = vectorHookPointOpenGL;
@@ -562,23 +562,23 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 		if (ropeObjectCount > HSL_ROPE_POINTS_MAX) ropeObjectCount = HSL_ROPE_POINTS_MAX;
 
 		auto time_end = std::chrono::steady_clock::now();
-		myProcessingTimeDrawRoutine = std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_start).count();
+		myProcessingTimeDrawRoutine = (int) std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_start).count();
 
 
 		CARGO_SHM_SECTION_END // Now comes the time consuming part
 
 		if ((ropeRuptured == false) && (norm_2(vectorFinalRope) > 0))
 		{
-			vector<float> vectorRopeUnit = get_unit_vector(vectorFinalRope);
+			vector<double> vectorRopeUnit = get_unit_vector(vectorFinalRope);
 
 			
 
-			float ropeDistance = norm_2(vectorFinalRope) / ((float) ropeObjectCount);
+			double ropeDistance = norm_2(vectorFinalRope) / ((double) ropeObjectCount);
 			int index = 0;
 			for (index = 0; index < ropeObjectCount; index++)
 			{
-				float distance = ropeDistance * index;
-				vector<float> position = vectorFinalRopeStart + (distance * vectorRopeUnit);
+				double distance = ropeDistance * index;
+				vector<double> position = vectorFinalRopeStart + (distance * vectorRopeUnit);
 
 				DrawInstanceCreate(myRopeInstances[index], myRopeObjectRef);
 				DrawInstanceSetPosition(myRopeInstances[index], myRopeObjectRef, position, true);
@@ -603,7 +603,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 		{
 			if (index < myRopePoints.size())
 			{
-				vector<float> vectorRopePointOpenGL = AdjustFrameMovement(myRopePoints[index]);
+				vector<double> vectorRopePointOpenGL = AdjustFrameMovement(myRopePoints[index]);
 				DrawInstanceCreate(myRopeInstances[index], myRopeObjectRef);
 				DrawInstanceSetPosition(myRopeInstances[index], myRopeObjectRef, vectorRopePointOpenGL, true);
 			}
@@ -615,21 +615,21 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 
 		/*
 				myRopePoints.clear();
-		vector<float>  myVectorFinalRope = myCargoDataShared.myVectorHelicopterPosition - myCargoDataShared.myVectorHookPosition;
-		vector<float> vectorRopeUnit = get_unit_vector(myVectorFinalRope);
+		vector<double>  myVectorFinalRope = myCargoDataShared.myVectorHelicopterPosition - myCargoDataShared.myVectorHookPosition;
+		vector<double> vectorRopeUnit = get_unit_vector(myVectorFinalRope);
 
 		// If the rope ruptured, the empty vector will disable 
 		if (myCargoDataShared.myRopeRuptured == false)
 		{
 			
 
-			float ropeStepSize = norm_2(myVectorFinalRope) / ((float)HSL_ROPE_POINTS_MAX);
+			double ropeStepSize = norm_2(myVectorFinalRope) / ((double)HSL_ROPE_POINTS_MAX);
 
-			if (ropeStepSize < 0.01f) ropeStepSize = 0.01f;
+			if (ropeStepSize < 0.01f) ropeStepSize = 0.01;
 
-			for (float distance = 0; distance < (myCargoDataShared.myNewRopeLength); distance += ropeStepSize)
+			for (double distance = 0; distance < (myCargoDataShared.myNewRopeLength); distance += ropeStepSize)
 			{
-				vector<float> position = myCargoDataShared.myVectorHookPosition + (distance * vectorRopeUnit);
+				vector<double> position = myCargoDataShared.myVectorHookPosition + (distance * vectorRopeUnit);
 				myRopePoints.push_back(position);
 			}
 		}
@@ -640,7 +640,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			
 			if (myRaindrops[rain_index].dataValid == true)
 			{
-				vector<float> vectorCargoPointOpenGL = AdjustFrameMovement(myRaindrops[rain_index].myVectorPosition);
+				vector<double> vectorCargoPointOpenGL = AdjustFrameMovement(myRaindrops[rain_index].myVectorPosition);
 				DrawInstanceCreate(myRaindrops[rain_index].myDrawInstance, myRaindropObjectRef);
 				DrawInstanceSetPosition(myRaindrops[rain_index].myDrawInstance, myRaindropObjectRef, vectorCargoPointOpenGL, myRaindrops[rain_index].myVectorDisplayAngle, true);
 			}
@@ -666,7 +666,8 @@ void HSL_PlugIn::ConfigSave()
 
 
 			boost::property_tree::ptree pt;
-
+			pt.put("System.simple_mode", mySimpleMode);
+			pt.put("System.high_performance", myCargoDataShared.myHighPerformace);
 			pt.put("Rope.library_object", myRopePath);
 			pt.put("Rope.length", myCargoDataShared.myRopeLengthStart);
 			pt.put("Rope.damping", myCargoDataShared.myRopeDamping);
@@ -723,43 +724,47 @@ void HSL_PlugIn::ConfigRead()
 	{
 		boost::property_tree::ini_parser::read_ini(myConfigPath + myConfigIniFile, pt);
 
+		ConfigReadBool(pt, "System.simple_mode", mySimpleMode);
+		ConfigReadBool(pt, "System.high_performance", myCargoDataShared.myHighPerformace);
+
+
 		ConfigReadString(pt, "Rope.library_object", myRopePath);
-		ConfigReadFloat(pt, "Rope.length", myCargoDataShared.myRopeLengthStart);
-		ConfigReadFloat(pt, "Rope.damping", myCargoDataShared.myRopeDamping);
-		ConfigReadFloat(pt, "Rope.k_factor", myCargoDataShared.myRopeK);
-		ConfigReadFloat(pt, "Rope.rupture_force", myCargoDataShared.myRopeRuptureForce);
-		ConfigReadFloat(pt, "Rope.max_acc_factor", myCargoDataShared.myMaxAccRopeFactor);
+		ConfigReaddouble(pt, "Rope.length", myCargoDataShared.myRopeLengthStart);
+		ConfigReaddouble(pt, "Rope.damping", myCargoDataShared.myRopeDamping);
+		ConfigReaddouble(pt, "Rope.k_factor", myCargoDataShared.myRopeK);
+		ConfigReaddouble(pt, "Rope.rupture_force", myCargoDataShared.myRopeRuptureForce);
+		ConfigReaddouble(pt, "Rope.max_acc_factor", myCargoDataShared.myMaxAccRopeFactor);
 
 		ConfigReadString(pt, "Winch.library_object", myWinchPath);
-		ConfigReadFloat(pt, "Winch.speed", myCargoDataShared.myWinchSpeed);
+		ConfigReaddouble(pt, "Winch.speed", myCargoDataShared.myWinchSpeed);
 
-		ConfigReadFloat(pt, "Bambi.water_per_second", myCargoDataShared.myBambiBucketWaterFlow);
+		ConfigReaddouble(pt, "Bambi.water_per_second", myCargoDataShared.myBambiBucketWaterFlow);
 
 
-		ConfigReadFloat(pt, "Bambi.water_speed", myRainSpeed);
+		ConfigReaddouble(pt, "Bambi.water_speed", myRainSpeed);
 		ConfigReadInt(pt, "Bambi.water_directions", myRainDirections);
 		ConfigReadInt(pt, "Bambi.water_variance", myRainVariance);
-		ConfigReadFloat(pt, "Bambi.water_period", myRainReleasePeriod);
+		ConfigReaddouble(pt, "Bambi.water_period", myRainReleasePeriod);
 
 
 		ConfigReadString(pt, "Hook.library_object", myHookPath);
-		ConfigReadFloat(pt, "Hook.height", myHook.myHeight);
-		ConfigReadFloat(pt, "Hook.mass", myHook.myMass);
+		ConfigReaddouble(pt, "Hook.height", myHook.myHeight);
+		ConfigReaddouble(pt, "Hook.mass", myHook.myMass);
 
 		ConfigReadVector(pt, myHook.myVectorSize, "Hook.size");
 		ConfigReadVector(pt, myHook.myVectorCW, "Hook.CW");
 
-		ConfigReadFloat(pt, "Hook.friction_glide", myHook.myFrictionGlide);
-		ConfigReadFloat(pt, "Hook.friction_static", myHook.myFrictionStatic);
+		ConfigReaddouble(pt, "Hook.friction_glide", myHook.myFrictionGlide);
+		ConfigReaddouble(pt, "Hook.friction_static", myHook.myFrictionStatic);
 
 		ConfigReadVector(pt, myCargo.myVectorSize, "Cargo.size");
 		ConfigReadVector(pt, myCargo.myVectorCW, "Cargo.CW");
 
 		ConfigReadString(pt, "Cargo.library_object", myCargoPath);
-		ConfigReadFloat(pt, "Cargo.height", myCargo.myHeight);
-		ConfigReadFloat(pt, "Cargo.mass", myCargo.myMass);
-		ConfigReadFloat(pt, "Cargo.friction_glide", myCargo.myFrictionGlide);
-		ConfigReadFloat(pt, "Cargo.friction_static", myCargo.myFrictionStatic);
+		ConfigReaddouble(pt, "Cargo.height", myCargo.myHeight);
+		ConfigReaddouble(pt, "Cargo.mass", myCargo.myMass);
+		ConfigReaddouble(pt, "Cargo.friction_glide", myCargo.myFrictionGlide);
+		ConfigReaddouble(pt, "Cargo.friction_static", myCargo.myFrictionStatic);
 		ConfigReadVector(pt, myCargo.myVectorCargoOffset, "Cargo.offset");
 	}
 	catch (...)
@@ -830,29 +835,35 @@ void HSL_PlugIn::AircraftConfigRead()
 	}
 }
 
-void HSL_PlugIn::ConfigWriteVector(boost::property_tree::ptree& pt, vector<float>& vectorIn, std::string nameIn)
+void HSL_PlugIn::ConfigWriteVector(boost::property_tree::ptree& pt, vector<double>& vectorIn, std::string nameIn)
 {
 	pt.put(nameIn + "_1", vectorIn(0));
 	pt.put(nameIn + "_2", vectorIn(1));
 	pt.put(nameIn + "_3", vectorIn(2));
 }
 
-void HSL_PlugIn::ConfigReadVector(boost::property_tree::ptree& pt, vector<float>& vectorOut, std::string nameIn)
+void HSL_PlugIn::ConfigReadVector(boost::property_tree::ptree& pt, vector<double>& vectorOut, std::string nameIn)
 {
-	ConfigReadFloat(pt, nameIn + "_1", vectorOut(0));
-	ConfigReadFloat(pt, nameIn + "_2", vectorOut(1));
-	ConfigReadFloat(pt, nameIn + "_3", vectorOut(2));
+	ConfigReaddouble(pt, nameIn + "_1", vectorOut(0));
+	ConfigReaddouble(pt, nameIn + "_2", vectorOut(1));
+	ConfigReaddouble(pt, nameIn + "_3", vectorOut(2));
 }
 
-void HSL_PlugIn::ConfigReadFloat(boost::property_tree::ptree& pt, std::string nameIn, float& floatOut)
+void HSL_PlugIn::ConfigReaddouble(boost::property_tree::ptree& pt, std::string nameIn, double& doubleOut)
 {
-	try { floatOut = pt.get<float>(nameIn); }
+	try { doubleOut = pt.get<double>(nameIn); }
 	catch (...) { HSLDebugString("Ini File: Entry not found:" + nameIn); }
 }
 
 void HSL_PlugIn::ConfigReadInt(boost::property_tree::ptree& pt, std::string nameIn, int& intOut)
 {
 	try { intOut = pt.get<int>(nameIn); }
+	catch (...) { HSLDebugString("Ini File: Entry not found:" + nameIn); }
+}
+
+void HSL_PlugIn::ConfigReadBool(boost::property_tree::ptree& pt, std::string nameIn, bool& boolOut)
+{
+	try { boolOut = pt.get<bool>(nameIn); }
 	catch (...) { HSLDebugString("Ini File: Entry not found:" + nameIn); }
 }
 
@@ -927,7 +938,7 @@ void HSL_PlugIn::SlingReset()
 	myLastLocalZ = myCargoDataShared.myLdLocalZ;
 
 	myCargoDataShared.myCurrentRopeLength = myCargoDataShared.myRopeLengthNormal;
-
+	AircraftConfigRead();
 	myCargoDataShared.myVectorHookPosition = AircraftToWorld(myCargoDataShared.myVectorWinchPosition);
 	myCargoDataShared.myVectorHookPosition(VERT_AXIS) -= myCargoDataShared.myRopeLengthNormal * 0.5;
 	myWinchDirection = HSL::Stop;
@@ -937,12 +948,11 @@ void HSL_PlugIn::SlingReset()
 	myHook.myVectorPosition = myCargoDataShared.myVectorHookPosition;
 	myHook.myVectorVelocity = myVectorZeroVector;
 
-	AircraftConfigRead();
 
-	myCargoDataShared.myDebugValue1 = 0.0f;
-	myCargoDataShared.myDebugValue2 = 0.0f;
-	myCargoDataShared.myDebugValue3 = 0.0f;
-	myCargoDataShared.myDebugValue4 = 0.0f;
+	myCargoDataShared.myDebugValue1 = 0.0;
+	myCargoDataShared.myDebugValue2 = 0.0;
+	myCargoDataShared.myDebugValue3 = 0.0;
+	myCargoDataShared.myDebugValue4 = 0.0;
 	myCargoDataShared.myDebugStatement = true;
 
 	UpdateObjects();
@@ -963,9 +973,9 @@ void HSL_PlugIn::SlingConnect()
 	CARGO_SHM_SECTION_START
 	if (myCargo.myRopeConnected == false)
 	{
-		vector<float> distanceVector = myCargoDataShared.myVectorHelicopterPosition - myCargo.myVectorPosition;
+		vector<double> distanceVector = myCargoDataShared.myVectorHelicopterPosition - myCargo.myVectorPosition;
 
-		float rope_needed = norm_2(distanceVector);
+		double rope_needed = norm_2(distanceVector);
 		if (rope_needed > myCargoDataShared.myRopeLengthNormal) myCargoDataShared.myRopeLengthNormal = rope_needed * 1.05;
 		myCargoDataShared.myVectorHookPosition = myCargo.myVectorPosition;
 	}
@@ -1117,7 +1127,7 @@ void HSL_PlugIn::CargoPlaceOnGround()
 	if (myGroundProbe == NULL) return;
 
 	// Place Load 10m before Aircraft
-	vector<float> placement(3);
+	vector<double> placement(3);
 	placement(0) = 0;
 	placement(1) = 0;
 	placement(2) = -10;
@@ -1125,7 +1135,7 @@ void HSL_PlugIn::CargoPlaceOnGround()
 
 	XPLMProbeInfo_t info;
 	info.structSize = sizeof(info);
-	XPLMProbeResult	result = XPLMProbeTerrainXYZ(myGroundProbe, placement(0), placement(1), placement(2), &info);
+	XPLMProbeResult	result = XPLMProbeTerrainXYZ(myGroundProbe, (float)placement(0), (float)placement(1), (float)placement(2), &info);
 	
 	myCargo.myVectorPosition(0) = info.locationX;
 	myCargo.myVectorPosition(1) = info.locationY;
@@ -1147,7 +1157,7 @@ void HSL_PlugIn::CargoPlaceCoordinates()
 	XPLMProbeInfo_t info;
 	info.structSize = sizeof(info);
 
-	XPLMProbeResult result = XPLMProbeTerrainXYZ(myGroundProbe, zero_x, zero_y, zero_z, &info);
+	XPLMProbeResult result = XPLMProbeTerrainXYZ(myGroundProbe, (float)zero_x, (float)zero_y, (float)zero_z, &info);
 
 	double local_long;
 	double local_lat;
@@ -1158,7 +1168,7 @@ void HSL_PlugIn::CargoPlaceCoordinates()
 
 	myCargo.myVectorPosition(0) = zero_x;
 	myCargo.myVectorPosition(2) = zero_z;
-	XPLMProbeTerrainXYZ(myGroundProbe, zero_x, zero_y, zero_z, &info); // Once again for improved precision
+	XPLMProbeTerrainXYZ(myGroundProbe, (float) zero_x, (float)zero_y, (float)zero_z, &info); // Once again for improved precision
 	myCargo.myVectorPosition(1) = info.locationY;
 
 	myCargo.myRopeConnected = false;
@@ -1169,7 +1179,7 @@ void HSL_PlugIn::CargoPlaceCoordinates()
 void HSL_PlugIn::FirePlaceOnGround()
 {
 	// Place Load 10m before Aircraft
-	vector<float> placement(3);
+	vector<double> placement(3);
 	placement(0) = 0;
 	placement(1) = 0;
 	placement(2) = -10;
@@ -1227,9 +1237,9 @@ void HSL_PlugIn::FirePlaceOnGround()
 	newFire.drawState.thrust = 0;
 	newFire.drawState.wingSweep = 0;
 	newFire.drawState.yokeHeading = 0;
-	newFire.posX = myLdLocalX - 1.0f;
+	newFire.posX = myLdLocalX - 1.0;
 	newFire.posY = myLdLocalY;
-	newFire.posZ = myLdLocalZ + 1.0f;
+	newFire.posZ = myLdLocalZ + 1.0;
 
 	XPLMDisableAIForPlane(2);
 
@@ -1295,12 +1305,12 @@ void HSL_PlugIn::BambiBucketRelease()
 	myCargo.myBambiBucketRelease = true;
 }
 
-void HSL_PlugIn::FirePlaceAtCoordinates(vector<float> * pinVectorFireObjectPosition) // NULL = place at world coordinates
+void HSL_PlugIn::FirePlaceAtCoordinates(vector<double> * pinVectorFireObjectPosition) // NULL = place at world coordinates
 {
 	int planeTotalCount = 0;
 	int planeActiveCount = 0;
-	char planeFileName[2048];
-	char planePath[2048];
+	//char planeFileName[2048];
+	//char planePath[2048];
 	int aircraftAcquired = -1;
 	int planeIndex = -1;
 
@@ -1443,11 +1453,11 @@ int HSL_PlugIn::UpdateObjectsCallback(XPLMCommandRef cmd, XPLMCommandPhase phase
 	return 1;
 }
 
-void HSL_PlugIn::RegisterFloatDataref(float &valueIn, std::string nameIn)
+/*void HSL_PlugIn::RegisterDoubleDataref(double &valueIn, std::string nameIn)
 {
 	CARGO_SHM_SECTION_START
 	myRegisteredDatarefs.push_back(
-		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_Float, 1, NULL, NULL, WrapReadFloatCallback, WrapWriteFloatCallback, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &valueIn, &valueIn)
+		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_Double, 1, NULL, NULL, NULL, NULL, WrapReaddoubleCallback, WrapWritedoubleCallback, NULL, NULL, NULL, NULL, NULL, NULL, &valueIn, &valueIn)
 	);
 
 
@@ -1456,13 +1466,13 @@ void HSL_PlugIn::RegisterFloatDataref(float &valueIn, std::string nameIn)
 	{
 		XPLMSendMessageToPlugin(myDataRefEditorPluginID, MSG_ADD_DATAREF, (void*)nameIn.c_str());
 	}
-}
+}*/
 
-void HSL_PlugIn::RegisterFloatArrayDataref(float *valueIn, std::string nameIn, int sizeIn)
+void HSL_PlugIn::RegisterDoubleArrayDataref(double *valueIn, std::string nameIn, int sizeIn)
 {
 	CARGO_SHM_SECTION_START
 	myRegisteredDatarefs.push_back(
-		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_FloatArray, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, WrapReadFloatArrayCallback, WrapWriteFloatArrayCallback, NULL, NULL, valueIn, valueIn)
+		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_FloatArray, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, WrapReaddoubleArrayCallback, WrapWritedoubleArrayCallback, NULL, NULL, valueIn, valueIn)
 	);
 
 
@@ -1488,11 +1498,11 @@ void HSL_PlugIn::RegisterDoubleDataref(double& valueIn, std::string nameIn)
 	}
 }
 
-void HSL_PlugIn::RegisterVectorDataref(vector<float>& vectorIn, std::string nameIn)
+void HSL_PlugIn::RegisterVectorDataref(vector<double>& vectorIn, std::string nameIn)
 {
 	CARGO_SHM_SECTION_START
 	myRegisteredDatarefs.push_back(
-		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_FloatArray, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, WrapReadVectorFloatCallback, WrapWriteVectorFloatCallback, NULL, NULL, &vectorIn, &vectorIn)
+		XPLMRegisterDataAccessor(nameIn.c_str(), xplmType_FloatArray, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, WrapReadVectordoubleCallback, WrapWriteVectordoubleCallback, NULL, NULL, &vectorIn, &vectorIn)
 	);
 
 
@@ -1533,10 +1543,10 @@ void HSL_PlugIn::RegisterStringDataref(std::string& valueIn, std::string nameIn)
 	}
 }
 
-vector<float> HSL_PlugIn::TurnWorldToAircraft(vector<float> coordsAircraft, CargoDataShared & cargoDataSharedIn)
+vector<double> HSL_PlugIn::TurnWorldToAircraft(vector<double> coordsAircraft, CargoDataShared & cargoDataSharedIn)
 {
 	CARGO_SHM_SECTION_START
-	vector<float> world_coords = vector<float>(3);
+	vector<double> world_coords = vector<double>(3);
 
 	double aircraft_x = coordsAircraft(0);
 	double aircraft_y = coordsAircraft(1);
@@ -1565,10 +1575,10 @@ vector<float> HSL_PlugIn::TurnWorldToAircraft(vector<float> coordsAircraft, Carg
 	return world_coords;
 }
 
-vector<float> HSL_PlugIn::AircraftToWorld(vector<float> coordsAircraft)
+vector<double> HSL_PlugIn::AircraftToWorld(vector<double> coordsAircraft)
 {
 	CARGO_SHM_SECTION_START
-	vector<float> world_coords = vector<float>(3);
+	vector<double> world_coords = vector<double>(3);
 
 	double aircraft_x = coordsAircraft(0);
 	double aircraft_y = coordsAircraft(1);
@@ -1617,10 +1627,10 @@ z_wrl=z_the*cos(psi) + x_the*sin(psi) + local_z
 	*/
 }
 
-vector<float> HSL_PlugIn::AdjustFrameMovement(vector<float> coordsAircraft)
+vector<double> HSL_PlugIn::AdjustFrameMovement(vector<double> coordsAircraft)
 {
 	CARGO_SHM_SECTION_START
-	vector<float> world_coords = coordsAircraft;
+	vector<double> world_coords = coordsAircraft;
 
 	world_coords(0) += myCargoDataShared.myLdLocalX - myLastLocalX;
 	world_coords(1) += myCargoDataShared.myLdLocalY - myLastLocalY;
@@ -1629,7 +1639,7 @@ vector<float> HSL_PlugIn::AdjustFrameMovement(vector<float> coordsAircraft)
 	return world_coords;
 }
 
-float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, int counter, void* refcon)
+float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, int counter, void* refcon)
 {
 	CARGO_SHM_SECTION_START
 	HIGH_PERFORMANCE = myCargoDataShared.myHighPerformace;
@@ -1659,7 +1669,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 			myCargoDataShared.myRopeLengthNormal -= myCargoDataShared.myWinchSpeed * myCargoDataShared.myFrameTime;
 			
 		}
-		if (myCargoDataShared.myRopeLengthNormal < 0.1f) myCargoDataShared.myRopeLengthNormal = 0.1f;
+		if (myCargoDataShared.myRopeLengthNormal < 0.1f) myCargoDataShared.myRopeLengthNormal = 0.1;
 
 		// Get the new position of the winch in world coodinates		
 		myCargoDataShared.myVectorHelicopterPosition = AircraftToWorld(myCargoDataShared.myVectorWinchPosition);
@@ -1675,25 +1685,25 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 		}
 
 
-		double lat1, lon1, alt;
-		double x1, y1, z1;
+		//double lat1, lon1, alt;
+		//double x1, y1, z1;
 
 
 		// Get the wind velocity vector
 		/*XPLMLocalToWorld(myVectorHelicopterPosition(0), myVectorHelicopterPosition(1), myVectorHelicopterPosition(2), &lat1, &lon1, &alt);
 
-		double lat_offset = 0.1 * cos(myLfWindDirection * M_PI / 180.0f);
-		double lon_offset = 0.1 * sin(myLfWindDirection * M_PI / 180.0f);
+		double lat_offset = 0.1 * cos(myLfWindDirection * M_PI / 180.0);
+		double lon_offset = 0.1 * sin(myLfWindDirection * M_PI / 180.0);
 
 		XPLMWorldToLocal(lat1 + lat_offset, lon1 + lon_offset, alt, &x1, &y1, &z1);
 
-		vector<float>  vectorWindDirection = myVectorZeroVector;
+		vector<double>  vectorWindDirection = myVectorZeroVector;
 
 		vectorWindDirection(0) = x1 - myVectorHelicopterPosition(0);
 		vectorWindDirection(1) = y1 - myVectorHelicopterPosition(1);
 		vectorWindDirection(2) = z1 - myVectorHelicopterPosition(2);
 
-		vector<float>  vectorUnitWind = -1 * get_unit_vector(vectorWindDirection);
+		vector<double>  vectorUnitWind = -1 * get_unit_vector(vectorWindDirection);
 
 		myVectorWindVelocity = vectorUnitWind * myLfWindSpeed;*/
 
@@ -1704,7 +1714,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 		myHook.myWaterLevel = 0;
 		XPLMProbeInfo_t info;
 		info.structSize = sizeof(info);
-		XPLMProbeResult	result = XPLMProbeTerrainXYZ(myGroundProbe, myHook.myVectorPosition(0), myHook.myVectorPosition(1), myHook.myVectorPosition(2), &info);
+		XPLMProbeResult	result = XPLMProbeTerrainXYZ(myGroundProbe, (float)myHook.myVectorPosition(0), (float)myHook.myVectorPosition(1), (float)myHook.myVectorPosition(2), &info);
 		myHook.myObjectTerrainLevel = info.locationY + myHook.myHeight;
 		myHook.myTerrainIsWet = info.is_wet;
 
@@ -1712,7 +1722,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 		// Cargo:
 		myCargo.myTerrainHit = false;
 		myCargo.myWaterLevel = 0;
-		result = XPLMProbeTerrainXYZ(myGroundProbe, myCargo.myVectorPosition(0), myCargo.myVectorPosition(1), myCargo.myVectorPosition(2), &info);
+		result = XPLMProbeTerrainXYZ(myGroundProbe, (float)myCargo.myVectorPosition(0), (float)myCargo.myVectorPosition(1), (float)myCargo.myVectorPosition(2), &info);
 		myCargo.myObjectTerrainLevel = info.locationY + myCargo.myHeight;
 		myCargo.myTerrainIsWet = info.is_wet;
 
@@ -1728,7 +1738,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 		myVectorHelicopterMomentumApplied = myVectorZeroVector;
 
 		// Calculate Average Forces over all results
-		float forceTime = 0;
+		double forceTime = 0;
 
 		for (myCompuationsPerFlightLoop = 0; myCargoDataShared.myHelicopterForceQueue.size() > 0; myCompuationsPerFlightLoop++)
 		{
@@ -1748,7 +1758,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 			if (myCargoDataShared.myRopeRuptureForce <= norm_2(myVectorHelicopterForceApplied))
 			{
 				myCargoDataShared.myRopeRuptured = true;
-				myCargoDataShared.myRopeForceScalar = 0.0f;
+				myCargoDataShared.myRopeForceScalar = 0.0;
 				myCargoDataShared.myCurrentRopeLength = myCargoDataShared.myRopeLengthNormal;
 			}
 			else
@@ -1756,31 +1766,31 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 
 
 				// Apply Forces
-				XPLMSetDataf(myDrForceX, myLfForceX + myVectorHelicopterForceApplied(0));
-				XPLMSetDataf(myDrForceY, myLfForceY + myVectorHelicopterForceApplied(1));
-				XPLMSetDataf(myDrForceZ, myLfForceZ + myVectorHelicopterForceApplied(2));
+				XPLMSetDataf(myDrForceX, (float)(myLfForceX + myVectorHelicopterForceApplied(0)));
+				XPLMSetDataf(myDrForceY, (float)(myLfForceY + myVectorHelicopterForceApplied(1)));
+				XPLMSetDataf(myDrForceZ, (float)(myLfForceZ + myVectorHelicopterForceApplied(2)));
 
 				// The momentum axis as not as in my mechanics book, checked by experiment
-				XPLMSetDataf(myDrMomentumX, myLfMomentumX - myVectorHelicopterMomentumApplied(2));
-				XPLMSetDataf(myDrMomentumY, myLfMomentumY + myVectorHelicopterMomentumApplied(0));
-				XPLMSetDataf(myDrMomentumZ, myLfMomentumZ - myVectorHelicopterMomentumApplied(1));
+				XPLMSetDataf(myDrMomentumX, (float)(myLfMomentumX - myVectorHelicopterMomentumApplied(2)));
+				XPLMSetDataf(myDrMomentumY, (float) (myLfMomentumY + myVectorHelicopterMomentumApplied(0)));
+				XPLMSetDataf(myDrMomentumZ, (float)(myLfMomentumZ - myVectorHelicopterMomentumApplied(1)));
 			}
 		}
 
 		static auto timeStart = std::chrono::steady_clock::now();
-		static float countComps = 0;
+		static double countComps = 0;
 
 		countComps += myCompuationsPerFlightLoop;
 
 		auto timeNow = std::chrono::steady_clock::now();
 
-		float timeMs = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - timeStart).count();
+		double timeMs = (double) std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - timeStart).count();
 
 		if (timeMs > 1000)
 		{
 			myCargoDataShared.myFrameTimeMax = 0;
 			timeStart = timeNow;
-			myComputationFrequency = countComps * timeMs / 1000.0f;
+			myComputationFrequency = (int) (countComps * timeMs / 1000.0);
 			countComps = 0;
 		}
 		
@@ -1792,28 +1802,28 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 		myCargoDataShared.myDebugValue1 = norm_2(myCargo.myVectorForceAir);
 		myCargoDataShared.myDebugValue2 = norm_2(myCargo.myVectorForceAirNew);
 
-		vector<float>  myVectorFinalRope = myCargoDataShared.myVectorHelicopterPosition - myCargoDataShared.myVectorHookPosition;
-		vector<float> vectorRopeUnit = get_unit_vector(myVectorFinalRope);
+		vector<double>  myVectorFinalRope = myCargoDataShared.myVectorHelicopterPosition - myCargoDataShared.myVectorHookPosition;
+		vector<double> vectorRopeUnit = get_unit_vector(myVectorFinalRope);
 		
 
 		/*//////////////////////////////////////////////////////////////////////////////////////////////////
 		//                   Graphics Pre-Calculation:
 		myRopePoints.clear();
-		vector<float>  myVectorFinalRope = myCargoDataShared.myVectorHelicopterPosition - myCargoDataShared.myVectorHookPosition;
-		vector<float> vectorRopeUnit = get_unit_vector(myVectorFinalRope);
+		vector<double>  myVectorFinalRope = myCargoDataShared.myVectorHelicopterPosition - myCargoDataShared.myVectorHookPosition;
+		vector<double> vectorRopeUnit = get_unit_vector(myVectorFinalRope);
 
 		// If the rope ruptured, the empty vector will disable 
 		if (myCargoDataShared.myRopeRuptured == false)
 		{
 			
 
-			float ropeStepSize = norm_2(myVectorFinalRope) / ((float)HSL_ROPE_POINTS_MAX);
+			double ropeStepSize = norm_2(myVectorFinalRope) / ((double)HSL_ROPE_POINTS_MAX);
 
-			if (ropeStepSize < 0.01f) ropeStepSize = 0.01f;
+			if (ropeStepSize < 0.01f) ropeStepSize = 0.01;
 
-			for (float distance = 0; distance < (myCargoDataShared.myNewRopeLength); distance += ropeStepSize)
+			for (double distance = 0; distance < (myCargoDataShared.myNewRopeLength); distance += ropeStepSize)
 			{
-				vector<float> position = myCargoDataShared.myVectorHookPosition + (distance * vectorRopeUnit);
+				vector<double> position = myCargoDataShared.myVectorHookPosition + (distance * vectorRopeUnit);
 				myRopePoints.push_back(position);
 			}
 		}*/
@@ -1822,7 +1832,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 		//                   Bambi Bucket
 
 
-		if (myCargo.myBambiBucketWaterLevel <= 0.0f) myCargo.myBambiBucketRelease = false;
+		if (myCargo.myBambiBucketWaterLevel <= 0.0) myCargo.myBambiBucketRelease = false;
 
 		if ((myCargo.myBambiBucketRelease == true) && (myCargo.myBambiBucketWaterLevel > 0))
 		{
@@ -1830,29 +1840,29 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 
 			
 
-			vector<float> vectorWaterReleasePosition = myCargo.myVectorPosition - (myCargo.myHeight * vectorRopeUnit);
+			vector<double> vectorWaterReleasePosition = myCargo.myVectorPosition - (myCargo.myHeight * vectorRopeUnit);
 
 			if (myRainReleaseTime >= myRainReleasePeriod)
 			{
 				myRainReleaseTime = 0;
-				float totalDirections = 0;
+				double totalDirections = 0;
 
 				for (int variance = 1; variance <= myRainVariance; variance++)
 				{
 					int currentDirections = myRainDirections / variance;
-					float currentSpeed = myRainSpeed / variance;
+					double currentSpeed = myRainSpeed / variance;
 
 					totalDirections += currentDirections;
 					for (int direction = 0; direction < currentDirections; direction++)
 					{
-						vector<float> rainVelocity = myCargo.myVectorVelocity;
-						float offset = ((float)direction) / ((float)currentDirections);
-						float angle = 2.0f * M_PI * offset;
-						float cos_angle = cos(angle);
-						float sin_angle = sin(angle);
-						float speed_x = currentSpeed * cos_angle;
-						float speed_y = currentSpeed * sin_angle;
-						float speed_z = rainVelocity(1);
+						vector<double> rainVelocity = myCargo.myVectorVelocity;
+						double offset = ((double)direction) / ((double)currentDirections);
+						double angle = 2.0 * M_PI * offset;
+						double cos_angle = cos(angle);
+						double sin_angle = sin(angle);
+						double speed_x = currentSpeed * cos_angle;
+						double speed_y = currentSpeed * sin_angle;
+						double speed_z = rainVelocity(1);
 						rainVelocity(0) += speed_x;
 						rainVelocity(2) += speed_y;
 
@@ -1952,7 +1962,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 		myRainDropNumber = myDropThreadObject.myDropObjectIn.size();
 
 		// Handle remaining fires
-		myFireCount = myFires.size();
+		myFireCount = (double) myFires.size();
 
 		for (int index = 0; index < MAX_FIRES; index++)
 		{
@@ -2001,7 +2011,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 	}
 
 	auto time_end = std::chrono::steady_clock::now();
-	myProcessingTimeFlightLoop = std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_start).count();
+	myProcessingTimeFlightLoop = (int) std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_start).count();
 
 	return -1;
 }
@@ -2009,13 +2019,13 @@ float HSL_PlugIn::PluginFlightLoopCallback(float elapsedMe, float elapsedSim, in
 void HSL_PlugIn::DrawObjects()
 {
 	CARGO_SHM_SECTION_START
-	vector<float> vectorWinchWorld = AircraftToWorld(myCargoDataShared.myVectorWinchPosition);
+	vector<double> vectorWinchWorld = AircraftToWorld(myCargoDataShared.myVectorWinchPosition);
 
 	XPLMDrawInfo_t		dr;
 	dr.structSize = sizeof(dr);
-	dr.x = vectorWinchWorld(0);
-	dr.y = vectorWinchWorld(1);
-	dr.z = vectorWinchWorld(2);
+	dr.x = (float)vectorWinchWorld(0);
+	dr.y = (float)vectorWinchWorld(1);
+	dr.z = (float)vectorWinchWorld(2);
 	dr.pitch = 0;
 	dr.heading = 0;
 	dr.roll = 0;
@@ -2039,14 +2049,14 @@ void HSL_PlugIn::ReadDataRefs()
 	myCargoDataShared.myVectorHelicopterAcceleration(1) = myCargoDataShared.myLfLocalYa = XPLMGetDataf(myDrLocalYa);
 	myCargoDataShared.myVectorHelicopterAcceleration(2) = myCargoDataShared.myLfLocalZa = XPLMGetDataf(myDrLocalZa);
 
-	myCargoDataShared.myLfLocalPhi = XPLMGetDataf(myDrLocalPhi) *  M_PI / 180.0f;
-	myCargoDataShared.myLfLocalPsi = XPLMGetDataf(myDrLocalPsi) * M_PI / 180.0f;
-	myCargoDataShared.myLfLocalTheta = XPLMGetDataf(myDrLocalTheta) * M_PI / 180.0f;
+	myCargoDataShared.myLfLocalPhi = XPLMGetDataf(myDrLocalPhi) *  M_PI / 180.0;
+	myCargoDataShared.myLfLocalPsi = XPLMGetDataf(myDrLocalPsi) * M_PI / 180.0;
+	myCargoDataShared.myLfLocalTheta = XPLMGetDataf(myDrLocalTheta) * M_PI / 180.0;
 
 	myCargoDataShared.myLiPause = XPLMGetDatai(myDrPause);
-	myCargoDataShared.myLfTimeActual = XPLMGetDataf(myDrTimeActual);
-	myCargoDataShared.myLfWindDirection = XPLMGetDataf(myDrWindDirection) * M_PI / 180.0f;
-	myCargoDataShared.myLfWindSpeed = XPLMGetDataf(myDrWindSpeed) * 1852.0f / 3600.0f;
+	myCargoDataShared.myLfTimeActual = XPLMGetDatai(myDrTimeActual);
+	myCargoDataShared.myLfWindDirection = XPLMGetDataf(myDrWindDirection) * M_PI / 180.0;
+	myCargoDataShared.myLfWindSpeed = XPLMGetDataf(myDrWindSpeed) * 1852.0 / 3600.0;
 
 
 	myLfWindX = XPLMGetDataf(myDrWindX);

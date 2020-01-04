@@ -36,6 +36,6 @@ public:
 
 	int size()
 	{
-		return myQueue.size();
+		return (int) myQueue.size();
 	}
 };
