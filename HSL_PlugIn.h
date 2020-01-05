@@ -206,6 +206,8 @@ public:
 	XPLMObjectRef myFireObjectRef = NULL;
 
 	vector<double> myVectorFireEmitterOffset = vector<double>(3);
+	vector<double> myVectorBambiBucketReleasePosition = vector<double>(3);
+
 
 	double myFireWaterRadius = 3.0;
 	double myFireLiftNom = 77.0;

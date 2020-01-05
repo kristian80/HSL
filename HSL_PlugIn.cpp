@@ -45,6 +45,7 @@ HSL_PlugIn::HSL_PlugIn() :
 	myCargoDataShared.myVectorWindVelocity = myVectorZeroVector;
 
 	myCargoDataShared.myVectorRope = myVectorZeroVector;
+	myVectorBambiBucketReleasePosition = myVectorZeroVector;
 
 	myVectorDefaultWinchPosition(0) = 0.0;
 	myVectorDefaultWinchPosition(1) = -0.75;
@@ -531,7 +532,10 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			DrawInstanceCreate(myCargoInstanceRef, myCargoObjectRef);
 			DrawInstanceSetPosition(myCargoInstanceRef, myCargoObjectRef, vectorCargoPointOpenGL, myCargo.myVectorDisplayAngle, false);
 			
-
+			myVectorBambiBucketReleasePosition = vectorCargoPointOpenGL;
+			vector<double> vectorReleaseHeight = get_unit_vector(vectorFinalRope) * myCargo.myHeight;
+			myVectorBambiBucketReleasePosition -= vectorReleaseHeight;
+			myCargo.myVectorDrawPosition = vectorCargoPointOpenGL;
 		}
 		else
 		{
@@ -550,6 +554,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			vectorFinalRopeStart = vectorHookPointOpenGL;
 			DrawInstanceCreate(myHookInstanceRef, myHookObjectRef);
 			DrawInstanceSetPosition(myHookInstanceRef, myHookObjectRef, vectorHookPointOpenGL, myHook.myVectorDisplayAngle, false);
+			myHook.myVectorDrawPosition = vectorHookPointOpenGL;
 		}
 		else
 		{
@@ -973,11 +978,11 @@ void HSL_PlugIn::SlingConnect()
 	CARGO_SHM_SECTION_START
 	if (myCargo.myRopeConnected == false)
 	{
-		vector<double> distanceVector = myCargoDataShared.myVectorHelicopterPosition - myCargo.myVectorPosition;
+		vector<double> distanceVector = myCargoDataShared.myVectorHelicopterPosition - myCargo.myVectorPosition - myCargo.myVectorHelicopterPositionDeviation;
 
 		double rope_needed = norm_2(distanceVector);
 		if (rope_needed > myCargoDataShared.myRopeLengthNormal) myCargoDataShared.myRopeLengthNormal = rope_needed * 1.05;
-		myCargoDataShared.myVectorHookPosition = myCargo.myVectorPosition;
+		myCargoDataShared.myVectorHookPosition = myCargo.myVectorPosition + myCargo.myVectorHelicopterPositionDeviation;
 	}
 
 	myCargo.myRopeConnected = true;
@@ -1710,19 +1715,22 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 		// Check if load is on the ground. Has to be here, as other thread must not use SDK
 
 		// Hook:
+
+		vector<double> vectorHookPosition = myHook.myVectorDrawPosition;
 		myHook.myTerrainHit = false;
 		myHook.myWaterLevel = 0;
 		XPLMProbeInfo_t info;
 		info.structSize = sizeof(info);
-		XPLMProbeResult	result = XPLMProbeTerrainXYZ(myGroundProbe, (float)myHook.myVectorPosition(0), (float)myHook.myVectorPosition(1), (float)myHook.myVectorPosition(2), &info);
+		XPLMProbeResult	result = XPLMProbeTerrainXYZ(myGroundProbe, (float)vectorHookPosition(0), (float)vectorHookPosition(1), (float)vectorHookPosition(2), &info);
 		myHook.myObjectTerrainLevel = info.locationY + myHook.myHeight;
 		myHook.myTerrainIsWet = info.is_wet;
 
 
 		// Cargo:
+		vector<double> vectorCargoPosition = myCargo.myVectorDrawPosition;
 		myCargo.myTerrainHit = false;
 		myCargo.myWaterLevel = 0;
-		result = XPLMProbeTerrainXYZ(myGroundProbe, (float)myCargo.myVectorPosition(0), (float)myCargo.myVectorPosition(1), (float)myCargo.myVectorPosition(2), &info);
+		result = XPLMProbeTerrainXYZ(myGroundProbe, (float)vectorCargoPosition(0), (float)vectorCargoPosition(1), (float)vectorCargoPosition(2), &info);
 		myCargo.myObjectTerrainLevel = info.locationY + myCargo.myHeight;
 		myCargo.myTerrainIsWet = info.is_wet;
 
@@ -1840,7 +1848,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 
 			
 
-			vector<double> vectorWaterReleasePosition = myCargo.myVectorPosition - (myCargo.myHeight * vectorRopeUnit);
+			vector<double> vectorWaterReleasePosition = myVectorBambiBucketReleasePosition; //myCargo.myVectorPosition + myCargo.myVectorHelicopterPositionDeviation - (myCargo.myHeight * vectorRopeUnit);
 
 			if (myRainReleaseTime >= myRainReleasePeriod)
 			{

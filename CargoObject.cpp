@@ -43,6 +43,7 @@ CargoObject::CargoObject(HSL_PlugIn& HSLNew) :
 
 	myVectorForceAirNew = myVectorZeroVector;
 	myVectorForceAirCart = myVectorZeroVector;
+	myVectorDrawPosition = myVectorZeroVector;
 
 	myVectorSize(0) = 1;
 	myVectorSize(1) = 1;
@@ -90,6 +91,7 @@ CargoObject::CargoObject(HSL_PlugIn& HSLNew, vector<double> pos, vector<double> 
 	myVectorForceChopper = myVectorZeroVector;
 	myVectorMomentumChopper = myVectorZeroVector;
 	myVectorForceSwim = myVectorZeroVector;
+	myVectorDrawPosition = myVectorZeroVector;
 
 	myVectorSize(0) = 1;
 	myVectorSize(1) = 1;
