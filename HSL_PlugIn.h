@@ -43,6 +43,8 @@ struct CargoDataShared
 	vector<double> myVectorWinchPosition = vector<double>(3);
 	vector<double> myVectorWindVelocity = vector<double>(3);
 
+	vector<double> myVectorDebug = vector<double>(3);
+
 	std::queue<ForceData> myHelicopterForceQueue;
 
 	bool mySlingLineEnabled = false;
@@ -192,6 +194,7 @@ public:
 
 	vector<double> myRopePoints[HSL_ROPE_POINTS_MAX];
 	XPLMInstanceRef myRopeInstances[HSL_ROPE_POINTS_MAX];
+	XPLMInstanceRef myDebugInstances[HSL_ROPE_POINTS_MAX];
 	HSL::WinchDirection myWinchDirection = HSL::Stop;
 
 	vector<double> myVectorHelicopterForceApplied = vector<double>(3);

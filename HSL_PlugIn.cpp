@@ -40,6 +40,7 @@ HSL_PlugIn::HSL_PlugIn() :
 	//myCargoDataShared.myVectorHelicopterPositionFlightLoop = myVectorZeroVector;
 	myCargoDataShared.myVectorHelicopterVelocity = myVectorZeroVector;
 	myCargoDataShared.myVectorHelicopterAcceleration = myVectorZeroVector;
+	myCargoDataShared.myVectorDebug = myVectorZeroVector;
 	
 	myVectorDefaultWinchPosition = myVectorZeroVector;
 	myCargoDataShared.myVectorWindVelocity = myVectorZeroVector;
@@ -54,6 +55,7 @@ HSL_PlugIn::HSL_PlugIn() :
 	memset(myRopeInstances, 0, sizeof(XPLMInstanceRef) * HSL_ROPE_POINTS_MAX);
 
 	for (unsigned i = 0; i < HSL_ROPE_POINTS_MAX; ++i) myRopePoints[i] = myVectorZeroVector;
+	for (unsigned i = 0; i < HSL_ROPE_POINTS_MAX; ++i) myDebugInstances[i] = NULL;
 	
 	
 }
@@ -568,7 +570,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 
 		auto time_end = std::chrono::steady_clock::now();
 		myProcessingTimeDrawRoutine = (int) std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_start).count();
-
+		vector<double> vectorDebug = myCargoDataShared.myVectorDebug;
 
 		CARGO_SHM_SECTION_END // Now comes the time consuming part
 
@@ -600,6 +602,19 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			{
 				DrawInstanceDestroy(myRopeInstances[index]);
 			}
+		}
+
+		if (norm_2(vectorDebug) != 0)
+		{
+			vector<double> vectorDebugUnit = get_unit_vector(vectorDebug);
+			for (int index = 0; index < 100; index++)
+			{
+				double distance = ((double) index)/100.0;
+				vector<double> position = vectorFinalRopeStart + (distance * vectorDebugUnit);
+				DrawInstanceCreate(myDebugInstances[index], myRopeObjectRef);
+				DrawInstanceSetPosition(myDebugInstances[index], myRopeObjectRef, position, true);
+			}
+
 		}
 
 		/*int index;

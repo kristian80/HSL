@@ -401,8 +401,8 @@ void CargoObject::CalculatePhysics()
 
 	vector<double> vectorAirVelocityTurnedSphere = XPlaneCartToSphere(myVectorAirVelocity);
 
-	vectorAirVelocityTurnedSphere(1) -= ropeUnitSphere(1);
-	vectorAirVelocityTurnedSphere(2) -= ropeUnitSphere(2);
+	vectorAirVelocityTurnedSphere(1) += ropeUnitSphere(1);
+	vectorAirVelocityTurnedSphere(2) += ropeUnitSphere(2);
 
 	double angle1 = ropeUnitSphere(1);
 	double angle2 = ropeUnitSphere(2);
@@ -432,8 +432,8 @@ void CargoObject::CalculatePhysics()
 
 	vector<double> vectorForceAirSphere = XPlaneCartToSphere(myVectorForceAirCart);
 
-	vectorForceAirSphere(1) += ropeUnitSphere(1);
-	vectorForceAirSphere(2) += ropeUnitSphere(2);
+	vectorForceAirSphere(1) -= ropeUnitSphere(1);
+	vectorForceAirSphere(2) -= ropeUnitSphere(2);
 
 	double v2 = vectorForceAirSphere(0);
 
@@ -442,7 +442,7 @@ void CargoObject::CalculatePhysics()
 	double v3 = norm_2(myVectorForceAirNew);
 
 
-	
+	//myCargoDataShared.myVectorDebug = myVectorForceAirNew;
 	myVectorForceAir(0) = (1.0 - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(0) * myVectorCrossSection(0) * myVectorAirVelocity(0) * myVectorAirVelocity(0) / 2.0;
 	myVectorForceAir(1) = (1.0 - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(1) * myVectorCrossSection(1) * myVectorAirVelocity(1) * myVectorAirVelocity(1) / 2.0;
 	myVectorForceAir(2) = (1.0 - myWaterLevel) * myCargoDataShared.myLfAirDensity * myVectorCW(2) * myVectorCrossSection(2) * myVectorAirVelocity(2) * myVectorAirVelocity(2) / 2.0;
@@ -476,7 +476,7 @@ void CargoObject::CalculatePhysics()
 
 
 	// Sum up the forces
-	myVectorForceTotal = myVectorForceRope + myVectorForceAir + myVectorForceGravity + myVectorForceWater + myVectorForceSwim;
+	myVectorForceTotal = myVectorForceRope + myVectorForceAirNew + myVectorForceGravity + myVectorForceWater + myVectorForceSwim;
 	myStopMovement = false;
 	// If we are on the ground and not pulled up, we need to compute the friction
 	if (myTerrainHit == true)
