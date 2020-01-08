@@ -231,7 +231,7 @@ int WrapReadVectordoubleCallback(
 	outValues[0] = (float) (*pVector)(0);
 	outValues[1] = (float)(*pVector)(1);
 	outValues[2] = (float)(*pVector)(2);
-	return 1;
+	return 3;
 }
 
 void WrapWriteVectordoubleCallback(
@@ -259,7 +259,7 @@ int WrapReaddoubleArrayCallback(
 	CARGO_SHM_SECTION_START
 	double* array = (double*)inRefcon;
 	for (int i = 0; i < inMax; i++) outValues[i] = (float) array[i+inOffset];
-	return 1;
+	return 10;
 }
 
 void WrapWritedoubleArrayCallback(
@@ -299,9 +299,9 @@ int WrapReadStringCallback(
 	if (pStr->size() < inMaxLength)
 	{
 		strcpy((char*)outValue, pStr->c_str());
-		return 1;
+		return 2048;
 	}
-	return 0;
+	return pStr->length();
 
 }
 
