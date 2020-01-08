@@ -961,12 +961,18 @@ void HSL_PlugIn::SlingReset()
 	AircraftConfigRead();
 	myCargoDataShared.myVectorHookPosition = AircraftToWorld(myCargoDataShared.myVectorWinchPosition);
 	myCargoDataShared.myVectorHookPosition(VERT_AXIS) -= myCargoDataShared.myRopeLengthNormal * 0.5;
+
+
 	myWinchDirection = HSL::Stop;
 
 	myCargo.myVectorPosition = myCargoDataShared.myVectorHookPosition;
 	myCargo.myVectorVelocity = myVectorZeroVector;
+	myCargo.myVectorHelicopterPositionDeviation = myVectorZeroVector;
+	myCargo.myVectorDrawPosition = myCargoDataShared.myVectorHookPosition;
 	myHook.myVectorPosition = myCargoDataShared.myVectorHookPosition;
 	myHook.myVectorVelocity = myVectorZeroVector;
+	myHook.myVectorHelicopterPositionDeviation = myVectorZeroVector;
+	myHook.myVectorDrawPosition = myCargoDataShared.myVectorHookPosition;
 
 
 	myCargoDataShared.myDebugValue1 = 0.0;

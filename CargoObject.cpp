@@ -196,10 +196,6 @@ void CargoObject::CalculatePhysics()
 		myVectorHelicopterPositionApprox += myCargoDataShared.myVectorHelicopterVelocity * frameTime;
 		myVectorHelicopterVelocityApprox += myCargoDataShared.myVectorHelicopterAcceleration * frameTime;
 	}
-		
-	//myVectorHelicopterPositionApprox += myVectorHelicopterVelocityApprox * frameTime;
-	//myVectorHelicopterVelocityApprox += myCargoDataShared.myVectorHelicopterAcceleration * frameTime;
-	
 
 	if ((myFollowOnly == true) && (myRopeConnected == true))
 	{
@@ -215,17 +211,6 @@ void CargoObject::CalculatePhysics()
 
 	double heliDistance = norm_2(heliMovement);
 	double heliSpeedDistance = norm_2(myVectorHelicopterVelocityApprox) * frameTime;
-
-	/*if (heliDistance > heliSpeedDistance)
-	{
-		vector<double> heliOldCorrected = myVectorHelicopterPositionApprox - (myVectorHelicopterVelocityApprox * frameTime);
-		vector<double> heliCompensate = heliOldCorrected - myVectorHelicopterPositionApproxOld;
-
-		double compensation = norm_2(heliCompensate);
-
-		myVectorPosition += heliCompensate;
-	}*/
-
 
 
 	myVectorHelicopterPositionApproxOld = myVectorHelicopterPositionApprox;
@@ -305,73 +290,14 @@ void CargoObject::CalculatePhysics()
 		double ropeForceDamping = myCargoDataShared.myRopeCorrectedD * myCargoDataShared.myRopeStretchSpeed;
 		double ropeForceStrech = myCargoDataShared.myRopeK * myCargoDataShared.myRopeStretchRelative;
 
-		// Apply damping only when rope is retracting. 
-		// Otherwise it is difficult to ensure that it's not the damping which is shooting the load back at the helicopter (which damping could never do).
-		// That's once of the problems that it's a difference and not a differential equations.
-		/*if (ropeForceDamping > 0.0)
-		{
-			// Damping can never be stronger than spring force
-			if ((-1 * ropeForceDamping) > ropeForceStrech) ropeForceDamping = -1 * ropeForceStrech;
-
-		}
-		else
-		{
-			myRopeForceScalar = ropeForceStrech;
-		}*/
-
 		myCargoDataShared.myRopeForceScalar = ropeForceStrech + ropeForceDamping;
 		if (myCargoDataShared.myRopeForceScalar < 0.0)
 		{
 			myCargoDataShared.myRopeForceScalar = 0;  // Rope can never apply negative forces, our damping could ;-)
-			//myCargoDataShared.myDebugValue2 = 100.;
 		}
 
-		// If we are still in the stretching phase, we want to make sure we do not shoot down the helicopter after an fps lag
-		// Hence, we make sure that we will have at least another computation in the negative stretching phase
+		myCargoDataShared.myCurrentRopeLength = myCargoDataShared.myNewRopeLength;
 
-		// Debug: We just put critical damping on the rope. FPS Stuttering is just too much
-		//if (myRopeStretchSpeed > 0.0)
-		/*{
-			// force to stop the object at the current point in time
-			double ropeStopForce = myCargoDataShared.myRopeStretchSpeed * (myMass + myBambiBucketWaterWeight);
-
-			// calcuate the required speed to reach the unstreched rope length in a single frame (= excactly a bit too much):
-			double ropeTotalStretchMeters = myCargoDataShared.myNewRopeLength - myCargoDataShared.myRopeLengthNormal;
-			double ropeEscapeSpeed = ropeTotalStretchMeters / frameTime;
-
-
-			if (myCargoDataShared.myMaxAccRopeFactor != 0.0)
-			{
-				// divide this speed by the myMaxAccRopeFactor to be within limits
-				ropeEscapeSpeed /= myCargoDataShared.myMaxAccRopeFactor;
-
-				//cacluate the max force to stop and accelerate in the other direction and still be within the streched rope
-				double ropeMaxEscapeForce = ropeStopForce + (ropeEscapeSpeed * (myMass + myBambiBucketWaterWeight));
-
-				myCargoDataShared.myDebugValue1 = ropeMaxEscapeForce;
-
-				//limit the force to this factor
-				if ((myCargoDataShared.myRopeForceScalar > ropeMaxEscapeForce))
-				{
-					myCargoDataShared.myDebugStatement = false;
-					myCargoDataShared.myRopeForceScalar = ropeMaxEscapeForce;
-				}
-			}
-
-		}*/
-
-		// Did we rupture the rope?
-		/*if (myCargoDataShared.myRopeRuptureForce <= myCargoDataShared.myRopeForceScalar)
-		{
-			myCargoDataShared.myRopeRuptured = true;
-			myCargoDataShared.myRopeForceScalar = 0.0;
-			myCargoDataShared.myCurrentRopeLength = myCargoDataShared.myRopeLengthNormal;
-		}
-		else*/
-		{
-			// update the last-cycle value
-			myCargoDataShared.myCurrentRopeLength = myCargoDataShared.myNewRopeLength;
-		}
 	}
 	else
 	{
@@ -463,6 +389,7 @@ void CargoObject::CalculatePhysics()
 
 	if (myVectorWaterVelocity(0) < 0) myVectorForceWater(0) *= -1;
 	if (myVectorWaterVelocity(1) < 0) myVectorForceWater(1) *= -1;
+	else if (myWaterLevel <= 1)       myVectorForceWater(1) = 0; //When pulling out, top has only water resistance when the object is fully under the water
 	if (myVectorWaterVelocity(2) < 0) myVectorForceWater(2) *= -1;
 
 	double waterResistance = norm_2(myVectorForceWater);
@@ -479,7 +406,7 @@ void CargoObject::CalculatePhysics()
 	myVectorForceTotal = myVectorForceRope + myVectorForceAirNew + myVectorForceGravity + myVectorForceWater + myVectorForceSwim;
 	myStopMovement = false;
 	// If we are on the ground and not pulled up, we need to compute the friction
-	if (myTerrainHit == true)
+	if ((myTerrainHit == true) && (myTerrainIsWet == false))
 	{
 		if (myVectorForceTotal(VERT_AXIS) < 0)
 		{
