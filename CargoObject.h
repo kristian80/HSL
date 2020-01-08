@@ -33,6 +33,9 @@ public:
 	vector<double> myVectorCrossSection = vector<double>(3);
 	vector<double> myVectorCW = vector<double>(3);
 
+	vector<double> myVectorExternalForce = vector<double>(3);
+
+
 	bool myRopeConnected = false;
 	bool myFollowOnly = false;
 	bool myDrawingEnabled = false;
@@ -77,6 +80,7 @@ public:
 	vector<double> myVectorVelocityDelta = vector<double>(3);
 	vector<double> myVectorForceChopper = vector<double>(3);
 	vector<double> myVectorMomentumChopper = vector<double>(3);
+	vector<double> myVectorForceOperator = vector<double>(3);
 
 	vector<double> myVectorForceAirNew = vector<double>(3);
 	vector<double> myVectorForceAirCart = vector<double>(3);

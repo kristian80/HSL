@@ -207,6 +207,8 @@ void HSLImguiWidget::buildInterface()
 		ImGui::InputDouble("Rope K", &(pHSL->myCargoDataShared.myRopeK), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("MaxRopeAcc", &(pHSL->myCargoDataShared.myMaxAccRopeFactor), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("Winch Speed [m/s]", &(pHSL->myCargoDataShared.myWinchSpeed), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Winch Operator Strength [N]", &(pHSL->myCargoDataShared.myRopeOperatorDampingForce), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Winch Operator Start [m]", &(pHSL->myCargoDataShared.myRopeOperatorDampingLength), 0.01, 0.01, "%.3f", 0);
 
 		ImGui::Text("Hook Parameters:");
 		ImGui::InputDouble("Hook Mass [kg]", &(pHSL->myHook.myMass), 0.01, 0.01, "%.3f", 0);
@@ -269,6 +271,7 @@ void HSLImguiWidget::buildInterface()
 		OutputVector(pHSL->myCargo.myVectorForceAirCart, "Cargo:ForceAirCart");
 		OutputVector(pHSL->myCargo.myVectorForceWater, "Cargo:ForceWater");
 		OutputVector(pHSL->myCargo.myVectorForceSwim, "Cargo:ForceSwim");
+		OutputVector(pHSL->myCargo.myVectorForceOperator, "Cargo:ForceOperator");
 		OutputVector(pHSL->myCargo.myVectorForceTotal, "Cargo:ForceTotal");
 		OutputVector(pHSL->myCargo.myVectorHorizontalVelocity, "Cargo:HorizontalVelocity");
 		OutputVector(pHSL->myCargo.myVectorForceFriction, "Cargo:ForceFriction");
@@ -292,6 +295,7 @@ void HSLImguiWidget::buildInterface()
 		
 		OutputVector(pHSL->myHook.myVectorForceWater, "Hook:ForceWater");
 		OutputVector(pHSL->myHook.myVectorForceSwim, "Hook:ForceSwim");
+		OutputVector(pHSL->myHook.myVectorForceOperator, "Hook:ForceOperator");
 		OutputVector(pHSL->myHook.myVectorForceTotal, "Hook:ForceTotal");
 		OutputVector(pHSL->myHook.myVectorHorizontalVelocity, "Hook:HorizontalVelocity");
 		OutputVector(pHSL->myHook.myVectorForceFriction, "Hook:ForceFriction");

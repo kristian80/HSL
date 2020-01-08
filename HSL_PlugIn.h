@@ -42,6 +42,7 @@ struct CargoDataShared
 	vector<double> myVectorHookPosition = vector<double>(3);
 	vector<double> myVectorWinchPosition = vector<double>(3);
 	vector<double> myVectorWindVelocity = vector<double>(3);
+	
 
 	vector<double> myVectorDebug = vector<double>(3);
 
@@ -55,13 +56,16 @@ struct CargoDataShared
 	double myRopeDamping = 0.03;
 	double myRopeK = 55000.0;
 	double myRopeRuptureForce = 100000.0; //10t max
-	bool  myRopeRuptured = false;
+	bool   myRopeRuptured = false;
 	double myMaxAccRopeFactor = 2.0;
+
+	double myRopeOperatorDampingLength = 1.0;
+	double myRopeOperatorDampingForce = 100.0;
 
 	double myCargoSetLatitutde = 0.0;
 	double myCargoSetLongitude = 0.0;
 	double myCargoSetHeading = 0.0;
-	bool myCargoSetPosition = false;
+	bool   myCargoSetPosition = false;
 	double myWinchSpeed = 0.5;
 	double myCurrentRopeLength = 2.2;
 	double myBambiBucketWaterFlow = 250.0;

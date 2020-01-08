@@ -179,6 +179,9 @@ void HSL_PlugIn::PluginStart()
 	RegisterDoubleDataref(myHook.myFrictionGlide,			"HSL/Hook/FrictionGlide");
 	RegisterDoubleDataref(myHook.myFrictionStatic,			"HSL/Hook/FrictionStatic");
 
+	RegisterVectorDataref(myHook.myVectorExternalForce,		"HSL/Hook/ExternalForce");
+	RegisterVectorDataref(myHook.myVectorCargoRotation,		"HSL/Hook/Rotation");
+
 	// Cargo
 	RegisterIntDataref(myCargo.myRopeConnected,				"HSL/Cargo/Connected");
 	RegisterIntDataref(myCargo.myFollowOnly,				"HSL/Cargo/FollowOnly");
@@ -197,10 +200,12 @@ void HSL_PlugIn::PluginStart()
 	RegisterDoubleDataref(myCargo.myBambiBucketWaterWeight,	"HSL/Cargo/BambiBucketWaterWeigth");
 	RegisterDoubleDataref(myCargo.myBambiBucketWaterLevel,	"HSL/Cargo/BambiBucketWaterLevel");
 	RegisterVectorDataref(myCargo.myVectorCargoOffset,		"HSL/Cargo/RopeOffset");
+	RegisterVectorDataref(myCargo.myVectorExternalForce,	"HSL/Cargo/ExternalForce");
+	RegisterVectorDataref(myCargo.myVectorCargoRotation,	"HSL/Cargo/Rotation");
 
 
 
-	RegisterVectorDataref(myCargoDataShared.myVectorHelicopterPosition,		"HSL/Calculated/VectorHelicopterPosition");
+	RegisterVectorDataref(myCargoDataShared.myVectorHelicopterPosition,			"HSL/Calculated/VectorHelicopterPosition");
 	RegisterVectorDataref(myCargoDataShared.myVectorHookPosition,				"HSL/Calculated/VectorHookPosition");
 
 
@@ -209,9 +214,10 @@ void HSL_PlugIn::PluginStart()
 	RegisterDoubleDataref(myCargoDataShared.myRopeStretchRelative,				"HSL/RopeStretchRelative");
 	RegisterDoubleDataref(myCargoDataShared.myRopeForceScalar,					"HSL/RopeForceScalar");
 	RegisterDoubleDataref(myCargoDataShared.myRopeLengthDelta,					"HSL/RopeLengthDelta");
-	RegisterDoubleDataref(myCargoDataShared.myRopeStretchSpeed,				"HSL/RopeStretchSpeed");
+	RegisterDoubleDataref(myCargoDataShared.myRopeStretchSpeed,					"HSL/RopeStretchSpeed");
 	RegisterDoubleDataref(myCargoDataShared.myRopeCorrectedD,					"HSL/RopeCorrectedD");
-	RegisterIntDataref(myCargoDataShared.myRopeRuptured,		"HSL/RopeRuptured");
+	RegisterIntDataref(myCargoDataShared.myRopeRuptured,						"HSL/RopeRuptured");
+	
 
 
 
@@ -694,9 +700,12 @@ void HSL_PlugIn::ConfigSave()
 			pt.put("Rope.k_factor", myCargoDataShared.myRopeK);
 			pt.put("Rope.rupture_force", myCargoDataShared.myRopeRuptureForce);
 			pt.put("Rope.max_acc_factor", myCargoDataShared.myMaxAccRopeFactor);
+			
 
 			pt.put("Winch.library_object", myWinchPath);
 			pt.put("Winch.speed", myCargoDataShared.myWinchSpeed);
+			pt.put("Winch.operator_force", myCargoDataShared.myRopeOperatorDampingForce);
+			pt.put("Winch.operator_length", myCargoDataShared.myRopeOperatorDampingLength);
 			
 			pt.put("Bambi.water_per_second", myCargoDataShared.myBambiBucketWaterFlow);
 			pt.put("Bambi.water_speed", myRainSpeed);
@@ -717,6 +726,7 @@ void HSL_PlugIn::ConfigSave()
 			pt.put("Cargo.library_object", myCargoPath);
 			pt.put("Cargo.height", myCargo.myHeight);
 			pt.put("Cargo.mass", myCargo.myMass);
+			pt.put("Cargo.is_bambi_bucket", myCargo.myIsBambiBucket);
 
 			ConfigWriteVector(pt, myCargo.myVectorSize, "Cargo.size");
 			ConfigWriteVector(pt, myCargo.myVectorCW, "Cargo.CW");
@@ -758,6 +768,9 @@ void HSL_PlugIn::ConfigRead()
 		ConfigReadString(pt, "Winch.library_object", myWinchPath);
 		ConfigReaddouble(pt, "Winch.speed", myCargoDataShared.myWinchSpeed);
 
+		ConfigReaddouble(pt, "Winch.operator_force", myCargoDataShared.myRopeOperatorDampingForce);
+		ConfigReaddouble(pt, "Winch.operator_length", myCargoDataShared.myRopeOperatorDampingLength);
+
 		ConfigReaddouble(pt, "Bambi.water_per_second", myCargoDataShared.myBambiBucketWaterFlow);
 
 
@@ -765,7 +778,7 @@ void HSL_PlugIn::ConfigRead()
 		ConfigReadInt(pt, "Bambi.water_directions", myRainDirections);
 		ConfigReadInt(pt, "Bambi.water_variance", myRainVariance);
 		ConfigReaddouble(pt, "Bambi.water_period", myRainReleasePeriod);
-
+		
 
 		ConfigReadString(pt, "Hook.library_object", myHookPath);
 		ConfigReaddouble(pt, "Hook.height", myHook.myHeight);
@@ -779,6 +792,7 @@ void HSL_PlugIn::ConfigRead()
 
 		ConfigReadVector(pt, myCargo.myVectorSize, "Cargo.size");
 		ConfigReadVector(pt, myCargo.myVectorCW, "Cargo.CW");
+		ConfigReadBool(pt, "Cargo.is_bambi_bucket", myCargo.myIsBambiBucket);
 
 		ConfigReadString(pt, "Cargo.library_object", myCargoPath);
 		ConfigReaddouble(pt, "Cargo.height", myCargo.myHeight);

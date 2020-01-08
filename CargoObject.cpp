@@ -45,6 +45,9 @@ CargoObject::CargoObject(HSL_PlugIn& HSLNew) :
 	myVectorForceAirCart = myVectorZeroVector;
 	myVectorDrawPosition = myVectorZeroVector;
 
+	myVectorExternalForce = myVectorZeroVector;
+	myVectorForceOperator = myVectorZeroVector;
+
 	myVectorSize(0) = 1;
 	myVectorSize(1) = 1;
 	myVectorSize(2) = 1;
@@ -92,6 +95,7 @@ CargoObject::CargoObject(HSL_PlugIn& HSLNew, vector<double> pos, vector<double> 
 	myVectorMomentumChopper = myVectorZeroVector;
 	myVectorForceSwim = myVectorZeroVector;
 	myVectorDrawPosition = myVectorZeroVector;
+	myVectorForceOperator = myVectorZeroVector;
 
 	myVectorSize(0) = 1;
 	myVectorSize(1) = 1;
@@ -388,8 +392,12 @@ void CargoObject::CalculatePhysics()
 	myVectorForceWater(2) = myWaterLevel * HSL_Data::density_water * myVectorCW(2) * myVectorCrossSection(2) * myVectorWaterVelocity(2) * myVectorWaterVelocity(2) / 2.0;
 
 	if (myVectorWaterVelocity(0) < 0) myVectorForceWater(0) *= -1;
-	if (myVectorWaterVelocity(1) < 0) myVectorForceWater(1) *= -1;
-	else if (myWaterLevel <= 1)       myVectorForceWater(1) = 0; //When pulling out, top has only water resistance when the object is fully under the water
+	if (myVectorWaterVelocity(1) < 0)
+	{
+		myVectorForceWater(1) *= -1;
+		if (myWaterLevel <= 1)       myVectorForceWater(1) = 0;
+	}
+	//else if (myWaterLevel <= 1)       myVectorForceWater(1) = 0; //When pulling out, top has only water resistance when the object is fully under the water
 	if (myVectorWaterVelocity(2) < 0) myVectorForceWater(2) *= -1;
 
 	double waterResistance = norm_2(myVectorForceWater);
@@ -401,9 +409,24 @@ void CargoObject::CalculatePhysics()
 	// Get the force of the gravity
 	myVectorForceGravity(VERT_AXIS) = myCargoDataShared.myLfGravitation * (myMass + (myBambiBucketWaterWeight * (1.0 - myWaterLevel)));
 
+	// Get the force of the winch operator trying to stop the load oscillation
+
+	myVectorForceOperator = myVectorZeroVector;
+
+	if (myCargoDataShared.myRopeLengthNormal <= myCargoDataShared.myRopeOperatorDampingLength)
+	{
+		myVectorForceOperator = -1 * (myVectorVelocity - myVectorHelicopterVelocityApprox) * myMass / frameTime; // F= v * m / t
+		myVectorForceOperator(VERT_AXIS) = 0; // Only horizontally
+
+		// Limit force
+		if (norm_2(myVectorForceOperator) > myCargoDataShared.myRopeOperatorDampingForce)
+		{
+			myVectorForceOperator = get_unit_vector(myVectorForceOperator) * myCargoDataShared.myRopeOperatorDampingForce;
+		}
+	}
 
 	// Sum up the forces
-	myVectorForceTotal = myVectorForceRope + myVectorForceAirNew + myVectorForceGravity + myVectorForceWater + myVectorForceSwim;
+	myVectorForceTotal = myVectorForceRope + myVectorForceAirNew + myVectorForceGravity + myVectorForceWater + myVectorForceSwim + myVectorExternalForce + myVectorForceOperator;
 	myStopMovement = false;
 	// If we are on the ground and not pulled up, we need to compute the friction
 	if ((myTerrainHit == true) && (myTerrainIsWet == false))
