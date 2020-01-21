@@ -25,7 +25,7 @@ HSL_PlugIn::HSL_PlugIn() :
 	myCargo.myFrictionGlide = 0.35;
 	myCargo.myFrictionStatic = 0.65;
 
-	myHook.myHeight = 0.1;
+	myHook.myHeight = 0.3;
 	myHook.myMass = 5.0;
 	myHook.myFrictionGlide = 0.35;
 	myHook.myFrictionStatic = 0.65;
@@ -157,12 +157,12 @@ void HSL_PlugIn::PluginStart()
 	RegisterDoubleDataref(myCargoDataShared.myCargoSetLatitutde,				"HSL/Cargo/SetLatitude");
 	RegisterDoubleDataref(myCargoDataShared.myCargoSetLongitude,				"HSL/Cargo/SetLongitude");
 	
-	RegisterDoubleDataref(myCargoDataShared.myWinchSpeed,						"HSL/WinchSpeed");
-	RegisterVectorDataref(myCargoDataShared.myVectorWinchPosition,			"HSL/VectorWinchPosition");
-	RegisterDoubleDataref(myCargoDataShared.myRopeLengthStart,					"HSL/RopeLengthStart");
-	RegisterDoubleDataref(myCargoDataShared.myRopeLengthNormal,				"HSL/RopeLengthNormal");
-	RegisterDoubleDataref(myCargoDataShared.myRopeDamping,						"HSL/RopeDamping");
-	RegisterDoubleDataref(myCargoDataShared.myRopeK,							"HSL/RopeK");
+	RegisterDoubleDataref(myCargoDataShared.myWinchSpeed,						"HSL/Winch/WinchSpeed");
+	RegisterVectorDataref(myCargoDataShared.myVectorWinchPosition,			"HSL/Winch/VectorWinchPosition");
+	RegisterDoubleDataref(myCargoDataShared.myRopeLengthStart,					"HSL/Rope/RopeLengthStart");
+	RegisterDoubleDataref(myCargoDataShared.myRopeLengthNormal,				"HSL/Rope/RopeLengthNormal");
+	RegisterDoubleDataref(myCargoDataShared.myRopeDamping,						"HSL/Rope/RopeDamping");
+	RegisterDoubleDataref(myCargoDataShared.myRopeK,							"HSL/Rope/RopeK");
 	RegisterDoubleDataref(myCargoDataShared.myRopeRuptureForce,				"HSL/Rope/RuptureForce");
 	RegisterDoubleDataref(myCargoDataShared.myMaxAccRopeFactor,				"HSL/Rope/MaxAccRopeFactor");
 
@@ -197,7 +197,7 @@ void HSL_PlugIn::PluginStart()
 	RegisterDoubleDataref(myCargo.myFrictionStatic,			"HSL/Cargo/FrictionStatic");
 	RegisterIntDataref(myCargo.myIsBambiBucket,				"HSL/Cargo/IsBambiBucket");
 	RegisterIntDataref(myCargo.myBambiBucketRelease,		"HSL/Cargo/BambiBucketReleaseWater");
-	RegisterDoubleDataref(myCargo.myBambiBucketWaterWeight,	"HSL/Cargo/BambiBucketWaterWeigth");
+	RegisterDoubleDataref(myCargo.myBambiBucketWaterWeight,	"HSL/Cargo/BambiBucketWaterWeight");
 	RegisterDoubleDataref(myCargo.myBambiBucketWaterLevel,	"HSL/Cargo/BambiBucketWaterLevel");
 	RegisterVectorDataref(myCargo.myVectorCargoOffset,		"HSL/Cargo/RopeOffset");
 	RegisterVectorDataref(myCargo.myVectorExternalForce,	"HSL/Cargo/ExternalForce");
@@ -209,14 +209,14 @@ void HSL_PlugIn::PluginStart()
 	RegisterVectorDataref(myCargoDataShared.myVectorHookPosition,				"HSL/Calculated/VectorHookPosition");
 
 
-	RegisterDoubleDataref(myCargoDataShared.myFrameTime,						"HSL/FrameTime");
-	RegisterDoubleDataref(myCargoDataShared.myNewRopeLength,					"HSL/NewRopeLength");
-	RegisterDoubleDataref(myCargoDataShared.myRopeStretchRelative,				"HSL/RopeStretchRelative");
-	RegisterDoubleDataref(myCargoDataShared.myRopeForceScalar,					"HSL/RopeForceScalar");
-	RegisterDoubleDataref(myCargoDataShared.myRopeLengthDelta,					"HSL/RopeLengthDelta");
-	RegisterDoubleDataref(myCargoDataShared.myRopeStretchSpeed,					"HSL/RopeStretchSpeed");
-	RegisterDoubleDataref(myCargoDataShared.myRopeCorrectedD,					"HSL/RopeCorrectedD");
-	RegisterIntDataref(myCargoDataShared.myRopeRuptured,						"HSL/RopeRuptured");
+	RegisterDoubleDataref(myCargoDataShared.myFrameTime,						"HSL/Calculated/FrameTime");
+	RegisterDoubleDataref(myCargoDataShared.myNewRopeLength,					"HSL/Calculated/NewRopeLength");
+	RegisterDoubleDataref(myCargoDataShared.myRopeStretchRelative,				"HSL/Calculated/RopeStretchRelative");
+	RegisterDoubleDataref(myCargoDataShared.myRopeForceScalar,					"HSL/Calculated/RopeForceScalar");
+	RegisterDoubleDataref(myCargoDataShared.myRopeLengthDelta,					"HSL/Calculated/RopeLengthDelta");
+	RegisterDoubleDataref(myCargoDataShared.myRopeStretchSpeed,					"HSL/Calculated/RopeStretchSpeed");
+	RegisterDoubleDataref(myCargoDataShared.myRopeCorrectedD,					"HSL/Calculated/RopeCorrectedD");
+	RegisterIntDataref(myCargoDataShared.myRopeRuptured,						"HSL/Rope/RopeRuptured");
 	
 
 

@@ -175,10 +175,10 @@ public:
 
 
 	std::string myWinchPath = "./Resources/plugins/HSL/sphere_white_1.obj";
-	std::string myRopePath = "./Resources/plugins/HSL/rope2.obj";
+	std::string myRopePath = "./Resources/plugins/HSL/rope.obj";
 	std::string myHookPath = "./Resources/plugins/HSL/hook_hawk.obj";
-	std::string myRaindropPath = "./Resources/plugins/HSL/raindrop4.obj";
-	std::string myCargoPath = "./oggetti elitrasportabili/Swisscreations_bambi_bucket_8ft.obj";
+	std::string myRaindropPath = "./Resources/plugins/HSL/raindrop.obj";
+	std::string myCargoPath = "./Resources/plugins/HSL/cube.obj";
 	
 
 	XPLMObjectRef myWinchObjectRef = NULL;
