@@ -1,0 +1,321 @@
+\documentclass[10pt,a4]{scrartcl}
+\usepackage[10pt]{extsizes}
+\usepackage{geometry}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf}
+\usepackage[hang,bf]{caption}       %Fuer die Unterschriften
+\usepackage[ansinew]{inputenc}      %Fuer deutsche Sonderzeichen!!!
+\usepackage{multirow}
+%\usepackage{a4wide}
+\usepackage[english]{babel}
+\usepackage{fancyhdr}
+\usepackage{fancyvrb}               %Fuer verbatim style
+\usepackage{multirow}
+\usepackage{lscape}                 %um Tabellen und usw. im Querformat darzustellen
+\usepackage{amssymb}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{subfigure}
+%\usepackage{times}
+%\usepackage[T1]{fontenc}
+%\usepackage{helvet}
+\usepackage{arev}
+%\usepackage{txfonts}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage[super]{nth}
+%\usepackage{setspace}
+%\usepackage{threeparttable}
+
+%\setlength{\topmargin}{-2cm}
+%\setlength{\oddsidemargin}{0cm}
+%\setlength{\evensidemargin}{0cm}
+\geometry{a4paper,left=15mm,right=15mm, top=1.3cm, bottom=1.5cm}
+\pagestyle{empty}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[R]{\thepage}
+\fancyfoot[L]{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\newcommand{\spa}{0.5mm}
+\newcommand{\spb}{3mm}
+\newcommand{\taba}{3cm}
+
+\begin{document}
+
+\title{Helicopter Sling Load}
+\subtitle{External Load Simulation for X-Plane}
+\date{}
+\maketitle
+
+
+\section{Introduction}
+
+Helicopter Sling Load (HSL) is a X-Plane 11 Plugin for the physical simulation of external loads. The purpose of this plugin is to provide an external load simulation that can be fully configured by \nth{3} party plugins. While it is possible for users to fly loads just with HSL, this is not the primary goal.\\
+
+X-Plane is an ever changing environment and therefore plugins need to be maintained on a regular basis to keep working with the current versions. To make sure this plugin can survive even in a case where I cannot actively maintain it, I made it open source. All source code is available at https://github.com/kristian80/HSL and published using the GPL v3 license.\\
+
+\section{Installation}
+
+Extract the zip  files and copy the HSL folder into your "X-Plane\textbackslash Resources\textbackslash Plugins" folder.
+
+\section{How to use this plugin}
+
+Using the GUI you can place objects in front of the helicopter and connect them with the rope. Then you can take off and release the load where you want to. The cargo will continue the physics computation even after release, so it will glide on the ground if you where not slow enough and it will drop if you release it mid flight. If you exceed the limitations of the rope, it will rupture and the cargo will fall down.\\
+
+Plugins may place the cargo at any coordinates in the world, by accessing the corresponding datarefs and commands.\\
+
+When connecting the cargo with a rope that is too short, the winch will extend it further. This way you do not have to worry about the helicopter being soaked towards the cargo.\\
+
+You can use any objects within the X-Plane objects library as a cargo object. For this you need the library path of the objects. A simple method for finding nice objects is to download WED and create a dummy scenery. When opening the scenery you will be able to browse all installed X-Plane libraries, including all the custom scenery you have installed. Just hit the Update Objects button when finished. In case of an error, the plugin will be disabled. Be aware that the GUI is very sensitive to keyboard input and hitting CTRL+V often pastes the text twice.\\
+
+\section{How it works}
+
+The computation of a sling load is based on differential equations that cannot be solved analytically. Hence, HSL uses the corresponding difference equation for the numeric approximation. The accuracy of this numeric approximation is depending on the step size. If the step size would be infinitesimal small, the result would be precise.\\
+
+As it turned out, for small loads the x-plane flight loop time resolution is on the limit even with four flight loops per frame and 100 fps. Furthermore, even small stutters resulted in unrealistic object behavior. Therefore, I have decoupled the physics computation from the x-plane main thread and all the computations run asynchronously in a separate thread. On each flight loop the information about the helicopter position, speed and acceleration is updated. Using this information the plugin computes a virtual helicopter that continues to fly smoothly, even if your x-plane is currently stuttering. This way, I can use far smaller time steps for the computation than the flight loop would allow, resulting in an appropriate accuracy of the numerical approximation.\\
+
+To suit high and low performance computers the plugin supports two modes for the computation:\\
+
+\textbf{High Performance Disabled:} Recommended for CPUs with less cores. The physics thread uses the sleep command after each computation. The x-plane thread goes to sleep whenever waiting for the physics thread. This way the physics thread is prompting the Windows scheduler to perform other tasks in-between computations and resources are released as soon as one thread is waiting for the other one. As the time for the physics computation is magnitudes smaller than the minimum sleep time, the X-Plane flight loop will rarely have to wait for a physics computation to finish.\\
+
+\textbf{High Performance Enabled:} Recommended for CPUs with lots of cores. Both, the physics thread and the x-plane flight loop will wait for the Mutex in a polling loop. If both run on separate cores, this will minimize the step size of the physics computation.
+Just try what gives the best result. The Windows scheduler is able to handle high CPU loads, so even with a low core count the High Performance mode might give better results.\\
+
+For fire fighting the drops released by the bambi bucket are also computed in a separate thread. This thread runs synchronously to the flight loop thread, without blocking. If you have too many drops to be computed in-between flight loops, the drops will simply slow down. For performance reasons the number of drops that is drawn is limited, but they will still be considered for extinguishing fires.\\
+
+\subsection{What's included}
+
+\begin{itemize}
+\item Gravity:
+\begin{itemize}
+\item Using the X-Plane dataref. Yes, it should also work on Mars.
+\item Rope forces: The rope is considered an single mass oscillator.
+\item Stretch forces.
+\item Damping forces according to the speed the rope is stretching.
+\end{itemize}
+\item Air drag: The object is considered cuboid.
+\begin{itemize}
+\item Object speed plus wind.
+\item Air density depending on altitude and weather, using the X-Plane dataref.
+\item CW value for each side of of the cuboid.
+\item Surface of each side.
+\item Roll and pitch of the object are considered.
+\end{itemize}
+\item Water drag:
+\begin{itemize}
+\item Same as the Air drag, except that the object is always upright as it hits the ground.
+\item Air and water drag are weighted according to the water line. This means that the wind might move a floating object.
+\end{itemize}
+\item Water displacement:
+\begin{itemize}
+\item Upward forces by the water displacement. If the object is lighter than water, it will swim.
+\item Bambi buckets don't swim and fill with water instantly, according to the water line.
+\end{itemize}
+\item Friction:
+\begin{itemize}
+\item Static friction when the object is still on the solid ground.
+\item Glide friction when the object is moving on the solid ground.
+\item Damping by the operator: When lifting an object, the operators on winch or on the hook will usually try to stabilize the load. Otherwise the short rope would start hazardous oscillations.
+\item Rope length where the operators start the stabilization.
+\item Maximum force the operator may apply .
+\end{itemize}
+\item For 3rd party plugins:
+\begin{itemize}
+\item Plugin may apply additional forces (e.g. to simulate ground operator).
+\item Plugin may rotate the cargo.
+\end{itemize}
+\item Forces on the Helicopter:
+\begin{itemize}
+\item Forces of the rope.
+\item Momentum that is caused by the positioning of the winch.
+\end{itemize}
+\end{itemize}
+
+\subsection{What's missing}
+
+\begin{itemize}
+\item Rotor downwash
+\item Ground impact: 
+\begin{itemize}
+\item When hitting the ground, the vertical speed is put to zero. No bouncing off the ground.
+\item When hitting the ground, the object is always upright. No flipping over.
+\end{itemize}
+\item There is no momentum on the load. All forces apply in the CoG, which is considered at the rope mounting point.
+\item Bambi bucket limited water flow when dropped into water
+\item Terrain steepness is not considered. For HSL the terrain is always flat.
+\item Cargo maximum forces. Cargo never breaks, no matter how hard it hits the ground.
+\item Full rope simulation, currently the rope is always straight.
+\item Fire temperature increase of the surroundings
+\item Fire turbulence simulation
+\end{itemize}
+
+\section{Commands}
+
+Commands can be bound either to a hotkey or joystick button, or they can be called by \nth{3} party plugins using the X-Plane SDK.\\
+\\
+\begin{tabular}{| l | l |} \hline
+\textbf{Command} & \textbf{Description}\\ \hline
+\texttt{HSL/Winch\_Up} & Move the winch up\\ \hline
+\texttt{HSL/Winch\_Down} & Move the winch down\\ \hline
+\texttt{HSL/Winch\_Stop} & Stop the winch\\ \hline
+\texttt{HSL/Sling\_Enable} & Enable slingline\\ \hline
+\texttt{HSL/Sling\_Disable} & Disable slingline\\ \hline
+\texttt{HSL/Sling\_Reset} & Reset slingline\\ \hline
+\texttt{HSL/Load\_Connect} & Connect the load\\ \hline
+\texttt{HSL/Load\_Release} & Release the load\\ \hline
+\texttt{HSL/Load\_On\_Ground} & Place the load in front of the aircraft\\ \hline
+\texttt{HSL/Load\_On\_Coordinates} & Place the load at given coordinates\\ \hline
+\texttt{HSL/ToogleControlWindow} & Toggle Control Window\\ \hline
+\texttt{HSL/UpdateObjects} & Update Objects\\ \hline
+\texttt{HSL/Fire\_On\_Ground} & Place fire in front of the aircraft\\ \hline
+\texttt{HSL/Fire\_On\_Coordinates} & Place fire at given coordinates\\ \hline
+\texttt{HSL/Bucket\_Release} & Release Water in Bambi Bucket\\ \hline
+\end{tabular}
+
+\section{DataRefs}
+
+
+\subsection{Writeable Values}
+\subsubsection{Object Paths}
+
+\begin{tabularx}{\linewidth}{| l | l | X |} \hline
+\textbf{Type} & \textbf{DataRef Name}& \textbf{Description}\\ \hline
+String (dynamic) & \texttt{HSL/WinchObjectPath} & Library or physical path (relative from XP folder) of the winch object. Library is tried first. Send command \texttt{HSL/UpdateObjects} to reload objects.\\ \hline
+String (dynamic) & \texttt{HSL/RopeObjectPath} &  Library or physical path (relative from XP folder) of the rope objects. Rope objects are not rotated, use spherical objects only. Library is tried first. Send command \texttt{HSL/UpdateObjects} to reload objects.\\ \hline
+String (dynamic) & \texttt{HSL/HookObjectPath} &  Library or physical path (relative from XP folder) of the hook object. Library is tried first. Send command \texttt{HSL/UpdateObjects} to reload objects.\\ \hline
+String (dynamic) & \texttt{HSL/CargoObjectPath} & Library or physical path (relative from XP folder)  of the cargo object. Library is tried first. Send command \texttt{HSL/UpdateObjects} to reload objects.\\ \hline
+\end{tabularx}
+\subsubsection{Winch}
+\begin{tabularx}{\linewidth}{| l | l | X |} \hline
+\textbf{Type} & \textbf{DataRef Name}& \textbf{Description}\\ \hline
+Float Array[3] & \texttt{HSL/Winch/VectorWinchPosition} & Position of the winch in aircraft coordinates.\\ \hline
+Double & \texttt{HSL/Winch/WinchSpeed} &  Up/Down speed of the winch [m/s]\\ \hline
+\end{tabularx}
+\subsubsection{Rope}
+\begin{tabularx}{\linewidth}{| l | l | X |} \hline
+\textbf{Type} & \textbf{DataRef Name}& \textbf{Description}\\ \hline
+Double & \texttt{HSL/Rope/RopeLengthStart} & Length of the rope upon plugin start or reset\\ \hline
+Double & \texttt{HSL/Rope/RopeLengthNormal} & Deployed length of the rope, without expansion\\ \hline
+Double & \texttt{HSL/Rope/RopeDamping} & Damping factor of the rope. Has to be between zero (undamped) and one (critical damping).\\ \hline
+Double & \texttt{HSL/Rope/RopeK} & Force applied when the rope is expanded to twice its normal size [N].\\ \hline
+Double & \texttt{HSL/Rope/RuptureForce} & Force that causes the rope to rupture.\\ \hline
+Double & \texttt{HSL/Rope/MaxAccRopeFactor} & Not used anymore.\\ \hline
+\end{tabularx}
+\subsubsection{Hook}
+\begin{tabularx}{\linewidth}{| l | l | X |} \hline
+\textbf{Type} & \textbf{DataRef Name}& \textbf{Description}\\ \hline
+
+Double & \texttt{HSL/Hook/Height} & Height of the hook object when drawing the hook on the ground [m]. Only for visualization.\\ \hline
+Double & \texttt{HSL/Hook/Mass} & Mass of the hook [kg]\\ \hline
+Float Array[3] & \texttt{HSL/Hook/Size} & Dimensions of the hook: Depth/Width/Height [m]. Only for physics, not for visualization.\\ \hline
+Float Array[3] & \texttt{HSL/Hook/Rotation} & Rotation of the hook [deg]. Only for visualization.\\ \hline
+Float Array[3] & \texttt{HSL/Hook/CW} & Aerial resistance of the hook surfaces: Front/Side/Top. \\ \hline
+Double & \texttt{HSL/Hook/FrictionGlide} &  Glide friction of the hook, when on solid ground. Relative value [N/N]: Horizontal resistance force resulting from vertical pressure force.\\ \hline
+Double & \texttt{HSL/Hook/FrictionStatic} & Static friction of the hook, when on solid ground. Relative value [N/N]: Maximum horizontal resistance force resulting from vertical pressure force.\\ \hline
+
+Float Array[3] & \texttt{HSL/Hook/ExternalForce} & External forces applied on the hook (e.g. by an operator) [N].\\ \hline
+\end{tabularx}
+\subsubsection{Cargo}
+\begin{tabularx}{\linewidth}{| l | l | X |} \hline
+\textbf{Type} & \textbf{DataRef Name}& \textbf{Description}\\ \hline
+Double & \texttt{HSL/Cargo/SetLatitude} & Latitude value when placing a new cargo at coordinates. Use for command \texttt{HSL/Load\_On\_Coordinates}.\\ \hline
+Double & \texttt{HSL/Cargo/SetLongitude} & Longitude value when placing a new cargo at coordinates. Use for command \texttt{HSL/Load\_On\_Coordinates}.\\ \hline
+
+Double & \texttt{HSL/Cargo/Height} & Height of the cargo object when drawing the cargo on the ground [m].  Only for visualization.\\ \hline
+Float Array[3] & \texttt{HSL/Cargo/RopeOffset} & Offset of rope in relation to the origin of the cargo object [m]. Only for visualization.\\ \hline
+Float Array[3] & \texttt{HSL/Cargo/Rotation} & Rotation of the cargo [deg]. Only for visualization.\\ \hline
+Double & \texttt{HSL/Cargo/Mass} &  Mass of the cargo [kg]\\ \hline
+Float Array[3] & \texttt{HSL/Cargo/Size} & Dimensions of the cargo: Depth/Width/Height [m]. Only for physics, not for visualization.\\ \hline
+Float Array[3] & \texttt{HSL/Cargo/CWFront} & Aerial resistance of the cargo surfaces: Front/Side/Top.\\ \hline
+Double & \texttt{HSL/Cargo/FrictionGlide} & Glide friction of the cargo, when on solid ground. Relative value [N/N]: Horizontal resistance force resulting from vertical pressure force.\\ \hline
+Double & \texttt{HSL/Cargo/FrictionStatic} & Static friction of the cargo, when on solid ground. Relative value [N/N]: Maximum horizontal resistance force resulting from vertical pressure force.\\ \hline
+
+Integer & \texttt{HSL/Cargo/IsBambiBucket} & Tells the plugin if the cargo is a bambi bucket, either 0 or 1. Bambi buckets don't swim and fill up their volume when lowered into water.\\ \hline
+Integer & \texttt{HSL/Cargo/BambiBucketReleaseWater} & Tells the plugin to release the water in the bambi bucket (either 0 or 1).\\ \hline
+
+Float Array[3] & \texttt{HSL/Cargo/ExternalForce} & External forces applied on the cargo(e.g. by an operator) [N].\\ \hline
+\end{tabularx}
+\subsubsection{Fire}
+\begin{tabularx}{\linewidth}{| l | l | X |} \hline
+\textbf{Type} & \textbf{DataRef Name}& \textbf{Description}\\ \hline
+String (dynamic) & \texttt{HSL/Fire/FireAircraftPath} & Physical path (relative from XP folder) of the AI aircraft that is used to draw the fire.\\ \hline
+Double & \texttt{HSL/Fire/WaterRadius} & Within this radius, water drops are counting towards extinguishing the fire [m].\\ \hline
+
+Double & \texttt{HSL/Fire/StrengthStart} & Start value for water required to extinguish the fire [kg].\\ \hline
+Double & \texttt{HSL/Fire/StrengthMax} & Maximum value for water required to extinguish the fire [kg].\\ \hline
+Double & \texttt{HSL/Fire/StrengthIncrease} & Fire increasing over time,water weight increase per second [kg/s].\\ \hline
+
+
+Double & \texttt{HSL/Fire/SetLatitude} & Latitude value when placing a new fire at coordinates. Use for command \texttt{HSL/Fire\_On\_Coordinates}.\\ \hline
+Double & \texttt{HSL/Fire/SetLongitude} & Longitude value when placing a new fire at coordinates. Use for command \texttt{HSL/Fire\_On\_Coordinates}.\\ \hline
+Double & \texttt{HSL/Fire/SetElevation} & Elevation over ground when placing a new fire at coordinates. Use for command \texttt{HSL/Fire\_On\_Coordinates}.\\ \hline
+
+Integer & \texttt{HSL/Fire/UpdatePositions} & When 1: Recalculate the fire positions. XP world coordinate positioning is not precise when the aircraft is far away. Hence, it is advisable to re-calcuate the position when the aircraft gets closer.\\ \hline
+
+Integer & \texttt{HSL/Fire/RemoveFires} & When 1, all fires are removed.\\ \hline
+\end{tabularx}
+
+\subsection{ReadOnly Values}
+
+
+\subsubsection{Calculated Values}
+\begin{tabularx}{\linewidth}{| l | l | X |} \hline
+\textbf{Type} & \textbf{DataRef Name}& \textbf{Description}\\ \hline
+Double & \texttt{HSL/Calculated/FrameTime} & Time between flight loops.\\ \hline
+Double & \texttt{HSL/Calculated/NewRopeLength} &  Current rope length with expansion.\\ \hline
+Double & \texttt{HSL/Calculated/RopeStretchRelative} &  Relative value of the expansion (0 = no expansion, 1 = twice the size)\\ \hline
+Double & \texttt{HSL/Calculated/RopeForceScalar} & Scalar value of the rope force [N]\\ \hline
+Double & \texttt{HSL/Calculated/RopeStretchSpeed} & Speed of the expanding rope [m/s]. Negative value for contracting rope.\\ \hline
+Double & \texttt{HSL/Calculated/RopeCorrectedD} & Damping value for the current rope load = 2 * D * sqrt(m/K)\\ \hline
+Float Array[3] & \texttt{HSL/Calculated/VectorHelicopterPosition} & Position of the winch in OpenGL coordinates.\\ \hline
+Float Array[3] & \texttt{HSL/Calculated/VectorHookPosition} & Position of the end of the rope, no matter what's connected.\\ \hline
+\end{tabularx}
+
+\subsubsection{Rope}
+\begin{tabularx}{\linewidth}{| l | l | X |} \hline
+\textbf{Type} & \textbf{DataRef Name}& \textbf{Description}\\ \hline
+Integer & \texttt{HSL/Rope/RopeRuptured} & 1 if the rope is ruptured, 0 otherwise.\\ \hline
+\end{tabularx}
+
+\subsubsection{Hook}
+\begin{tabularx}{\linewidth}{| l | l | X |} \hline
+\textbf{Type} & \textbf{DataRef Name}& \textbf{Description}\\ \hline
+Integer & \texttt{HSL/Hook/Connected} & 1 if the hook is connected to the rope, 0 otherwise. Hook only disconnects on rope rupture.\\ \hline
+Integer & \texttt{HSL/Hook/FollowOnly} & 1 if the cargo is connected, 0 otherwise.\\ \hline
+Integer & \texttt{HSL/Hook/DrawingEnabled} & 1 if the hook is currently drawn, 0 otherwise.\\ \hline
+Integer & \texttt{HSL/Hook/InstancedDrawing} & 1 if instanced drawing is enabled.\\ \hline
+\end{tabularx}
+
+\subsubsection{Cargo}
+\begin{tabularx}{\linewidth}{| l | l | X |} \hline
+\textbf{Type} & \textbf{DataRef Name}& \textbf{Description}\\ \hline
+Float Array[3] & \texttt{HSL/Cargo/Position} & Position of the cargo.\\ \hline
+Integer & \texttt{HSL/Cargo/Connected} & 1 if the cargo is connected to the rope, 0 otherwise.\\ \hline
+Integer & \texttt{HSL/Cargo/FollowOnly} &  1 if the cargo is neither connected nor placed on terrain, 0 otherwise.\\ \hline
+Integer & \texttt{HSL/Cargo/DrawingEnabled} & 1 if the cargo is drawn, 0 otherwise.\\ \hline
+Integer & \texttt{HSL/Cargo/InstancedDrawing} & 1 if instanced drawing is enabled.\\ \hline
+Double & \texttt{HSL/Cargo/BambiBucketWaterWeight} & Weight of the water in the bambi bucket [kg]\\ \hline
+Double & \texttt{HSL/Cargo/BambiBucketWaterLevel} & Water level in the bambi bucket, between 0 and 1. This is computed, but may be written too.\\ \hline
+\end{tabularx}
+
+\subsubsection{Fire}
+\begin{tabularx}{\linewidth}{| l | l | X |} \hline
+\textbf{Type} & \textbf{DataRef Name}& \textbf{Description}\\ \hline
+Integer & \texttt{HSL/Fire/CreateFailed} & Fire creation failed.\\ \hline
+Double & \texttt{HSL/Fire/Count} & Number of active fires.\\ \hline
+Float Array[10] & \texttt{HSL/Fire/FireStrength} & Strength of the currently active fires, in water weight [kg].\\ \hline
+\end{tabularx}
+
+\section{License}
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 3.\\
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\\
+
+You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.\\
+
+\end{document} 
