@@ -140,7 +140,7 @@ For fire fighting the drops released by the bambi bucket are also computed in a 
 
 \begin{itemize}
 \item Rotor downwash
-\item Ground impact: 
+\item Ground impact:
 \begin{itemize}
 \item When hitting the ground, the vertical speed is put to zero. No bouncing off the ground.
 \item When hitting the ground, the object is always upright. No flipping over.
@@ -205,6 +205,8 @@ Double & \texttt{HSL/Rope/RopeDamping} & Damping factor of the rope. Has to be b
 Double & \texttt{HSL/Rope/RopeK} & Force applied when the rope is expanded to twice its normal size [N].\\ \hline
 Double & \texttt{HSL/Rope/RuptureForce} & Force that causes the rope to rupture.\\ \hline
 Double & \texttt{HSL/Rope/MaxAccRopeFactor} & Not used anymore.\\ \hline
+Double & \texttt{HSL/Rope/OperatorForce} & Force of the operator to dampen the oscillation.\\ \hline
+Double & \texttt{HSL/Rope/OperatorLength} & Rope length when the operator start dampening the oscillation.\\ \hline
 \end{tabularx}
 \subsubsection{Hook}
 \begin{tabularx}{\linewidth}{| l | l | X |} \hline

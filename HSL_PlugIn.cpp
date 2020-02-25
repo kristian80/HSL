@@ -183,6 +183,9 @@ void HSL_PlugIn::PluginStart()
 	RegisterDoubleDataref(myCargoDataShared.myRopeRuptureForce,				"HSL/Rope/RuptureForce");
 	RegisterDoubleDataref(myCargoDataShared.myMaxAccRopeFactor,				"HSL/Rope/MaxAccRopeFactor");
 
+	RegisterDoubleDataref(myCargoDataShared.myRopeOperatorDampingForce, "HSL/Rope/OperatorForce");
+	RegisterDoubleDataref(myCargoDataShared.myRopeOperatorDampingLength, "HSL/Rope/OperatorLength");
+
 	// Hook 
 	RegisterIntDataref(myHook.myRopeConnected,				"HSL/Hook/Connected");
 	RegisterIntDataref(myHook.myFollowOnly,					"HSL/Hook/FollowOnly");
@@ -1810,7 +1813,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 			myVectorHelicopterMomentumApplied += forceData.myVectorMomentum * forceData.myTimeApplied;
 		}
 
-		if (forceTime > 0)
+		if ((forceTime > 0) && (myCargoDataShared.myRopeLengthNormal > 0.2f))
 		{
 			myVectorHelicopterForceApplied = myVectorHelicopterForceApplied / forceTime;
 			myVectorHelicopterMomentumApplied = myVectorHelicopterMomentumApplied / forceTime;
