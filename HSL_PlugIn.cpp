@@ -275,7 +275,7 @@ void HSL_PlugIn::PluginStart()
 
 
 	// Drawing
-	XPLMRegisterDrawCallback(WrapDrawCallback, xplm_Phase_Objects, 0, NULL); //xplm_Phase_Airplanes
+	XPLMRegisterDrawCallback(WrapDrawCallback, xplm_Phase_Panel, 0, NULL); //xplm_Phase_Airplanes
 	//XPLMRegisterDrawCallback(WrapDrawCallback, xplm_Phase_Airplanes, 0, NULL); //
 
 	int left, top, right, bot;
@@ -483,7 +483,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 		vector<double> vectorWinchWorld = AdjustFrameMovement(myCargoDataShared.myVectorHelicopterPosition);
 		//vector<double> vectorWinchWorld = myVectorHelicopterPosition;
 		DrawInstanceCreate(myWinchInstanceRef, myWinchObjectRef);
-		DrawInstanceSetPosition(myWinchInstanceRef, myWinchObjectRef, vectorWinchWorld, false);
+		DrawInstanceSetPosition(myWinchInstanceRef, myWinchObjectRef, vectorWinchWorld, true);
 
 		/*int index;
 
@@ -558,7 +558,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			//vectorFinalRopeStart = vectorCargoPointOpenGL;
 
 			DrawInstanceCreate(myCargoInstanceRef, myCargoObjectRef);
-			DrawInstanceSetPosition(myCargoInstanceRef, myCargoObjectRef, vectorCargoPointOpenGL, myCargo.myVectorDisplayAngle, false);
+			DrawInstanceSetPosition(myCargoInstanceRef, myCargoObjectRef, vectorCargoPointOpenGL, myCargo.myVectorDisplayAngle, true);
 			
 			myVectorBambiBucketReleasePosition = vectorCargoPointOpenGL;
 			vector<double> vectorReleaseHeight = get_unit_vector(vectorFinalRope) * myCargo.myHeight;
@@ -581,7 +581,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			vectorFinalRope = vectorWinchWorld - vectorHookPointOpenGL;
 			vectorFinalRopeStart = vectorHookPointOpenGL;
 			DrawInstanceCreate(myHookInstanceRef, myHookObjectRef);
-			DrawInstanceSetPosition(myHookInstanceRef, myHookObjectRef, vectorHookPointOpenGL, myHook.myVectorDisplayAngle, false);
+			DrawInstanceSetPosition(myHookInstanceRef, myHookObjectRef, vectorHookPointOpenGL, myHook.myVectorDisplayAngle, true);
 			myHook.myVectorDrawPosition = vectorHookPointOpenGL;
 		}
 		else

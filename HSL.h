@@ -289,7 +289,7 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef &
 		try
 		{
 			if (instanced_drawing == true)	XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
-			else XPLMDrawObjects(objectIn, 1, &drawInfo, 0, 0);
+			//else XPLMDrawObjects(objectIn, 1, &drawInfo, 0, 0);
 		}
 		catch (...)
 		{
@@ -315,7 +315,7 @@ inline void DrawInstanceSetPosition(XPLMInstanceRef& instanceIn, XPLMObjectRef& 
 		try
 		{
 			if (instanced_drawing == true)	XPLMInstanceSetPosition(instanceIn, &drawInfo, NULL);
-			else XPLMDrawObjects(objectIn, 1, &drawInfo, 0, 0);
+			//else XPLMDrawObjects(objectIn, 1, &drawInfo, 0, 0);
 		}
 		catch (...)
 		{
