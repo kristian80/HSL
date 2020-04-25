@@ -611,7 +611,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 
 
 		vector<double> hookVectorPosition = (myIsInReplay == 0) ? AdjustFrameMovement(myHook.myVectorPosition) : AdjustFrameMovementReplay(myReplayDataPtr[replayDataPosition].myVectorHookPosition, myReplayDataPtr[replayDataPosition].myVectorLocalPosition);
-		vector<double> hookVectorHelicopterPositionDeviation = (myIsInReplay == 0) ? myHook.myVectorHelicopterPositionDeviation : myReplayDataPtr[replayDataPosition].myVectorCargoHelicopterPositionDeviation;
+		vector<double> hookVectorHelicopterPositionDeviation = (myIsInReplay == 0) ? myHook.myVectorHelicopterPositionDeviation : myReplayDataPtr[replayDataPosition].myVectorHookHelicopterPositionDeviation;
 		vector<double> hookVectorDisplayOffset = (myIsInReplay == 0) ? myHook.myVectorDisplayOffset : myReplayDataPtr[replayDataPosition].myVectorHookDisplayOffset;
 		vector<double> hookVectorDisplayAngle = (myIsInReplay == 0) ? myHook.myVectorDisplayAngle : myReplayDataPtr[replayDataPosition].myVectorHookDisplayAngle;
 
