@@ -160,7 +160,7 @@ void CargoObject::CalculatePhysics()
 		return;
 	}
 
-	if (myCargoDataShared.myLiPause > 0)
+	if ((myCargoDataShared.myLiPause > 0) || (myCargoDataShared.myIsInReplay > 0))
 	{
 		myResetTime = true;
 		return;
@@ -640,7 +640,7 @@ void CargoObject::CalculatePhysics()
 		else
 		{
 			//myVectorHelicopterVelocityApprox += myVectorHelicopterPositionDeviation * 10.0;
-			//myVectorHelicopterPositionDeviation = myCargoDataShared.myVectorHelicopterPosition - myVectorHelicopterPositionApprox;
+			//myVectorHelicopterPositionDeviation = myCargoDataShared.myVectorWinchPosition - myVectorHelicopterPositionApprox;
 		}
 
 		// Move the Object by the deviation of the helicopter position approximation

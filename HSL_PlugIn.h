@@ -121,10 +121,39 @@ struct CargoDataShared
 	double myLfLocalTheta = 0;
 
 	int   myLiPause = 0;
+	int   myIsInReplay = 0;
 	double myLfTimeActual = 1.0;
 	double myLfWindDirection = 0;
 	double myLfWindSpeed = 0;
 
+};
+
+struct ReplayData
+{
+	float mySimTime = 0;
+
+	double myRopeLengthNormal = 0;
+	vector<double> myVectorLocalPosition = vector<double>(3);
+	vector<double> myVectorWinchPosition = vector<double>(3);
+	vector<double> myVectorHookPosition = vector<double>(3);
+	vector<double> myVectorCargoPosition = vector<double>(3);
+	bool myRopeRuptured = false;
+	bool myCargoDrawingEnabled = false;
+	bool myHookDrawingEnabled = false;
+
+	vector<double> myVectorCargoDisplayAngle = vector<double>(3);
+	vector<double> myVectorHookDisplayAngle = vector<double>(3);
+
+	vector<double> myVectorCargoDisplayOffset = vector<double>(3);
+	vector<double> myVectorHookDisplayOffset = vector<double>(3);
+
+	vector<double> myVectorCargoHelicopterPositionDeviation = vector<double>(3);
+	vector<double> myVectorHookHelicopterPositionDeviation = vector<double>(3);
+	
+
+	RainDropDrawData* myRaindrops = NULL;
+
+	//ToDo: Add Cargo Draw, Hook draw(?)
 };
 
 class HSL_PlugIn
@@ -154,12 +183,15 @@ public:
 	int myPluginEnabled = 0;
 	int myAircraftLoaded = 0;
 	bool mySimpleMode = true;
+	bool myShowWinch = true;
 
 	XPLMPluginID myDataRefEditorPluginID = XPLM_NO_PLUGIN_ID;
 	std::vector<XPLMDataRef> myRegisteredDatarefs;
 
 	CargoDataShared myCargoDataShared;
 	
+	ReplayData* myReplayDataPtr = NULL;
+	int myReplayDataSize = 0;
 	
 
 
@@ -265,6 +297,7 @@ public:
 
 	int myProcessingTimeFlightLoop = 0;
 	int myProcessingTimeDrawRoutine = 0;
+	int myReplaySaveCounter = 0;
 
 	// Rope 
 	
@@ -307,6 +340,9 @@ public:
 	///////////////////////////////////////////////////
 	// DataRefs X-Plane
 
+
+	XPLMDataRef myDrSimTime;
+	XPLMDataRef myDrIsInReplay;
 	XPLMDataRef myDrLocalX;
 	XPLMDataRef myDrLocalY;
 	XPLMDataRef myDrLocalZ;
@@ -346,7 +382,8 @@ public:
 	///////////////////////////////////////////////////
 	// DataRefs X-Plane Local Copies
 
-
+	float mySimTime = 0;
+	int myIsInReplay = 0;
 
 	double myLastLocalX = 0;
 	double myLastLocalY = 0;
@@ -444,6 +481,7 @@ public:
 	static vector<double> TurnWorldToAircraft(vector<double> coordsAircraft, CargoDataShared& cargoDataSharedIn);
 	vector<double> AircraftToWorld(vector<double> coordsAircraft);
 	vector<double> AdjustFrameMovement(vector<double> coordsAircraft);
+	vector<double> AdjustFrameMovementReplay(vector<double> coordsAircraft, vector<double> coordsOldAircraft);
 
 
 	float PluginFlightLoopCallback(double elapsedMe, double elapsedSim, int counter, void* refcon);

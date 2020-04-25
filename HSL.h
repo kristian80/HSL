@@ -90,6 +90,7 @@ using namespace boost::numeric::ublas;
 #define MAX_OBJ_SPEED 300.0f // ~sonic speed
 #define MAX_FIRES 18
 #define MSG_ADD_DATAREF 0x01000000
+#define REPLAY_DATA_ALLOC 1000000
 //#define USE_INSTANCED_DRAWING 0
 
 
@@ -539,6 +540,7 @@ int WrapFireCoordinatesCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void
 int WrapBambiBucketRelease(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon);
 
 int WrapDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inRefcon);
+int WrapDrawBackupCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inRefcon);
 
 void WrapKeyCallback(XPLMWindowID inWindowID, char inKey, XPLMKeyFlags inFlags, char inVirtualKey, void * inRefcon, int losingFocus);
 int WrapMouseClickCallback(XPLMWindowID inWindowID, int x, int y, XPLMMouseStatus inMouse, void * inRefcon);

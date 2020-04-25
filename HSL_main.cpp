@@ -131,10 +131,22 @@ void WrapMenuHandler(void * in_menu_ref, void * in_item_ref)
 	return pHSL->PluginMenuHandler(in_menu_ref, in_item_ref);
 }
 
+bool drawCalled = true;
 int WrapDrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inRefcon)
 {
+	drawCalled = true;
 	return pHSL->DrawCallback(inPhase, inIsBefore, inRefcon);
 }
+
+int WrapDrawBackupCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inRefcon)
+{
+	if (drawCalled == false)
+		return pHSL->DrawCallback(inPhase, inIsBefore, inRefcon);
+
+	drawCalled = false;
+	return 1;
+}
+
 
 
 int WrapWinchUpCallback(XPLMCommandRef cmd, XPLMCommandPhase phase, void* refcon)

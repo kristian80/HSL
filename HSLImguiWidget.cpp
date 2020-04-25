@@ -145,18 +145,20 @@ void HSLImguiWidget::buildInterface()
 		ImGui::Checkbox("Cargo Is Bambi Bucket", &(pHSL->myCargo.myIsBambiBucket));
 		ImGui::Checkbox("Bambi Bucket Release", &(pHSL->myCargo.myBambiBucketRelease));
 
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(100);
+
+		
 		ImGui::Text("Rope Parameters:");
 		ImGui::InputDouble("Rope Length Start [m]", &(pHSL->myCargoDataShared.myRopeLengthStart), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("Rope Length [m]", &(pHSL->myCargoDataShared.myRopeLengthNormal), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("Rope Rupture Force [N]", &(pHSL->myCargoDataShared.myRopeRuptureForce), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("Rope Damping", &(pHSL->myCargoDataShared.myRopeDamping), 0.01, 0.01, "%.3f", 0);
-		ImGui::InputDouble("Rope K", &(pHSL->myCargoDataShared.myRopeK), 0.01, 0.01, "%.3f", 0);
-		ImGui::InputDouble("MaxRopeAcc", &(pHSL->myCargoDataShared.myMaxAccRopeFactor), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Rope Stiffness", &(pHSL->myCargoDataShared.myRopeK), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("Winch Speed [m/s]", &(pHSL->myCargoDataShared.myWinchSpeed), 0.01, 0.01, "%.3f", 0);
 
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(100);
-
+		
+		/*
 		ImGui::Text("Hook Parameters:");
 		ImGui::InputDouble("Hook Mass [kg]", &(pHSL->myHook.myMass), 0.01, 0.01, "%.3f", 0);
 		InputVector(pHSL->myHook.myVectorSize, "Hook Size L/W/H [m]");
@@ -164,7 +166,7 @@ void HSLImguiWidget::buildInterface()
 		ImGui::InputDouble("Hook Height [m]", &(pHSL->myHook.myHeight), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("Hook Friction Glide", &(pHSL->myHook.myFrictionGlide), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("Hook Friction Static", &(pHSL->myHook.myFrictionStatic), 0.01, 0.01, "%.3f", 0);
-
+		*/
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(100);
 

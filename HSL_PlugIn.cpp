@@ -30,6 +30,8 @@ HSL_PlugIn::HSL_PlugIn() :
 	CARGO_SHM_SECTION_START
 
 	myRaindrops = new RainDropDrawData[HSL_RAINDROPS_DRAW_MAX];
+	myReplayDataPtr = new ReplayData[REPLAY_DATA_ALLOC];
+	myReplayDataSize = REPLAY_DATA_ALLOC;
 
 	for (int rain_index = 0; rain_index < HSL_RAINDROPS_DRAW_MAX; rain_index++)
 	{
@@ -275,7 +277,8 @@ void HSL_PlugIn::PluginStart()
 
 
 	// Drawing
-	XPLMRegisterDrawCallback(WrapDrawCallback, xplm_Phase_Panel, 0, NULL); //xplm_Phase_Airplanes
+	XPLMRegisterDrawCallback(WrapDrawCallback, xplm_Phase_Panel, 0, NULL); //xplm_Phase_Airplanes //xplm_Phase_Panel
+	XPLMRegisterDrawCallback(WrapDrawBackupCallback, xplm_Phase_Modern3D, 0, NULL); //xplm_Phase_Airplanes //xplm_Phase_Panel
 	//XPLMRegisterDrawCallback(WrapDrawCallback, xplm_Phase_Airplanes, 0, NULL); //
 
 	int left, top, right, bot;
@@ -299,6 +302,8 @@ void HSL_PlugIn::PluginStart()
 
 	HSLDebugString("Lookup Datarefs");
 
+	myDrSimTime = XPLMFindDataRef("sim/time/total_running_time_sec");
+	myDrIsInReplay = XPLMFindDataRef("sim/time/is_in_replay");
 
 	myDrLocalX = XPLMFindDataRef("sim/flightmodel/position/local_x");
 	myDrLocalY = XPLMFindDataRef("sim/flightmodel/position/local_y");
@@ -415,6 +420,15 @@ void HSL_PlugIn::PluginReceiveMessage(XPLMPluginID inFromWho, int inMessage, voi
 		{
 			HSLDebugString("Airport loaded");
 			SlingDisable();
+			/*for (int index = 0; index < myReplaySaveCounter; index++)
+			{
+				if (myReplayDataPtr[index].myRaindrops != NULL)
+				{
+					delete[] myReplayDataPtr[index].myRaindrops;
+					myReplayDataPtr[index].myRaindrops = NULL;
+				}
+			}
+			myReplaySaveCounter = 0;*/
 		}
 
 
@@ -475,127 +489,161 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 
 		ReadDataRefs();
 
-		for (auto fire : myFires)
-		{
-			//XPLMDrawAircraft(fire.planeIndex, fire.posX, fire.posY, fire.posZ, 0, 0, 0, 1, &(fire.drawState));
-		}
+		int replayDataPosition = 0;
 
-		vector<double> vectorWinchWorld = AdjustFrameMovement(myCargoDataShared.myVectorHelicopterPosition);
-		//vector<double> vectorWinchWorld = myVectorHelicopterPosition;
+		// Prepare Replay Storage
+		if (myIsInReplay == 0)
+		{
+			if (myReplaySaveCounter >= (myReplayDataSize-1))
+			{
+				ReplayData* ptrReplay = myReplayDataPtr;
+				myReplayDataPtr = new ReplayData[myReplayDataSize + REPLAY_DATA_ALLOC];
+				
+				if (myReplayDataPtr == NULL)
+				{
+					HSLDebugString("Out Of Memory");
+					myReplayDataSize = 0;
+					myReplaySaveCounter = 0;
+					return -1;
+				}
+
+				for (int index = 0; index < myReplayDataSize; index++)
+				{
+					myReplayDataPtr[index] = ptrReplay[index];
+				}
+
+				myReplayDataSize += REPLAY_DATA_ALLOC;
+				delete[] ptrReplay;
+			}
+
+			myReplayDataPtr[myReplaySaveCounter].mySimTime = mySimTime;
+
+			myReplayDataPtr[myReplaySaveCounter].myVectorWinchPosition = myCargoDataShared.myVectorHelicopterPosition;
+			myReplayDataPtr[myReplaySaveCounter].myVectorHookPosition = myHook.myVectorPosition;
+			myReplayDataPtr[myReplaySaveCounter].myVectorCargoPosition = myCargo.myVectorPosition;
+			myReplayDataPtr[myReplaySaveCounter].myVectorCargoDisplayAngle = myCargo.myVectorDisplayAngle;
+			myReplayDataPtr[myReplaySaveCounter].myVectorHookDisplayAngle = myHook.myVectorDisplayAngle;
+			myReplayDataPtr[myReplaySaveCounter].myVectorCargoDisplayOffset = myCargo.myVectorDisplayOffset;
+			myReplayDataPtr[myReplaySaveCounter].myVectorHookDisplayOffset = myHook.myVectorDisplayOffset;
+
+			myReplayDataPtr[myReplaySaveCounter].myVectorCargoHelicopterPositionDeviation = myCargo.myVectorHelicopterPositionDeviation;
+			myReplayDataPtr[myReplaySaveCounter].myVectorHookHelicopterPositionDeviation = myHook.myVectorHelicopterPositionDeviation;
+
+
+			myReplayDataPtr[myReplaySaveCounter].myRopeRuptured = myCargoDataShared.myRopeRuptured;
+			myReplayDataPtr[myReplaySaveCounter].myRopeLengthNormal = myCargoDataShared.myRopeLengthNormal;
+
+			myReplayDataPtr[myReplaySaveCounter].myCargoDrawingEnabled = myCargo.myDrawingEnabled;
+			myReplayDataPtr[myReplaySaveCounter].myHookDrawingEnabled = myHook.myDrawingEnabled;
+
+			myReplaySaveCounter++;
+		}
+		else
+		{
+			float replayTimeDeviation = abs(mySimTime - myReplayDataPtr[0].mySimTime);
+			for (int index = 0; index < myReplaySaveCounter; index++)
+			{
+				if (abs(mySimTime - myReplayDataPtr[index].mySimTime) < replayTimeDeviation)
+				{
+					replayTimeDeviation = abs(mySimTime - myReplayDataPtr[index].mySimTime);
+					replayDataPosition = index;
+				}
+			}
+		}
+		vector<double> vectorLocalPosition = vector<double>(3);
+		vectorLocalPosition(0) = myCargoDataShared.myLdLocalX;
+		vectorLocalPosition(1) = myCargoDataShared.myLdLocalY;
+		vectorLocalPosition(2) = myCargoDataShared.myLdLocalZ;
+
+		if (myIsInReplay == 0) myReplayDataPtr[myReplaySaveCounter].myVectorLocalPosition = vectorLocalPosition;
+
+		vector<double> vectorWinchWorld = (myIsInReplay == 0) ? AdjustFrameMovement(myCargoDataShared.myVectorHelicopterPosition) : AdjustFrameMovementReplay(myReplayDataPtr[replayDataPosition].myVectorWinchPosition, myReplayDataPtr[replayDataPosition].myVectorLocalPosition);
+
+		if (myIsInReplay == 0) myReplayDataPtr[myReplaySaveCounter].myVectorWinchPosition = vectorWinchWorld;
+
+		//vector<double> vectorWinchWorld = myVectorWinchPosition;
 		DrawInstanceCreate(myWinchInstanceRef, myWinchObjectRef);
 		DrawInstanceSetPosition(myWinchInstanceRef, myWinchObjectRef, vectorWinchWorld, true);
 
-		/*int index;
-
-		for (index = 0; index < HSL_ROPE_POINTS_MAX; index++)
-		{
-			if (index < myRopePoints.size())
-			{
-				vector<double> vectorRopePointOpenGL = AdjustFrameMovement(myRopePoints[index]);
-				DrawInstanceCreate(myRopeInstances[index], myRopeObjectRef);
-				DrawInstanceSetPosition(myRopeInstances[index], myRopeObjectRef, vectorRopePointOpenGL, true);
-			}
-			else
-			{
-				DrawInstanceDestroy(myRopeInstances[index]);
-			}
-		}*/
-
-		/*else
-		{
-			static XPLMDrawInfo_t		drawInfo[HSL_ROPE_POINTS_MAX];
-			static bool init = false;
-
-			if (init == false)
-			{
-				for (index = 0; index < HSL_ROPE_POINTS_MAX; index++)
-				{
-					drawInfo[index].structSize = sizeof(drawInfo);
-					drawInfo[index].x = 0;
-					drawInfo[index].y = 0;
-					drawInfo[index].z = 0;
-					drawInfo[index].pitch = 0;
-					drawInfo[index].heading = 0;
-					drawInfo[index].roll = 0;
-				}
-				init = true;
-			}
-
-
-			int elements = myRopePoints.size();
-			if (elements > HSL_ROPE_POINTS_MAX) elements = HSL_ROPE_POINTS_MAX;
-
-			for (index = 0; index < myRopePoints.size(); index++)
-			{
-				vector<double> vectorRopePointOpenGL = AdjustFrameMovement(myRopePoints[index]);
-
-				drawInfo[index].x = vectorRopePointOpenGL(0);
-				drawInfo[index].y = vectorRopePointOpenGL(1);
-				drawInfo[index].z = vectorRopePointOpenGL(2);
-			}
-
-			XPLMDrawObjects(myRopeObjectRef, myRopePoints.size(), drawInfo, 0, 0);
-		}*/
-
 		vector<double>  vectorFinalRope = myVectorZeroVector;
 		vector<double>  vectorFinalRopeStart = myVectorZeroVector;
+
+		bool cargoDrawingEnabled =								(myIsInReplay == 0) ? myCargo.myDrawingEnabled						: myReplayDataPtr[replayDataPosition].myCargoDrawingEnabled;
+		vector<double> cargoVectorPosition =					(myIsInReplay == 0) ? AdjustFrameMovement(myCargo.myVectorPosition)						: AdjustFrameMovementReplay(myReplayDataPtr[replayDataPosition].myVectorCargoPosition, myReplayDataPtr[replayDataPosition].myVectorLocalPosition);
+		vector<double> cargoVectorHelicopterPositionDeviation = (myIsInReplay == 0) ? myCargo.myVectorHelicopterPositionDeviation	: myReplayDataPtr[replayDataPosition].myVectorCargoHelicopterPositionDeviation;
+		vector<double> cargoVectorDisplayOffset =				(myIsInReplay == 0) ? myCargo.myVectorDisplayOffset					: myReplayDataPtr[replayDataPosition].myVectorCargoDisplayOffset;
+		vector<double> cargoVectorDisplayAngle =				(myIsInReplay == 0) ? myCargo.myVectorDisplayAngle					: myReplayDataPtr[replayDataPosition].myVectorCargoDisplayAngle;
 		
 
 		
-		if (myCargo.myDrawingEnabled == true)
+		if (cargoDrawingEnabled == true)
 		{
 			
 
 			 
-			vector<double> vectorCargoPointOpenGL = myCargo.myVectorPosition; //AdjustFrameMovement(myCargo.myVectorPosition);
-			vectorCargoPointOpenGL += myCargo.myVectorHelicopterPositionDeviation;
+			vector<double> vectorCargoPointOpenGL = cargoVectorPosition; //AdjustFrameMovement(myCargo.myVectorPosition);
+			vectorCargoPointOpenGL += cargoVectorHelicopterPositionDeviation;
+
+			//if (myIsInReplay == 0) myReplayDataPtr[myReplaySaveCounter].myVectorCargoPosition = vectorCargoPointOpenGL;
 
 			vectorFinalRope = vectorWinchWorld - vectorCargoPointOpenGL;
 			vectorFinalRopeStart = vectorCargoPointOpenGL;
 
-			vectorCargoPointOpenGL -= myCargo.myVectorDisplayOffset;
+			vectorCargoPointOpenGL -= cargoVectorDisplayOffset;
 
 			//vectorFinalRopeStart = vectorCargoPointOpenGL;
 
 			DrawInstanceCreate(myCargoInstanceRef, myCargoObjectRef);
-			DrawInstanceSetPosition(myCargoInstanceRef, myCargoObjectRef, vectorCargoPointOpenGL, myCargo.myVectorDisplayAngle, true);
+			DrawInstanceSetPosition(myCargoInstanceRef, myCargoObjectRef, vectorCargoPointOpenGL, cargoVectorDisplayAngle, true);
 			
 			myVectorBambiBucketReleasePosition = vectorCargoPointOpenGL;
 			vector<double> vectorReleaseHeight = get_unit_vector(vectorFinalRope) * myCargo.myHeight;
 			myVectorBambiBucketReleasePosition -= vectorReleaseHeight;
-			myCargo.myVectorDrawPosition = vectorCargoPointOpenGL;
+			if (myIsInReplay == 0) myCargo.myVectorDrawPosition = vectorCargoPointOpenGL;
 		}
 		else
 		{
 			DrawInstanceDestroy(myCargoInstanceRef);
 		}
 
+
+		bool hookDrawingEnabled = (myIsInReplay == 0) ? myHook.myDrawingEnabled : myReplayDataPtr[replayDataPosition].myHookDrawingEnabled;
+
+
+		vector<double> hookVectorPosition = (myIsInReplay == 0) ? AdjustFrameMovement(myHook.myVectorPosition) : AdjustFrameMovementReplay(myReplayDataPtr[replayDataPosition].myVectorHookPosition, myReplayDataPtr[replayDataPosition].myVectorLocalPosition);
+		vector<double> hookVectorHelicopterPositionDeviation = (myIsInReplay == 0) ? myHook.myVectorHelicopterPositionDeviation : myReplayDataPtr[replayDataPosition].myVectorCargoHelicopterPositionDeviation;
+		vector<double> hookVectorDisplayOffset = (myIsInReplay == 0) ? myHook.myVectorDisplayOffset : myReplayDataPtr[replayDataPosition].myVectorHookDisplayOffset;
+		vector<double> hookVectorDisplayAngle = (myIsInReplay == 0) ? myHook.myVectorDisplayAngle : myReplayDataPtr[replayDataPosition].myVectorHookDisplayAngle;
+
 		
-		if (myHook.myDrawingEnabled == true)
+		if (hookDrawingEnabled == true)
 		{
 			
 
-			vector<double> vectorHookPointOpenGL = myHook.myVectorPosition; // AdjustFrameMovement(myHook.myVectorPosition);
-			vectorHookPointOpenGL += myHook.myVectorHelicopterPositionDeviation;
+			vector<double> vectorHookPointOpenGL = hookVectorPosition; // AdjustFrameMovement(myHook.myVectorPosition);
+			vectorHookPointOpenGL += hookVectorHelicopterPositionDeviation;
+
+			//if (myIsInReplay == 0) myReplayDataPtr[myReplaySaveCounter].myVectorHookPosition = vectorHookPointOpenGL;
 
 			vectorFinalRope = vectorWinchWorld - vectorHookPointOpenGL;
 			vectorFinalRopeStart = vectorHookPointOpenGL;
 			DrawInstanceCreate(myHookInstanceRef, myHookObjectRef);
-			DrawInstanceSetPosition(myHookInstanceRef, myHookObjectRef, vectorHookPointOpenGL, myHook.myVectorDisplayAngle, true);
-			myHook.myVectorDrawPosition = vectorHookPointOpenGL;
+			DrawInstanceSetPosition(myHookInstanceRef, myHookObjectRef, vectorHookPointOpenGL, hookVectorDisplayAngle, true);
+			if (myIsInReplay == 0) myHook.myVectorDrawPosition = vectorHookPointOpenGL;
 		}
 		else
 		{
 			DrawInstanceDestroy(myHookInstanceRef);
 		}
 
-		bool ropeRuptured = myCargoDataShared.myRopeRuptured;
-		int ropeObjectCount = (int) (myCargoDataShared.myRopeLengthNormal / 0.01f);
+		bool ropeRuptured = (myIsInReplay == 0) ? myCargoDataShared.myRopeRuptured : myReplayDataPtr[replayDataPosition].myRopeRuptured;
+		
+		double ropeLengthNormal = (myIsInReplay == 0) ? myCargoDataShared.myRopeLengthNormal : myReplayDataPtr[replayDataPosition].myRopeLengthNormal;
+		int ropeObjectCount = (int) (ropeLengthNormal / 0.01f);
 		
 		if (ropeObjectCount > HSL_ROPE_POINTS_MAX) ropeObjectCount = HSL_ROPE_POINTS_MAX;
 
-		auto time_end = std::chrono::steady_clock::now();
-		myProcessingTimeDrawRoutine = (int) std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_start).count();
+		
 		vector<double> vectorDebug = myCargoDataShared.myVectorDebug;
 
 		CARGO_SHM_SECTION_END // Now comes the time consuming part
@@ -643,60 +691,60 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 
 		}
 
-		/*int index;
 
-		for (index = 0; index < HSL_ROPE_POINTS_MAX; index++)
+
+		RainDropDrawData* ptrRainDrops = (myIsInReplay == 0) ? myRaindrops : myReplayDataPtr[replayDataPosition].myRaindrops;
+
+		if (ptrRainDrops != NULL)
 		{
-			if (index < myRopePoints.size())
+			bool dropsFound = false;
+
+			for (int rain_index = 0; rain_index < HSL_RAINDROPS_DRAW_MAX; rain_index++)
 			{
-				vector<double> vectorRopePointOpenGL = AdjustFrameMovement(myRopePoints[index]);
-				DrawInstanceCreate(myRopeInstances[index], myRopeObjectRef);
-				DrawInstanceSetPosition(myRopeInstances[index], myRopeObjectRef, vectorRopePointOpenGL, true);
+				if ((ptrRainDrops != NULL) && (ptrRainDrops[rain_index].dataValid == true))
+				{
+					dropsFound = true;
+					vector<double> vectorCargoPointOpenGL = (myIsInReplay == 0) ? AdjustFrameMovement(ptrRainDrops[rain_index].myVectorPosition) : AdjustFrameMovementReplay(ptrRainDrops[rain_index].myVectorPosition, myReplayDataPtr[replayDataPosition].myVectorLocalPosition);
+					DrawInstanceCreate(myRaindrops[rain_index].myDrawInstance, myRaindropObjectRef);
+					DrawInstanceSetPosition(myRaindrops[rain_index].myDrawInstance, myRaindropObjectRef, vectorCargoPointOpenGL, ptrRainDrops[rain_index].myVectorDisplayAngle, true);
+				}
+				else
+				{
+					DrawInstanceCreate(myRaindrops[rain_index].myDrawInstance, myRaindropObjectRef);
+					DrawInstanceSetPosition(myRaindrops[rain_index].myDrawInstance, myRaindropObjectRef, myVectorZeroVector, myVectorZeroVector, true);
+				}
+
+				
 			}
-			else
+
+			if ((myIsInReplay == 0) && (dropsFound == true))
 			{
-				DrawInstanceDestroy(myRopeInstances[index]);
-			}
-		}*/
+				myReplayDataPtr[myReplaySaveCounter-1].myRaindrops = new RainDropDrawData[HSL_RAINDROPS_DRAW_MAX];
 
-		/*
-				myRopePoints.clear();
-		vector<double>  myVectorFinalRope = myCargoDataShared.myVectorHelicopterPosition - myCargoDataShared.myVectorHookPosition;
-		vector<double> vectorRopeUnit = get_unit_vector(myVectorFinalRope);
-
-		// If the rope ruptured, the empty vector will disable 
-		if (myCargoDataShared.myRopeRuptured == false)
-		{
-			
-
-			double ropeStepSize = norm_2(myVectorFinalRope) / ((double)HSL_ROPE_POINTS_MAX);
-
-			if (ropeStepSize < 0.01f) ropeStepSize = 0.01;
-
-			for (double distance = 0; distance < (myCargoDataShared.myNewRopeLength); distance += ropeStepSize)
-			{
-				vector<double> position = myCargoDataShared.myVectorHookPosition + (distance * vectorRopeUnit);
-				myRopePoints.push_back(position);
+				if (myReplayDataPtr[myReplaySaveCounter - 1].myRaindrops != NULL)
+				{
+					for (int index = 0; index < HSL_RAINDROPS_DRAW_MAX; index++)
+					{
+						myReplayDataPtr[myReplaySaveCounter - 1].myRaindrops[index] = myRaindrops[index];
+					}
+				}
 			}
 		}
-		*/
-
-		for (int rain_index = 0; rain_index < HSL_RAINDROPS_DRAW_MAX; rain_index++)
+		else
 		{
-			
-			if (myRaindrops[rain_index].dataValid == true)
-			{
-				vector<double> vectorCargoPointOpenGL = AdjustFrameMovement(myRaindrops[rain_index].myVectorPosition);
-				DrawInstanceCreate(myRaindrops[rain_index].myDrawInstance, myRaindropObjectRef);
-				DrawInstanceSetPosition(myRaindrops[rain_index].myDrawInstance, myRaindropObjectRef, vectorCargoPointOpenGL, myRaindrops[rain_index].myVectorDisplayAngle, true);
-			}
-			else
+			for (int rain_index = 0; rain_index < HSL_RAINDROPS_DRAW_MAX; rain_index++)
 			{
 				DrawInstanceCreate(myRaindrops[rain_index].myDrawInstance, myRaindropObjectRef);
 				DrawInstanceSetPosition(myRaindrops[rain_index].myDrawInstance, myRaindropObjectRef, myVectorZeroVector, myVectorZeroVector, true);
 			}
 		}
+
+		auto time_end = std::chrono::steady_clock::now();
+		myProcessingTimeDrawRoutine = (int)std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_start).count();
 	}
+	
+
+ 
 
 	
 
@@ -949,6 +997,10 @@ void HSL_PlugIn::SlingReset()
 {
 	CARGO_SHM_SECTION_START
 	myCargoDataShared.myComputationRunFlag = false;
+	
+	
+
+	
 
 	for (unsigned i = 0; i < myCargoDataShared.myVectorHelicopterPosition.size(); ++i) myCargoDataShared.myVectorHelicopterPosition(i) = 0;
 	for (unsigned i = 0; i < myCargoDataShared.myVectorHookPosition.size(); ++i) myCargoDataShared.myVectorHookPosition(i) = 0;
@@ -1051,7 +1103,41 @@ void HSL_PlugIn::SlingConnect()
 
 void HSL_PlugIn::SlingRelease()
 {
-	CARGO_SHM_SECTION_START
+	CARGO_SHM_SECTION_START;
+
+	if ((myCargo.myRopeConnected == true) && (myCargo.myFollowOnly == false))
+	{
+		myHook.myVectorPosition = myCargo.myVectorPosition;
+		myHook.myVectorHelicopterPositionApprox = myCargo.myVectorHelicopterPositionApprox;
+		myHook.myVectorHelicopterPositionApproxOld = myCargo.myVectorHelicopterPositionApproxOld;
+		myHook.myVectorHelicopterVelocityApprox = myCargo.myVectorHelicopterVelocityApprox;
+		myHook.myVectorHelicopterPositionDeviation = myCargo.myVectorHelicopterPositionDeviation;
+		myHook.myVectorVelocity = myCargo.myVectorVelocity;
+
+		/*vector<double> myVectorZeroVector = vector<double>(3);
+
+		vector<double> myVectorHelicopterPositionApprox = vector<double>(3);
+		vector<double> myVectorHelicopterPositionApproxOld = vector<double>(3);
+		vector<double> myVectorHelicopterVelocityApprox = vector<double>(3);
+		vector<double> myVectorHelicopterPositionDeviation = vector<double>(3);
+
+		vector<double> myVectorVelocity = vector<double>(3);
+		vector<double> myVectorForceGravity = vector<double>(3);
+		vector<double> myVectorWindVelocity = vector<double>(3);
+		vector<double> myVectorCargoOffset = vector<double>(3);
+		vector<double> myVectorCargoRotation = vector<double>(3);
+
+		vector<double> myVectorDisplayOffset = vector<double>(3);
+		vector<double> myVectorDisplayAngle = vector<double>(3);
+		vector<double> myVectorDrawPosition = vector<double>(3);
+
+		vector<double> myVectorSize = vector<double>(3); //Length / Width / Height
+		vector<double> myVectorCrossSection = vector<double>(3);
+		vector<double> myVectorCW = vector<double>(3);
+
+		vector<double> myVectorExternalForce = vector<double>(3);*/
+	}
+
 	myCargo.myRopeConnected = false;
 	myCargo.myFollowOnly = false;
 	myCargo.myDrawingEnabled = true;
@@ -1059,6 +1145,11 @@ void HSL_PlugIn::SlingRelease()
 	myHook.myRopeConnected = true;
 	myHook.myFollowOnly = false;
 	myHook.myDrawingEnabled = true;
+
+
+
+
+
 }
 
 void HSL_PlugIn::UpdateParameters()
@@ -1699,6 +1790,20 @@ vector<double> HSL_PlugIn::AdjustFrameMovement(vector<double> coordsAircraft)
 	return world_coords;
 }
 
+vector<double> HSL_PlugIn::AdjustFrameMovementReplay(vector<double> coordsAircraft, vector<double> coordsOldAircraft)
+{
+	CARGO_SHM_SECTION_START
+	vector<double> world_coords = coordsAircraft;
+
+	world_coords(0) += myCargoDataShared.myLdLocalX - coordsOldAircraft(0);
+	world_coords(1) += myCargoDataShared.myLdLocalY - coordsOldAircraft(1);
+	world_coords(2) += myCargoDataShared.myLdLocalZ - coordsOldAircraft(2);
+
+	return world_coords;
+}
+
+
+
 float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, int counter, void* refcon)
 {
 	CARGO_SHM_SECTION_START
@@ -1706,14 +1811,23 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 	SetHighPerformance(HIGH_PERFORMANCE);
 	auto time_start = std::chrono::steady_clock::now();
 	
+	
+	
+
 	ReadDataRefs();
 
-	if ((mySlingLineEnabled == true) && (myCargoDataShared.myLiPause == 0))
+	static float myLastTime = mySimTime;
+
+	
+
+	if ((mySlingLineEnabled == true) && (myCargoDataShared.myLiPause == 0) && (myIsInReplay == 0))
 	{
 		
 
 		myCargoDataShared.myDebugStatement = true;
 		myCargoDataShared.myFrameTime = elapsedMe;
+
+		//myCargoDataShared.myFrameTime = mySimTime - myLastTime;
 
 		if (myDropThreadObject.myDropObjectIn.size() > 0) myRainDropOverflow++;
 
@@ -1750,7 +1864,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 
 
 		// Get the wind velocity vector
-		/*XPLMLocalToWorld(myVectorHelicopterPosition(0), myVectorHelicopterPosition(1), myVectorHelicopterPosition(2), &lat1, &lon1, &alt);
+		/*XPLMLocalToWorld(myVectorWinchPosition(0), myVectorWinchPosition(1), myVectorWinchPosition(2), &lat1, &lon1, &alt);
 
 		double lat_offset = 0.1 * cos(myLfWindDirection * M_PI / 180.0);
 		double lon_offset = 0.1 * sin(myLfWindDirection * M_PI / 180.0);
@@ -1759,9 +1873,9 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 
 		vector<double>  vectorWindDirection = myVectorZeroVector;
 
-		vectorWindDirection(0) = x1 - myVectorHelicopterPosition(0);
-		vectorWindDirection(1) = y1 - myVectorHelicopterPosition(1);
-		vectorWindDirection(2) = z1 - myVectorHelicopterPosition(2);
+		vectorWindDirection(0) = x1 - myVectorWinchPosition(0);
+		vectorWindDirection(1) = y1 - myVectorWinchPosition(1);
+		vectorWindDirection(2) = z1 - myVectorWinchPosition(2);
 
 		vector<double>  vectorUnitWind = -1 * get_unit_vector(vectorWindDirection);
 
@@ -1873,7 +1987,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 		/*//////////////////////////////////////////////////////////////////////////////////////////////////
 		//                   Graphics Pre-Calculation:
 		myRopePoints.clear();
-		vector<double>  myVectorFinalRope = myCargoDataShared.myVectorHelicopterPosition - myCargoDataShared.myVectorHookPosition;
+		vector<double>  myVectorFinalRope = myCargoDataShared.myVectorWinchPosition - myCargoDataShared.myVectorHookPosition;
 		vector<double> vectorRopeUnit = get_unit_vector(myVectorFinalRope);
 
 		// If the rope ruptured, the empty vector will disable 
@@ -2072,6 +2186,9 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 		myLastLocalX = myCargoDataShared.myLdLocalX;
 		myLastLocalY = myCargoDataShared.myLdLocalY;
 		myLastLocalZ = myCargoDataShared.myLdLocalZ;
+
+		
+
 	}
 
 	auto time_end = std::chrono::steady_clock::now();
@@ -2100,6 +2217,9 @@ void HSL_PlugIn::DrawObjects()
 void HSL_PlugIn::ReadDataRefs()
 {
 	CARGO_SHM_SECTION_START
+
+	mySimTime = XPLMGetDataf(myDrSimTime);
+	myCargoDataShared.myIsInReplay = myIsInReplay = XPLMGetDatai(myDrIsInReplay);
 
 	myCargoDataShared.myLdLocalX = XPLMGetDatad(myDrLocalX);
 	myCargoDataShared.myLdLocalY = XPLMGetDatad(myDrLocalY);
