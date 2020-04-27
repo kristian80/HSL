@@ -543,6 +543,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 		{
 			DrawInstanceDestroy(myCargoInstanceRef);
 			DrawInstanceDestroy(myHookInstanceRef);
+			DrawInstanceDestroy(myWinchInstanceRef);
 			for (int index=0; index < HSL_ROPE_POINTS_MAX; index++)
 			{
 				DrawInstanceDestroy(myRopeInstances[index]);

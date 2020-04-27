@@ -70,7 +70,7 @@ struct CargoDataShared
 
 	double myRopeLengthStart = 2.0;
 	double myRopeLengthNormal = 2.2;
-	double myRopeDamping = 0.03;
+	double myRopeDamping = 0.2;//0.03;
 	double myRopeK = 55000.0;
 	double myRopeRuptureForce = 100000.0; //10t max
 	bool   myRopeRuptured = false;
