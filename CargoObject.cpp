@@ -303,8 +303,15 @@ void CargoObject::CalculatePhysics()
 
 		myCargoDataShared.myRopeStretchSpeed = myCargoDataShared.myRopeLengthDelta / frameTime;
 
-		if (myCargoDataShared.myRopeStretchSpeed < 0.0) myCargoDataShared.myDebugValue3 = 100;
-		myCargoDataShared.myRopeCorrectedD = myCargoDataShared.myRopeDamping * 2 * sqrt((myMass + myBambiBucketWaterWeight) * myCargoDataShared.myRopeK);
+		myCargoDataShared.myRopeCorrectedD = 0;
+
+		//myCargoDataShared.myDebugValue3 = 0;
+
+		if (myCargoDataShared.myRopeStretchSpeed < 0.0)
+		{
+			//myCargoDataShared.myDebugValue3 = 200;
+			myCargoDataShared.myRopeCorrectedD = myCargoDataShared.myRopeDamping * 2 * sqrt((myMass + myBambiBucketWaterWeight) * myCargoDataShared.myRopeK);
+		}
 
 		check_nan(myCargoDataShared.myRopeCorrectedD);
 
@@ -312,6 +319,7 @@ void CargoObject::CalculatePhysics()
 		double ropeForceStrech = myCargoDataShared.myRopeK * myCargoDataShared.myRopeStretchRelative;
 
 		myCargoDataShared.myRopeForceScalar = ropeForceStrech + ropeForceDamping;
+		
 		if (myCargoDataShared.myRopeForceScalar < 0.0)
 		{
 			myCargoDataShared.myRopeForceScalar = 0;  // Rope can never apply negative forces, our damping could ;-)
@@ -430,16 +438,24 @@ void CargoObject::CalculatePhysics()
 
 	myVectorForceOperator = myVectorZeroVector;
 
-	if (myCargoDataShared.myRopeLengthNormal <= myCargoDataShared.myRopeOperatorDampingLength)
+	
 	{
 		myVectorForceOperator = -1 * (myVectorVelocity - myVectorHelicopterVelocityApprox) * myMass / frameTime; // F= v * m / t
-		myVectorForceOperator(VERT_AXIS) = 0; // Only horizontally
+		//myVectorForceOperator(VERT_AXIS) = 0; // Only horizontally
+
+		double dampingForceMax = 5;// * max(1, myCargoDataShared.myRopeLengthNormal); //5N per meter cable
 
 		// Limit force
-		if (norm_2(myVectorForceOperator) > myCargoDataShared.myRopeOperatorDampingForce)
+		if (myCargoDataShared.myRopeLengthNormal <= myCargoDataShared.myRopeOperatorDampingLength)
+			dampingForceMax = myCargoDataShared.myRopeOperatorDampingForce;
+
+
+		if (norm_2(myVectorForceOperator) > dampingForceMax)
 		{
-			myVectorForceOperator = get_unit_vector(myVectorForceOperator) * myCargoDataShared.myRopeOperatorDampingForce;
+			myVectorForceOperator = get_unit_vector(myVectorForceOperator) * dampingForceMax;
 		}
+
+		myCargoDataShared.myDebugValue3 = norm_2(myVectorForceOperator);
 	}
 
 	// Sum up the forces

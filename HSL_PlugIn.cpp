@@ -45,9 +45,13 @@ HSL_PlugIn::HSL_PlugIn() :
 	myCargo.myFrictionStatic = 0.65;
 
 	myHook.myHeight = 0.3;
-	myHook.myMass = 5.0;
+	myHook.myMass = 1.5;
 	myHook.myFrictionGlide = 0.35;
 	myHook.myFrictionStatic = 0.65;
+
+	myHook.myVectorSize(0) = 0.3;
+	myHook.myVectorSize(1) = 0.3;
+	myHook.myVectorSize(2) = 0.3;
 
 	for (unsigned i = 0; i < myVectorZeroVector.size(); ++i) myVectorZeroVector(i) = 0;
 
@@ -482,6 +486,71 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 	static XPLMDrawInfo_t ropePositions[HSL_ROPE_POINTS_MAX];
 
 	auto time_start = std::chrono::steady_clock::now();
+
+	static bool enabledOld = false;
+
+	// Save blank frame before and after disabling
+	if (mySlingLineEnabled != enabledOld)
+	{
+		if (myIsInReplay == 0)
+		{
+			if (myReplaySaveCounter >= (myReplayDataSize - 1))
+			{
+				ReplayData* ptrReplay = myReplayDataPtr;
+				myReplayDataPtr = new ReplayData[myReplayDataSize + REPLAY_DATA_ALLOC];
+
+				if (myReplayDataPtr == NULL)
+				{
+					HSLDebugString("Out Of Memory");
+					myReplayDataSize = 0;
+					myReplaySaveCounter = 0;
+					return -1;
+				}
+
+				for (int index = 0; index < myReplayDataSize; index++)
+				{
+					myReplayDataPtr[index] = ptrReplay[index];
+				}
+
+				myReplayDataSize += REPLAY_DATA_ALLOC;
+				delete[] ptrReplay;
+			}
+
+			myReplayDataPtr[myReplaySaveCounter].mySimTime = mySimTime;
+
+			myReplayDataPtr[myReplaySaveCounter].myVectorWinchPosition = myVectorZeroVector;
+			myReplayDataPtr[myReplaySaveCounter].myVectorHookPosition = myVectorZeroVector;
+			myReplayDataPtr[myReplaySaveCounter].myVectorCargoPosition = myVectorZeroVector;
+			myReplayDataPtr[myReplaySaveCounter].myVectorCargoDisplayAngle = myVectorZeroVector;
+			myReplayDataPtr[myReplaySaveCounter].myVectorHookDisplayAngle = myVectorZeroVector;
+			myReplayDataPtr[myReplaySaveCounter].myVectorCargoDisplayOffset = myVectorZeroVector;
+			myReplayDataPtr[myReplaySaveCounter].myVectorHookDisplayOffset = myVectorZeroVector;
+
+			myReplayDataPtr[myReplaySaveCounter].myVectorCargoHelicopterPositionDeviation = myVectorZeroVector;
+			myReplayDataPtr[myReplaySaveCounter].myVectorHookHelicopterPositionDeviation = myVectorZeroVector;
+
+
+			myReplayDataPtr[myReplaySaveCounter].myRopeRuptured = true;
+			myReplayDataPtr[myReplaySaveCounter].myRopeLengthNormal = 1;
+
+			myReplayDataPtr[myReplaySaveCounter].myCargoDrawingEnabled = false;
+			myReplayDataPtr[myReplaySaveCounter].myHookDrawingEnabled = false;
+
+			myReplaySaveCounter++;
+		}
+
+		if (mySlingLineEnabled == false)
+		{
+			DrawInstanceDestroy(myCargoInstanceRef);
+			DrawInstanceDestroy(myHookInstanceRef);
+			for (int index=0; index < HSL_ROPE_POINTS_MAX; index++)
+			{
+				DrawInstanceDestroy(myRopeInstances[index]);
+			}
+		}
+	}
+
+	enabledOld = mySlingLineEnabled;
 
 	if (mySlingLineEnabled == true)
 	{

@@ -223,11 +223,11 @@ public:
 	XPLMCommandRef myCmdRefBambiBucketRelease = NULL;
 
 
-	std::string myWinchPath = "./Resources/plugins/HSL/sphere_white_1.obj";
-	std::string myRopePath = "./Resources/plugins/HSL/rope.obj";
-	std::string myHookPath = "./Resources/plugins/HSL/hook_hawk.obj";
-	std::string myRaindropPath = "./Resources/plugins/HSL/raindrop.obj";
-	std::string myCargoPath = "./Resources/plugins/HSL/cube.obj";
+	std::string myWinchPath = "./Resources/plugins/HSL/objects/sphere_white_1.obj";
+	std::string myRopePath = "./Resources/plugins/HSL/objects/rope.obj";
+	std::string myHookPath = "./Resources/plugins/HSL/objects/hook_hawk.obj";
+	std::string myRaindropPath = "./Resources/plugins/HSL/objects/raindrop.obj";
+	std::string myCargoPath = "./Resources/plugins/HSL/objects/cube.obj";
 	
 
 	XPLMObjectRef myWinchObjectRef = NULL;
