@@ -59,6 +59,8 @@ struct CargoDataShared
 	vector<double> myVectorHookPosition = vector<double>(3);
 	vector<double> myVectorWinchPosition = vector<double>(3);
 	vector<double> myVectorWindVelocity = vector<double>(3);
+
+	
 	
 
 	vector<double> myVectorDebug = vector<double>(3);
@@ -167,6 +169,9 @@ public:
 	std::string myAircraftIniFile = "HSLAircraft.ini";
 	std::string myConfigIniFile = "HSL.ini";
 
+	std::list<std::string> myProfileNames;
+	std::list<int> myProfileNumbers;
+
 	
 
 	std::shared_ptr<HSLImguiWidget> imguiPtr;
@@ -245,6 +250,8 @@ public:
 	
 	float myDummyAngle = 0;
 
+
+
 	vector<double> myRopePoints[HSL_ROPE_POINTS_MAX];
 	XPLMInstanceRef myRopeInstances[HSL_ROPE_POINTS_MAX];
 	XPLMInstanceRef myDebugInstances[HSL_ROPE_POINTS_MAX];
@@ -263,6 +270,7 @@ public:
 
 	vector<double> myVectorFireEmitterOffset = vector<double>(3);
 	vector<double> myVectorBambiBucketReleasePosition = vector<double>(3);
+	vector<double> myVectorEndOfRopePosition = vector<double>(3);
 
 
 	double myFireWaterRadius = 3.0;

@@ -58,6 +58,7 @@ HSL_PlugIn::HSL_PlugIn() :
 	myCargoDataShared.myVectorHelicopterPosition = myVectorZeroVector;
 	myCargoDataShared.myVectorHookPosition = myVectorZeroVector;
 	myCargoDataShared.myVectorWinchPosition = myVectorZeroVector;
+	myVectorEndOfRopePosition = myVectorZeroVector;
 
 
 	//myCargoDataShared.myVectorHelicopterPositionFlightLoop = myVectorZeroVector;
@@ -214,7 +215,8 @@ void HSL_PlugIn::PluginStart()
 	RegisterIntDataref(myCargo.myDrawingEnabled,			"HSL/Cargo/DrawingEnabled");
 	RegisterIntDataref(myCargo.myInstancedDrawing,			"HSL/Cargo/InstancedDrawing");
 
-	RegisterVectorDataref(myCargo.myVectorPosition,			"HSL/Cargo/Position");
+	//RegisterVectorDataref(myCargo.myVectorPosition,			"HSL/Cargo/Position");
+	RegisterVectorDataref(myCargo.myVectorDrawPosition, "HSL/Cargo/Position");
 	RegisterDoubleDataref(myCargo.myHeight,					"HSL/Cargo/Height");
 	RegisterDoubleDataref(myCargo.myMass,					"HSL/Cargo/Mass");
 	RegisterVectorDataref(myCargo.myVectorSize,				"HSL/Cargo/Size");
@@ -232,7 +234,8 @@ void HSL_PlugIn::PluginStart()
 
 
 	RegisterVectorDataref(myCargoDataShared.myVectorHelicopterPosition,			"HSL/Calculated/VectorHelicopterPosition");
-	RegisterVectorDataref(myCargoDataShared.myVectorHookPosition,				"HSL/Calculated/VectorHookPosition");
+	//RegisterVectorDataref(myCargoDataShared.myVectorHookPosition,				"HSL/Calculated/VectorHookPosition");
+	RegisterVectorDataref(myVectorEndOfRopePosition, "HSL/Calculated/VectorHookPosition");
 
 
 	RegisterDoubleDataref(myCargoDataShared.myFrameTime,						"HSL/Calculated/FrameTime");
@@ -645,7 +648,8 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 		vector<double> cargoVectorDisplayAngle =				(myIsInReplay == 0) ? myCargo.myVectorDisplayAngle					: myReplayDataPtr[replayDataPosition].myVectorCargoDisplayAngle;
 		
 
-		
+		myVectorEndOfRopePosition = myVectorZeroVector;
+
 		if (cargoDrawingEnabled == true)
 		{
 			
@@ -669,7 +673,11 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			myVectorBambiBucketReleasePosition = vectorCargoPointOpenGL;
 			vector<double> vectorReleaseHeight = get_unit_vector(vectorFinalRope) * myCargo.myHeight;
 			myVectorBambiBucketReleasePosition -= vectorReleaseHeight;
-			if (myIsInReplay == 0) myCargo.myVectorDrawPosition = vectorCargoPointOpenGL;
+			if (myIsInReplay == 0)
+			{
+				myCargo.myVectorDrawPosition = vectorCargoPointOpenGL;
+				myVectorEndOfRopePosition = vectorCargoPointOpenGL;
+			}
 		}
 		else
 		{
@@ -699,7 +707,12 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			vectorFinalRopeStart = vectorHookPointOpenGL;
 			DrawInstanceCreate(myHookInstanceRef, myHookObjectRef);
 			DrawInstanceSetPosition(myHookInstanceRef, myHookObjectRef, vectorHookPointOpenGL, hookVectorDisplayAngle, true);
-			if (myIsInReplay == 0) myHook.myVectorDrawPosition = vectorHookPointOpenGL;
+			if (myIsInReplay == 0)
+			{
+				myHook.myVectorDrawPosition = vectorHookPointOpenGL;
+				myVectorEndOfRopePosition = vectorHookPointOpenGL;
+			}
+					
 		}
 		else
 		{
