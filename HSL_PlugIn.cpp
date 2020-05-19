@@ -80,6 +80,13 @@ HSL_PlugIn::HSL_PlugIn() :
 
 	for (unsigned i = 0; i < HSL_ROPE_POINTS_MAX; ++i) myRopePoints[i] = myVectorZeroVector;
 	for (unsigned i = 0; i < HSL_ROPE_POINTS_MAX; ++i) myDebugInstances[i] = NULL;
+
+	for (unsigned i = 0; i < HSL_ROPE_SEGMENTS; ++i)
+	{
+		myRopeInstances_00_1[i] = NULL;
+		myRopeInstances_01_0[i] = NULL;
+		myRopeInstances_10_0[i] = NULL;
+	}
 	
 	
 }
@@ -189,6 +196,7 @@ void HSL_PlugIn::PluginStart()
 	RegisterDoubleDataref(myCargoDataShared.myRopeK,							"HSL/Rope/RopeK");
 	RegisterDoubleDataref(myCargoDataShared.myRopeRuptureForce,				"HSL/Rope/RuptureForce");
 	RegisterDoubleDataref(myCargoDataShared.myMaxAccRopeFactor,				"HSL/Rope/MaxAccRopeFactor");
+	RegisterDoubleDataref(myCargoDataShared.myRopeArtificialDampingForce, "HSL/Rope/ArtificialDampingForce");
 
 	RegisterDoubleDataref(myCargoDataShared.myRopeOperatorDampingForce, "HSL/Rope/OperatorForce");
 	RegisterDoubleDataref(myCargoDataShared.myRopeOperatorDampingLength, "HSL/Rope/OperatorLength");
@@ -246,6 +254,8 @@ void HSL_PlugIn::PluginStart()
 	RegisterDoubleDataref(myCargoDataShared.myRopeStretchSpeed,					"HSL/Calculated/RopeStretchSpeed");
 	RegisterDoubleDataref(myCargoDataShared.myRopeCorrectedD,					"HSL/Calculated/RopeCorrectedD");
 	RegisterIntDataref(myCargoDataShared.myRopeRuptured,						"HSL/Rope/RopeRuptured");
+
+	RegisterDoubleDataref(myRopeDrawLength, "HSL/Calculated/RopeDrawLength");
 	
 
 
@@ -349,7 +359,14 @@ void HSL_PlugIn::PluginStart()
 	myDrGravitation = XPLMFindDataRef("sim/weather/gravity_mss");
 
 	HSLDebugString("Config Read");
-	ConfigRead();
+	ConfigRead(myConfigIniFile);
+	ReadProfiles();
+
+	if (myProfileNames.size() > 0)
+	{
+		mySelectedProfileName = myProfileNames[0];
+		mySelectedProfilePath = myProfilePaths[0];
+	}
 
 	myInitialized = true;
 
@@ -367,7 +384,7 @@ void HSL_PlugIn::PluginStart()
 void HSL_PlugIn::PluginStop()
 {
 	if (myInitialized == false) return;
-	ConfigSave();
+	ConfigSave(myConfigIniFile);
 
 
 	XPLMDestroyMenu(myPluginMenuID);
@@ -722,35 +739,104 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 		bool ropeRuptured = (myIsInReplay == 0) ? myCargoDataShared.myRopeRuptured : myReplayDataPtr[replayDataPosition].myRopeRuptured;
 		
 		double ropeLengthNormal = (myIsInReplay == 0) ? myCargoDataShared.myRopeLengthNormal : myReplayDataPtr[replayDataPosition].myRopeLengthNormal;
-		int ropeObjectCount = (int) (ropeLengthNormal / 0.01f);
+		int ropeObjectCount = (int) (ropeLengthNormal / 0.1f);
 		
 		if (ropeObjectCount > HSL_ROPE_POINTS_MAX) ropeObjectCount = HSL_ROPE_POINTS_MAX;
 
 		
 		vector<double> vectorDebug = myCargoDataShared.myVectorDebug;
 
-		CARGO_SHM_SECTION_END // Now comes the time consuming part
+		CARGO_SHM_SECTION_END; // Now comes the time consuming part
+
+		myRopeDrawLength = 0;
 
 		if ((ropeRuptured == false) && (norm_2(vectorFinalRope) > 0))
 		{
+			// Calculate Rope Rotation
 			vector<double> vectorRopeUnit = get_unit_vector(vectorFinalRope);
 
-			
+			vector<double> normalPosition(3);
 
-			double ropeDistance = norm_2(vectorFinalRope) / ((double) ropeObjectCount);
-			int index = 0;
-			for (index = 0; index < ropeObjectCount; index++)
+			normalPosition(0) = 0;
+			normalPosition(1) = 1;
+			normalPosition(2) = 0;
+
+			vector<double> normalPositionSphere = XPlaneCartToSphere(normalPosition);
+			vector<double> ropeUnitSphere = XPlaneCartToSphere(vectorRopeUnit);
+
+			normalPositionSphere(1) = ropeUnitSphere(1) - normalPositionSphere(1);
+			normalPositionSphere(2) = ropeUnitSphere(2) - normalPositionSphere(2);
+
+			vector<double> vectorDisplayAngle(3);
+
+			// Using Pitch/Roll
+			vectorDisplayAngle(0) = ropeUnitSphere(1) * 180.0 / M_PI; // Pitch
+			vectorDisplayAngle(1) = ropeUnitSphere(2) * 180.0 / M_PI; // Roll
+			vectorDisplayAngle(2) = 0; //heading
+
+			myRopeDrawLength = norm_2(vectorFinalRope);
+
+			if (myRopeDrawSphere == true)
 			{
-				double distance = ropeDistance * index;
-				vector<double> position = vectorFinalRopeStart + (distance * vectorRopeUnit);
 
-				DrawInstanceCreate(myRopeInstances[index], myRopeObjectRef);
-				DrawInstanceSetPosition(myRopeInstances[index], myRopeObjectRef, position, true);
+				double ropeDistance = norm_2(vectorFinalRope) / ((double)ropeObjectCount);
+				int index = 0;
+				for (index = 0; index < ropeObjectCount; index++)
+				{
+					double distance = ropeDistance * index;
+					vector<double> position = vectorFinalRopeStart + (distance * vectorRopeUnit);
 
+					DrawInstanceCreate(myRopeInstances[index], myRopeObjectRef);
+					DrawInstanceSetPosition(myRopeInstances[index], myRopeObjectRef, position, vectorDisplayAngle, true);
+
+				}
+				for (; index < HSL_ROPE_POINTS_MAX; index++)
+				{
+					DrawInstanceDestroy(myRopeInstances[index]);
+				}
 			}
-			for (; index < HSL_ROPE_POINTS_MAX; index++)
+			else
 			{
-				DrawInstanceDestroy(myRopeInstances[index]);
+				XPLMInstanceRef* ropeInstancePtr = myRopeInstances_00_1;
+				XPLMInstanceRef* ropeUnused1Ptr = myRopeInstances_01_0;
+				XPLMInstanceRef* ropeUnused2Ptr = myRopeInstances_10_0;
+
+				XPLMObjectRef* ropeObjectPtr = &myRopeObj_00_1;
+
+				double segmentLength = 0.1;
+
+				if (myRopeDrawLength >= 10.0)
+				{
+					ropeInstancePtr = myRopeInstances_10_0;
+					ropeUnused1Ptr = myRopeInstances_01_0;
+					ropeUnused2Ptr = myRopeInstances_00_1;
+
+					ropeObjectPtr = &myRopeObj_10_0;
+					segmentLength = 10.0;
+				}
+				else if (myRopeDrawLength >= 1.0)
+				{
+					ropeInstancePtr = myRopeInstances_01_0;
+					ropeUnused1Ptr = myRopeInstances_10_0;
+					ropeUnused2Ptr = myRopeInstances_00_1;
+
+					ropeObjectPtr = &myRopeObj_01_0;
+					segmentLength = 1.0;
+				}
+
+				double ropeDistance = (norm_2(vectorFinalRope) - segmentLength) / ((double) (HSL_ROPE_SEGMENTS - 1)); 
+
+				for (int index = 0; index < HSL_ROPE_SEGMENTS; index++)
+				{
+					double distance = (ropeDistance * index);
+					vector<double> position = vectorFinalRopeStart + (distance * vectorRopeUnit);
+
+					DrawInstanceCreate(ropeInstancePtr[index], *ropeObjectPtr);
+					DrawInstanceSetPosition(ropeInstancePtr[index], *ropeObjectPtr, position, vectorDisplayAngle, true);
+					DrawInstanceDestroy(ropeUnused1Ptr[index]);
+					DrawInstanceDestroy(ropeUnused2Ptr[index]);
+				}
+
 			}
 		}
 		else
@@ -758,6 +844,13 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			for (int index = 0; index < HSL_ROPE_POINTS_MAX; index++)
 			{
 				DrawInstanceDestroy(myRopeInstances[index]);
+			}
+
+			for (int index = 0; index < HSL_ROPE_SEGMENTS; index++)
+			{
+				DrawInstanceDestroy(myRopeInstances_00_1[index]);
+				DrawInstanceDestroy(myRopeInstances_01_0[index]);
+				DrawInstanceDestroy(myRopeInstances_10_0[index]);
 			}
 		}
 
@@ -834,7 +927,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 	return 1;
 }
 
-void HSL_PlugIn::ConfigSave()
+void HSL_PlugIn::ConfigSave(std::string inIniFile)
 {
 	CARGO_SHM_SECTION_START
 	try
@@ -851,6 +944,7 @@ void HSL_PlugIn::ConfigSave()
 			pt.put("Rope.k_factor", myCargoDataShared.myRopeK);
 			pt.put("Rope.rupture_force", myCargoDataShared.myRopeRuptureForce);
 			pt.put("Rope.max_acc_factor", myCargoDataShared.myMaxAccRopeFactor);
+			pt.put("Rope.artificial_damping_force", myCargoDataShared.myRopeArtificialDampingForce);
 			
 
 			pt.put("Winch.library_object", myWinchPath);
@@ -885,10 +979,11 @@ void HSL_PlugIn::ConfigSave()
 			pt.put("Cargo.friction_glide", myCargo.myFrictionGlide);
 			pt.put("Cargo.friction_static", myCargo.myFrictionStatic);
 			ConfigWriteVector(pt, myCargo.myVectorCargoOffset, "Cargo.offset");
+			ConfigWriteVector(pt, myCargo.myVectorCargoRotation, "Cargo.rotations");
 			
 			ConfigWriteVector(pt, myCargoDataShared.myVectorWinchPosition, "HSL_Aircraft.winch_position");
 			
-			boost::property_tree::ini_parser::write_ini(myConfigPath + myConfigIniFile, pt);
+			boost::property_tree::ini_parser::write_ini(myConfigPath + inIniFile, pt);
 
 	}
 	catch (...)
@@ -897,13 +992,13 @@ void HSL_PlugIn::ConfigSave()
 	}
 }
 
-void HSL_PlugIn::ConfigRead()
+void HSL_PlugIn::ConfigRead(std::string inIniFile)
 {
 	CARGO_SHM_SECTION_START
 	boost::property_tree::ptree pt;
 	try
 	{
-		boost::property_tree::ini_parser::read_ini(myConfigPath + myConfigIniFile, pt);
+		boost::property_tree::ini_parser::read_ini(myConfigPath + inIniFile, pt); //myConfigIniFile
 
 		ConfigReadBool(pt, "System.simple_mode", mySimpleMode);
 		ConfigReadBool(pt, "System.high_performance", myCargoDataShared.myHighPerformace);
@@ -915,6 +1010,7 @@ void HSL_PlugIn::ConfigRead()
 		ConfigReaddouble(pt, "Rope.k_factor", myCargoDataShared.myRopeK);
 		ConfigReaddouble(pt, "Rope.rupture_force", myCargoDataShared.myRopeRuptureForce);
 		ConfigReaddouble(pt, "Rope.max_acc_factor", myCargoDataShared.myMaxAccRopeFactor);
+		ConfigReaddouble(pt, "Rope.artificial_damping_force", myCargoDataShared.myRopeArtificialDampingForce);
 
 		ConfigReadString(pt, "Winch.library_object", myWinchPath);
 		ConfigReaddouble(pt, "Winch.speed", myCargoDataShared.myWinchSpeed);
@@ -951,6 +1047,8 @@ void HSL_PlugIn::ConfigRead()
 		ConfigReaddouble(pt, "Cargo.friction_glide", myCargo.myFrictionGlide);
 		ConfigReaddouble(pt, "Cargo.friction_static", myCargo.myFrictionStatic);
 		ConfigReadVector(pt, myCargo.myVectorCargoOffset, "Cargo.offset");
+		ConfigReadVector(pt, myCargo.myVectorCargoRotation, "Cargo.rotations");
+
 	}
 	catch (...)
 	{
@@ -960,6 +1058,86 @@ void HSL_PlugIn::ConfigRead()
 
 	//try { m_global_path_index = pt.get<int>("HRM.global_path_index"); }
 	//catch (...) { HRMDebugString("Ini File: Entry not found."); }
+}
+
+bool HSL_PlugIn::SearchForObjectAnimation(std::string filenameIn)
+{
+	bool has_animation = false;
+
+	try
+	{
+		std::ifstream textStream(filenameIn);
+		std::string objectText((std::istreambuf_iterator<char>(textStream)), std::istreambuf_iterator<char>());
+
+		if (objectText.find("ANIM_") != std::string::npos) has_animation = true;
+	}
+	catch (...)
+	{
+		has_animation = true;
+	}
+
+	if (has_animation == true) myObjectHasAnimation = true; 
+
+	return has_animation;
+}
+
+void HSL_PlugIn::ReadProfiles()
+{
+	//namespace fs = std::filesystem;
+	//for (const auto& entry : std::experimental::filesystem::v1:: //directory_iterator(myConfigPath))
+	//std::experimental::filesystem 
+
+	myProfileNames.clear();
+	myProfilePaths.clear();
+
+	std::string iniPath = myConfigPath + "*.ini"; //myConfigPath.erase(myConfigPath.size() - 1, 1);
+
+	WIN32_FIND_DATA data;
+	HANDLE hFind = FindFirstFile(iniPath.c_str(), &data);
+
+	if (hFind != INVALID_HANDLE_VALUE) {
+		do {
+			//std::cout << data.cFileName << std::endl;
+
+			std::string file_path = data.cFileName;
+			size_t pos = file_path.find(".ini");
+
+			if ((pos != std::string::npos) && (file_path.compare("HSL.ini") != 0))
+			{
+				std::string file_name = file_path;
+				file_name.erase(pos, 4);
+				myProfileNames.push_back(file_name);
+				myProfilePaths.push_back(file_path);
+			}
+
+
+		} while (FindNextFile(hFind, &data));
+		FindClose(hFind);
+	}
+
+	//FindFirstFile()
+
+	/*boost::filesystem::directory_iterator end_iter;
+
+	for (boost::filesystem::directory_iterator iter(myConfigPath); iter != end_iter; ++iter)
+	{
+		if ((is_regular_file(iter->path()) == true))
+		{
+			std::string file_path = iter->path().string();
+			size_t pos = file_path.find(".ini");
+
+			if ((pos != std::string::npos) && (file_path.compare("HSL.ini") != 0))
+			{
+				std::string file_name = file_path;
+				file_name.erase(pos, 4);
+				myProfileNames.push_back(file_name);
+				myProfilePaths.push_back(file_path);
+			}
+		}
+
+	}*/
+
+
 }
 
 void HSL_PlugIn::AircraftConfigSave()
@@ -1076,22 +1254,51 @@ void HSL_PlugIn::SlingDisable()
 	mySlingLineEnabled = myCargoDataShared.mySlingLineEnabled = false;
 }
 
+void HSL_PlugIn::SlingRepairRope()
+{
+	CARGO_SHM_SECTION_START
+
+	// reset rope length
+	myCargoDataShared.myRopeLengthNormal = myCargoDataShared.myRopeLengthStart;
+
+	// load hook
+	myCargo.myRopeConnected = false;
+
+	myHook.myRopeConnected = true;
+	myHook.myFollowOnly = false;
+	myHook.myDrawingEnabled = true;
+
+	myCargoDataShared.myRopeRuptured = false;
+
+	ReadDataRefs();
+	myCargoDataShared.myNewFrame = true;
+
+	myCargoDataShared.myCurrentRopeLength = myCargoDataShared.myRopeLengthNormal;
+	
+	myCargoDataShared.myVectorHookPosition = AircraftToWorld(myCargoDataShared.myVectorWinchPosition);
+	myCargoDataShared.myVectorHookPosition(VERT_AXIS) -= myCargoDataShared.myRopeLengthNormal * 0.5;
+
+
+	myWinchDirection = HSL::Stop;
+
+	myHook.myVectorPosition = myCargoDataShared.myVectorHookPosition;
+	myHook.myVectorVelocity = myVectorZeroVector;
+	myHook.myVectorHelicopterPositionDeviation = myVectorZeroVector;
+	myHook.myVectorDrawPosition = myCargoDataShared.myVectorHookPosition;
+}
+
 void HSL_PlugIn::SlingReset()
 {
 	CARGO_SHM_SECTION_START
-	myCargoDataShared.myComputationRunFlag = false;
-	
-	
-
-	
+		myCargoDataShared.myComputationRunFlag = false;
 
 	for (unsigned i = 0; i < myCargoDataShared.myVectorHelicopterPosition.size(); ++i) myCargoDataShared.myVectorHelicopterPosition(i) = 0;
 	for (unsigned i = 0; i < myCargoDataShared.myVectorHookPosition.size(); ++i) myCargoDataShared.myVectorHookPosition(i) = 0;
-	
+
 	myCargoDataShared.myVectorWinchPosition = myVectorDefaultWinchPosition;
 	myCargo.myVectorDisplayAngle = myVectorZeroVector;
 	myHook.myVectorDisplayAngle = myVectorZeroVector;
-	
+
 	myCargo.myVectorDisplayOffset = myVectorZeroVector;
 	myHook.myVectorDisplayOffset = myVectorZeroVector;
 
@@ -1106,7 +1313,7 @@ void HSL_PlugIn::SlingReset()
 	myCargoDataShared.myRopeLengthNormal = myCargoDataShared.myRopeLengthStart;
 
 
-	
+
 
 	// load hook
 	myCargo.myRopeConnected = true;
@@ -1151,7 +1358,7 @@ void HSL_PlugIn::SlingReset()
 	myCargoDataShared.myDebugStatement = true;
 
 	UpdateObjects();
-	
+
 	myCargo.myRopeConnected = true;
 	myCargo.myFollowOnly = true;
 	myCargo.myDrawingEnabled = false;
@@ -1265,6 +1472,13 @@ void HSL_PlugIn::UpdateObjects()
 			DrawInstanceDestroy(myRopeInstances[index]);
 		}
 
+		for (int index = 0; index < HSL_ROPE_SEGMENTS; index++)
+		{
+			DrawInstanceDestroy(myRopeInstances_00_1[index]);
+			DrawInstanceDestroy(myRopeInstances_01_0[index]);
+			DrawInstanceDestroy(myRopeInstances_10_0[index]);
+		}
+
 		// Load Objects
 		if (myGroundProbe != NULL)
 		{
@@ -1302,27 +1516,59 @@ void HSL_PlugIn::UpdateObjects()
 			myRaindropObjectRef = NULL;
 		}
 
-		HSLDebugString("Reset: Winch Object Lookup Start");
+		if (myRopeObj_00_1 != NULL)
+		{
+			XPLMUnloadObject(myRopeObj_00_1);
+			myRopeObj_00_1 = NULL;
+		}
+
+		if (myRopeObj_01_0 != NULL)
+		{
+			XPLMUnloadObject(myRopeObj_01_0);
+			myRopeObj_01_0 = NULL;
+		}
+
+		if (myRopeObj_10_0 != NULL)
+		{
+			XPLMUnloadObject(myRopeObj_10_0);
+			myRopeObj_10_0 = NULL;
+		}
+
+		HSLDebugString("Reset: Object Lookup Start");
 		XPLMLookupObjects(myWinchPath.c_str(), 0, 0, load_cb, &myWinchObjectRef);
 		XPLMLookupObjects(myRopePath.c_str(), 0, 0, load_cb, &myRopeObjectRef);
 		XPLMLookupObjects(myHookPath.c_str(), 0, 0, load_cb, &myHookObjectRef);
 		XPLMLookupObjects(myCargoPath.c_str(), 0, 0, load_cb, &myCargoObjectRef);
 		XPLMLookupObjects(myRaindropPath.c_str(), 0, 0, load_cb, &myRaindropObjectRef);
 
-		if (myCargoObjectRef == NULL)		myCargoObjectRef = XPLMLoadObject(myCargoPath.c_str());
-		if (myHookObjectRef == NULL)		myHookObjectRef  = XPLMLoadObject(myHookPath.c_str());
-		if (myRopeObjectRef == NULL)		myRopeObjectRef  = XPLMLoadObject(myRopePath.c_str());
-		if (myWinchObjectRef == NULL)		myWinchObjectRef = XPLMLoadObject(myWinchPath.c_str());
-		if (myRaindropObjectRef == NULL)	myRaindropObjectRef = XPLMLoadObject(myRaindropPath.c_str());
+		XPLMLookupObjects(myRopePath_00_1.c_str(), 0, 0, load_cb, &myRopeObj_00_1);
+		XPLMLookupObjects(myRopePath_01_0.c_str(), 0, 0, load_cb, &myRopeObj_01_0);
+		XPLMLookupObjects(myRopePath_10_0.c_str(), 0, 0, load_cb, &myRopeObj_10_0);
+
+		if ((myCargoObjectRef == NULL) && (SearchForObjectAnimation(myCargoPath.c_str()) == false))		myCargoObjectRef = XPLMLoadObject(myCargoPath.c_str());
+		if ((myHookObjectRef == NULL) && (SearchForObjectAnimation(myCargoPath.c_str()) == false))		myHookObjectRef  = XPLMLoadObject(myHookPath.c_str());
+		if ((myRopeObjectRef == NULL) && (SearchForObjectAnimation(myCargoPath.c_str()) == false))		myRopeObjectRef  = XPLMLoadObject(myRopePath.c_str());
+		if ((myWinchObjectRef == NULL) && (SearchForObjectAnimation(myCargoPath.c_str()) == false))		myWinchObjectRef = XPLMLoadObject(myWinchPath.c_str());
+		if ((myRaindropObjectRef == NULL) && (SearchForObjectAnimation(myCargoPath.c_str()) == false))	myRaindropObjectRef = XPLMLoadObject(myRaindropPath.c_str());
+
+		if ((myRopeObj_00_1 == NULL) && (SearchForObjectAnimation(myRopePath_00_1.c_str()) == false))	myRopeObj_00_1 = XPLMLoadObject(myRopePath_00_1.c_str());
+		if ((myRopeObj_01_0 == NULL) && (SearchForObjectAnimation(myRopePath_01_0.c_str()) == false))	myRopeObj_01_0 = XPLMLoadObject(myRopePath_01_0.c_str());
+		if ((myRopeObj_10_0 == NULL) && (SearchForObjectAnimation(myRopePath_10_0.c_str()) == false))	myRopeObj_10_0 = XPLMLoadObject(myRopePath_10_0.c_str());
 
 
 		myGroundProbe = XPLMCreateProbe(xplm_ProbeY);
-		HSLDebugString("Reset: Winch Object Lookup Finished");
+		HSLDebugString("Reset: Object Lookup Finished");
 
-		if ((!myWinchObjectRef) || (!myRopeObjectRef) || (!myHookObjectRef) || (!myCargoObjectRef) || (!myRaindropObjectRef))
+		if ((!myWinchObjectRef) || (!myRopeObjectRef) || (!myHookObjectRef) || (!myCargoObjectRef) || (!myRaindropObjectRef) || (!myRopeObj_00_1) || (!myRopeObj_01_0) || (!myRopeObj_10_0))
 		{
-			HSLDebugString("Reset: Winch Object Lookup Failed");
+			HSLDebugString("Reset: Object Lookup Failed");
 			SlingDisable();
+			myUpdateObjectError = true;
+		}
+		else
+		{
+			myObjectHasAnimation = false;
+			myUpdateObjectError = false;
 		}
 	}
 	catch (...)

@@ -443,7 +443,7 @@ void CargoObject::CalculatePhysics()
 		myVectorForceOperator = -1 * (myVectorVelocity - myVectorHelicopterVelocityApprox) * myMass / frameTime; // F= v * m / t
 		//myVectorForceOperator(VERT_AXIS) = 0; // Only horizontally
 
-		double dampingForceMax = 5;// * max(1, myCargoDataShared.myRopeLengthNormal); //5N per meter cable
+		double dampingForceMax = myCargoDataShared.myRopeArtificialDampingForce;// * max(1, myCargoDataShared.myRopeLengthNormal); //5N per meter cable
 
 		// Limit force
 		if (myCargoDataShared.myRopeLengthNormal <= myCargoDataShared.myRopeOperatorDampingLength)

@@ -81,6 +81,8 @@ struct CargoDataShared
 	double myRopeOperatorDampingLength = 1.0;
 	double myRopeOperatorDampingForce = 100.0;
 
+	double myRopeArtificialDampingForce = 5.0;
+
 	double myCargoSetLatitutde = 0.0;
 	double myCargoSetLongitude = 0.0;
 	double myCargoSetHeading = 0.0;
@@ -169,9 +171,14 @@ public:
 	std::string myAircraftIniFile = "HSLAircraft.ini";
 	std::string myConfigIniFile = "HSL.ini";
 
-	std::list<std::string> myProfileNames;
+	std::vector<std::string> myProfileNames;
+	std::vector<std::string> myProfilePaths;
 	std::list<int> myProfileNumbers;
 
+	std::string mySelectedProfileName = "";
+	std::string mySelectedProfilePath = "";
+	std::string myNewProfileName = "";
+	int mySelectedProfileIndex = 0;
 	
 
 	std::shared_ptr<HSLImguiWidget> imguiPtr;
@@ -189,6 +196,8 @@ public:
 	int myAircraftLoaded = 0;
 	bool mySimpleMode = true;
 	bool myShowWinch = true;
+	bool myUpdateObjectError = false;
+	bool myObjectHasAnimation = false;
 
 	XPLMPluginID myDataRefEditorPluginID = XPLM_NO_PLUGIN_ID;
 	std::vector<XPLMDataRef> myRegisteredDatarefs;
@@ -233,6 +242,18 @@ public:
 	std::string myHookPath = "./Resources/plugins/HSL/objects/hook_hawk.obj";
 	std::string myRaindropPath = "./Resources/plugins/HSL/objects/raindrop.obj";
 	std::string myCargoPath = "./Resources/plugins/HSL/objects/cube.obj";
+
+	std::string myRopePath_00_1 = "./Resources/plugins/HSL/objects/rope_cyl_0_1.obj";
+	std::string myRopePath_01_0 = "./Resources/plugins/HSL/objects/rope_cyl_1_0.obj";
+	std::string myRopePath_10_0 = "./Resources/plugins/HSL/objects/rope_cyl_10_0.obj";
+
+	XPLMObjectRef myRopeObj_00_1 = NULL;
+	XPLMObjectRef myRopeObj_01_0 = NULL;
+	XPLMObjectRef myRopeObj_10_0 = NULL;
+
+	XPLMInstanceRef myRopeInstances_00_1[HSL_ROPE_SEGMENTS];
+	XPLMInstanceRef myRopeInstances_01_0[HSL_ROPE_SEGMENTS];
+	XPLMInstanceRef myRopeInstances_10_0[HSL_ROPE_SEGMENTS];
 	
 
 	XPLMObjectRef myWinchObjectRef = NULL;
@@ -249,6 +270,8 @@ public:
 	XPLMFlightLoopID myFlightLoopID = NULL;
 	
 	float myDummyAngle = 0;
+	double myRopeDrawLength = 0;
+	bool myRopeDrawSphere = false;
 
 
 
@@ -438,8 +461,11 @@ public:
 
 	int DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inRefcon);
 
-	void ConfigSave();
-	void ConfigRead();
+	void ConfigSave(std::string inIniFile);
+	void ConfigRead(std::string inIniFile);
+
+	bool SearchForObjectAnimation(std::string filenameIn);
+	void ReadProfiles();
 
 	void AircraftConfigSave();
 	void AircraftConfigRead();
@@ -453,6 +479,7 @@ public:
 	void SlingEnable();
 	void SlingDisable();
 	void SlingReset();
+	void SlingRepairRope();
 	void SlingConnect();
 	void SlingRelease();
 	void UpdateParameters();

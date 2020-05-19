@@ -33,7 +33,8 @@
 #include <ctime>
 #include <iomanip>
 #include <set>
-#include <mutex>          
+#include <mutex>
+//#include <filesystem>
 
 #include "XPLMDefs.h"
 #include "XPLMProcessing.h"
@@ -62,6 +63,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp> 
+//#include "boost/filesystem.hpp"
 using namespace boost::numeric::ublas;
 
 
@@ -86,6 +88,8 @@ using namespace boost::numeric::ublas;
 #define VERT_AXIS 1
 
 #define HSL_ROPE_POINTS_MAX 2000
+#define HSL_ROPE_SEGMENTS 20
+#define HSL_ROPE_LENGTH_MAX 100
 #define HSL_RAINDROPS_DRAW_MAX 1000
 #define MAX_OBJ_SPEED 300.0f // ~sonic speed
 #define MAX_FIRES 18

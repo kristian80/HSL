@@ -79,6 +79,7 @@
       <ObjectFileName>.\Release\64\</ObjectFileName>
       <ProgramDataBaseFileName>.\Release\64\</ProgramDataBaseFileName>
       <StructMemberAlignment>Default</StructMemberAlignment>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>

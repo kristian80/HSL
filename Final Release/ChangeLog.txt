@@ -1,0 +1,12 @@
+1.0.0
+Initial Version
+
+1.0.1
+BugFix: Plugins got virtual hook position
+
+1.0.2
+Added profiles
+"Repair Rope" button added
+Artificial damping is now adjustable
+Added cargo rotation to ini file
+Rope is drawn using cylinders instead of spheres

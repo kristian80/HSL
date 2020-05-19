@@ -142,8 +142,74 @@ void HSLImguiWidget::buildInterface()
 		InputVector(pHSL->myCargoDataShared.myVectorWinchPosition, "Winch Position");
 		if (ImGui::Button("Write Aircraft Ini File")) pHSL->AircraftConfigSave();
 
-		ImGui::Checkbox("Cargo Is Bambi Bucket", &(pHSL->myCargo.myIsBambiBucket));
-		ImGui::Checkbox("Bambi Bucket Release", &(pHSL->myCargo.myBambiBucketRelease));
+		ImGui::Text("Select Profile:");
+		if (ImGui::BeginCombo("##Folder", pHSL->mySelectedProfileName.c_str()))
+		{
+			for (int index = 0; index < pHSL->myProfileNames.size(); index++)
+			{
+				bool is_selected = (pHSL->mySelectedProfileIndex == index);
+				std::string profileName = pHSL->myProfileNames[index];
+
+				if (ImGui::Selectable(profileName.c_str(), is_selected))
+				{
+					pHSL->mySelectedProfileIndex = index;
+					pHSL->mySelectedProfileName = profileName;
+					pHSL->mySelectedProfilePath = pHSL->myProfilePaths[index];
+				}
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+		ImGui::PushItemWidth(80);
+		if (ImGui::Button("Read Profile"))
+		{
+			pHSL->ConfigRead(pHSL->mySelectedProfilePath);
+			pHSL->UpdateObjects();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Save Profile")) pHSL->ConfigSave(pHSL->mySelectedProfilePath);
+		ImGui::PopItemWidth();
+		ImGui::InputText("New Profile", &(pHSL->myNewProfileName));
+		if (ImGui::Button("Create Profile"))
+		{
+			pHSL->ConfigSave(pHSL->myNewProfileName + ".ini");
+			pHSL->ReadProfiles();
+
+			for (int index = 0; index < pHSL->myProfileNames.size(); index++)
+			{
+				if (pHSL->myProfileNames[index].compare(pHSL->myNewProfileName) == 0)
+				{
+					pHSL->mySelectedProfileIndex = index;
+					pHSL->mySelectedProfileName = pHSL->myProfileNames[index];
+					pHSL->mySelectedProfilePath = pHSL->myProfilePaths[index];
+				}
+			}
+		}
+
+
+		/*
+		if (ImGui::BeginCombo("##Folder", pHRM->m_global_path.c_str()))
+		{
+			for (int index = 0; index < pHRM->m_path_vector.size(); index++)
+			{
+				bool is_selected = (pHRM->m_global_path_index == index);
+				std::string folder_name = pHRM->m_path_vector[index];
+
+				if (ImGui::Selectable(folder_name.c_str(), is_selected))
+				{
+					pHRM->m_global_path_index = index;
+					pHRM->m_global_path = folder_name;
+				}
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+		*/
+
+		
+		//ImGui::Checkbox("Bambi Bucket Release", &(pHSL->myCargo.myBambiBucketRelease));
 
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(100);
@@ -153,8 +219,8 @@ void HSLImguiWidget::buildInterface()
 		ImGui::InputDouble("Rope Length Start [m]", &(pHSL->myCargoDataShared.myRopeLengthStart), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("Rope Length [m]", &(pHSL->myCargoDataShared.myRopeLengthNormal), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("Rope Rupture Force [N]", &(pHSL->myCargoDataShared.myRopeRuptureForce), 0.01, 0.01, "%.3f", 0);
-		ImGui::InputDouble("Rope Damping", &(pHSL->myCargoDataShared.myRopeDamping), 0.01, 0.01, "%.3f", 0);
-		ImGui::InputDouble("Rope Stiffness", &(pHSL->myCargoDataShared.myRopeK), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Rope Damping [0...1]", &(pHSL->myCargoDataShared.myRopeDamping), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Rope Stiffness [N/rel_stretch]", &(pHSL->myCargoDataShared.myRopeK), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("Winch Speed [m/s]", &(pHSL->myCargoDataShared.myWinchSpeed), 0.01, 0.01, "%.3f", 0);
 
 		
@@ -181,6 +247,8 @@ void HSLImguiWidget::buildInterface()
 		ImGui::InputDouble("Cargo Friction Static", &(pHSL->myCargo.myFrictionStatic), 0.01, 0.01, "%.3f", 0);
 		InputVector(pHSL->myCargo.myVectorCargoOffset, "Cargo Offset");
 
+		ImGui::Checkbox("Cargo Is Bambi Bucket", &(pHSL->myCargo.myIsBambiBucket));
+
 
 	}
 	
@@ -190,8 +258,9 @@ void HSLImguiWidget::buildInterface()
 	else
 	{
 		ImGui::PushItemWidth(100);
+		ImGui::Checkbox("Use Rope Sphere", &(pHSL->myRopeDrawSphere));
 		ImGui::Checkbox("Physics Enabled", &(pHSL->myCargoDataShared.myPhysicsEnabled));
-
+		
 
 		if (pHSL->myCargoDataShared.myPhysicsEnabled == false)
 		{
@@ -200,8 +269,8 @@ void HSLImguiWidget::buildInterface()
 			InputVector(pHSL->myHook.myVectorPosition, "Hook Position");
 		}
 
-		if (ImGui::Button("Load Settings")) pHSL->ConfigRead();
-		if (ImGui::Button("Save Settings")) pHSL->ConfigSave();
+		//if (ImGui::Button("Load Settings")) pHSL->ConfigRead();
+		//if (ImGui::Button("Save Settings")) pHSL->ConfigSave();
 
 		ImGui::Text("Winch:");
 		InputVector(pHSL->myCargoDataShared.myVectorWinchPosition, "Winch Position");
@@ -224,7 +293,8 @@ void HSLImguiWidget::buildInterface()
 		ImGui::InputDouble("Rope Length [m]", &(pHSL->myCargoDataShared.myRopeLengthNormal), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("Rope Rupture Force [N]", &(pHSL->myCargoDataShared.myRopeRuptureForce), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("Rope Damping", &(pHSL->myCargoDataShared.myRopeDamping), 0.01, 0.01, "%.3f", 0);
-		ImGui::InputDouble("Rope K", &(pHSL->myCargoDataShared.myRopeK), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Rope Artifical Damping [N]", &(pHSL->myCargoDataShared.myRopeArtificialDampingForce), 0.01, 0.01, "%.3f", 0);
+		ImGui::InputDouble("Rope K [N/relative_stretch]", &(pHSL->myCargoDataShared.myRopeK), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("MaxRopeAcc", &(pHSL->myCargoDataShared.myMaxAccRopeFactor), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("Winch Speed [m/s]", &(pHSL->myCargoDataShared.myWinchSpeed), 0.01, 0.01, "%.3f", 0);
 		ImGui::InputDouble("Winch Operator Strength [N]", &(pHSL->myCargoDataShared.myRopeOperatorDampingForce), 0.01, 0.01, "%.3f", 0);
@@ -393,8 +463,13 @@ void HSLImguiWidget::buildInterface()
 	ImGui::NextColumn();
 	
 	if (ImGui::Button("Enable")) pHSL->SlingEnable();
+	ImGui::SameLine();
 	if (ImGui::Button("Disable")) pHSL->SlingDisable();
+	ImGui::SameLine();
 	if (ImGui::Button("Reset")) pHSL->SlingReset();
+	//ImGui::SameLine();
+
+	if (ImGui::Button("Repair Rope")) pHSL->SlingRepairRope();
 
 	if (ImGui::Button("Place Load Here")) pHSL->CargoPlaceOnGround();
 	if (ImGui::Button("Place Load Coords")) pHSL->CargoPlaceCoordinates();
@@ -407,6 +482,7 @@ void HSLImguiWidget::buildInterface()
 	if (ImGui::Button("Cut Rope")) pHSL->myCargoDataShared.myRopeRuptured = true;
 
 	if (ImGui::Button("Fill BambiBucket")) pHSL->myCargo.myBambiBucketWaterLevel = 1.0;
+	if (ImGui::Button("Release BambiBucket")) pHSL->BambiBucketRelease();
 
 
 	
@@ -419,7 +495,22 @@ void HSLImguiWidget::buildInterface()
 	
 	if (ImGui::Button("Update Objects")) pHSL->UpdateObjects();
 
-	
+	if (pHSL->myObjectHasAnimation == true)
+	{
+		ImVec4 col = ImColor(255, 0, 0);
+		ImGui::PushStyleColor(ImGuiCol_Text, col);
+		ImGui::Text("Error: Incompatible Object");
+		ImGui::PopStyleColor();
+	}
+
+	if (pHSL->myUpdateObjectError == true)
+	{
+		ImVec4 col = ImColor(255, 0, 0);
+		ImGui::PushStyleColor(ImGuiCol_Text, col);
+		ImGui::Text("Error: Failed to Load Objects."); 
+		//ImGui::Text("Plugin Disabled");
+		ImGui::PopStyleColor();
+	}
 
 	if (pHSL->myCargoDataShared.mySlingLineEnabled == true)
 	{
