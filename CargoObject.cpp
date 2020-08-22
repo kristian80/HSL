@@ -450,8 +450,9 @@ void CargoObject::CalculatePhysics()
 			dampingForceMax = myCargoDataShared.myRopeOperatorDampingForce;
 
 
-		if (norm_2(myVectorForceOperator) > dampingForceMax)
+		if ((norm_2(myVectorForceOperator) > dampingForceMax))
 		{
+			//if ((myCargoDataShared.myRopeLengthNormal > 0.2))
 			myVectorForceOperator = get_unit_vector(myVectorForceOperator) * dampingForceMax;
 		}
 
@@ -520,8 +521,25 @@ void CargoObject::CalculatePhysics()
 
 	if (myCargoDataShared.myPhysicsEnabled == true)
 	{
+		// When the rope is below the threshold, we stabilize it directly below the winch
+		if ((myCargoDataShared.myRopeLengthNormal < HSL_Data::rope_lenght_static) && (myRopeConnected == true) && (myCargoDataShared.myRopeRuptured == false))
+		{
+			myVectorPosition = myVectorHelicopterPositionApprox;
+			myVectorPosition(1) -= myCargoDataShared.myRopeLengthNormal;
 
-		myVectorPosition += myVectorVelocity * frameTime;
+			myVectorAccTotal = myVectorZeroVector;
+			myVectorVelocityDelta = myVectorZeroVector;
+			myVectorVelocity = myVectorHelicopterVelocityApprox;
+
+			myVectorForceTotal = myVectorZeroVector;
+			myVectorForceRope = myVectorZeroVector;
+		}
+		else
+		{
+			myVectorPosition += myVectorVelocity * frameTime;
+ 		}
+
+		
 
 		check_nan(myVectorPosition);
 

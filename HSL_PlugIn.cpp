@@ -1249,6 +1249,7 @@ void HSL_PlugIn::SlingEnable()
 void HSL_PlugIn::SlingDisable()
 {
 	CARGO_SHM_SECTION_START
+	SlingReset();
 	myCargoDataShared.myComputationRunFlag = false;
 	XPLMCheckMenuItem(myPluginMenuID, myEnableSlingMenu, xplm_Menu_Unchecked);
 	mySlingLineEnabled = myCargoDataShared.mySlingLineEnabled = false;
@@ -1336,17 +1337,17 @@ void HSL_PlugIn::SlingReset()
 	myCargoDataShared.myCurrentRopeLength = myCargoDataShared.myRopeLengthNormal;
 	AircraftConfigRead();
 	myCargoDataShared.myVectorHookPosition = AircraftToWorld(myCargoDataShared.myVectorWinchPosition);
-	myCargoDataShared.myVectorHookPosition(VERT_AXIS) -= myCargoDataShared.myRopeLengthNormal * 0.5;
+	myCargoDataShared.myVectorHookPosition(VERT_AXIS) -= myCargoDataShared.myRopeLengthNormal * 0.99;
 
 
 	myWinchDirection = HSL::Stop;
 
 	myCargo.myVectorPosition = myCargoDataShared.myVectorHookPosition;
-	myCargo.myVectorVelocity = myVectorZeroVector;
+	myCargo.myVectorVelocity = myCargoDataShared.myVectorHelicopterVelocity;
 	myCargo.myVectorHelicopterPositionDeviation = myVectorZeroVector;
 	myCargo.myVectorDrawPosition = myCargoDataShared.myVectorHookPosition;
 	myHook.myVectorPosition = myCargoDataShared.myVectorHookPosition;
-	myHook.myVectorVelocity = myVectorZeroVector;
+	myHook.myVectorVelocity = myCargoDataShared.myVectorHelicopterVelocity;
 	myHook.myVectorHelicopterPositionDeviation = myVectorZeroVector;
 	myHook.myVectorDrawPosition = myCargoDataShared.myVectorHookPosition;
 
@@ -2172,7 +2173,11 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 			myCargoDataShared.myRopeLengthNormal -= myCargoDataShared.myWinchSpeed * myCargoDataShared.myFrameTime;
 			
 		}
-		if (myCargoDataShared.myRopeLengthNormal < 0.1f) myCargoDataShared.myRopeLengthNormal = 0.1;
+		if (myCargoDataShared.myRopeLengthNormal < HSL_Data::rope_lenght_min)
+		{
+			myCargoDataShared.myRopeLengthNormal = HSL_Data::rope_lenght_min;
+			myWinchDirection = HSL::Stop;
+		}
 
 		// Get the new position of the winch in world coodinates		
 		myCargoDataShared.myVectorHelicopterPosition = AircraftToWorld(myCargoDataShared.myVectorWinchPosition);
@@ -2256,7 +2261,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 			myVectorHelicopterMomentumApplied += forceData.myVectorMomentum * forceData.myTimeApplied;
 		}
 
-		if ((forceTime > 0) && (myCargoDataShared.myRopeLengthNormal > 0.2f))
+		if ((forceTime > 0) && (myCargoDataShared.myRopeLengthNormal > HSL_Data::rope_lenght_static))
 		{
 			myVectorHelicopterForceApplied = myVectorHelicopterForceApplied / forceTime;
 			myVectorHelicopterMomentumApplied = myVectorHelicopterMomentumApplied / forceTime;
@@ -2283,6 +2288,24 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 				XPLMSetDataf(myDrMomentumZ, (float)(myLfMomentumZ - myVectorHelicopterMomentumApplied(1)));
 			}
 		}
+		/*else if ((myCargoDataShared.myRopeLengthNormal <= HSL_Data::rope_lenght_static))
+		{
+			myCargoDataShared.myVectorHookPosition = AircraftToWorld(myCargoDataShared.myVectorWinchPosition);
+			myCargoDataShared.myVectorHookPosition(VERT_AXIS) -= myCargoDataShared.myRopeLengthNormal * 0.99;
+
+			myHook.myVectorPosition = myCargoDataShared.myVectorHookPosition;
+			myHook.myVectorVelocity = myCargoDataShared.myVectorHelicopterVelocity;
+			myHook.myVectorHelicopterPositionDeviation = myVectorZeroVector;
+			myHook.myVectorDrawPosition = myCargoDataShared.myVectorHookPosition;
+			
+			if (myCargo.myRopeConnected == true)
+			{
+				myCargo.myVectorPosition = myCargoDataShared.myVectorHookPosition;
+				myCargo.myVectorVelocity = myCargoDataShared.myVectorHelicopterVelocity;
+				myCargo.myVectorHelicopterPositionDeviation = myVectorZeroVector;
+				myCargo.myVectorDrawPosition = myCargoDataShared.myVectorHookPosition;
+			}
+		}*/
 
 		static auto timeStart = std::chrono::steady_clock::now();
 		static double countComps = 0;

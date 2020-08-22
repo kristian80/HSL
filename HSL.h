@@ -452,6 +452,9 @@ namespace HSL_Data
 	const double eval_flight2_sling_nominal_speed = 50;
 
 	const double density_water = 997;
+	const double rope_lenght_static = 0.31;
+	const double rope_lenght_min = 0.3;
+	
 
 
 
@@ -465,6 +468,7 @@ namespace HSL {
 		Down,
 		Stop
 	};
+	
 }
 double calc_distance_m(double lat1, double long1, double lat2, double long2);
 double calc_distance_nm(double lat1, double long1, double lat2, double long2);

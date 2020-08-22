@@ -78,8 +78,8 @@ struct CargoDataShared
 	bool   myRopeRuptured = false;
 	double myMaxAccRopeFactor = 2.0;
 
-	double myRopeOperatorDampingLength = 1.0;
-	double myRopeOperatorDampingForce = 100.0;
+	double myRopeOperatorDampingLength = 1.5;
+	double myRopeOperatorDampingForce = 200.0;
 
 	double myRopeArtificialDampingForce = 5.0;
 
