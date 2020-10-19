@@ -434,6 +434,11 @@ void CargoObject::CalculatePhysics()
 	// Get the force of the gravity
 	myVectorForceGravity(VERT_AXIS) = myCargoDataShared.myLfGravitation * (myMass + (myBambiBucketWaterWeight * (1.0 - myWaterLevel)));
 
+	// New: 
+	double forceGravity = myCargoDataShared.myLfGravitation * (myMass + (myBambiBucketWaterWeight * (1.0 - myWaterLevel)));
+	myVectorForceGravity = myCargoDataShared.myVectorDownDirection * forceGravity;
+
+
 	// Get the force of the winch operator trying to stop the load oscillation
 
 	myVectorForceOperator = myVectorZeroVector;

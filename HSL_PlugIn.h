@@ -60,6 +60,8 @@ struct CargoDataShared
 	vector<double> myVectorWinchPosition = vector<double>(3);
 	vector<double> myVectorWindVelocity = vector<double>(3);
 
+	vector<double> myVectorDownDirection = vector<double>(3);
+
 	
 	
 
@@ -147,6 +149,7 @@ struct ReplayData
 
 	vector<double> myVectorCargoDisplayAngle = vector<double>(3);
 	vector<double> myVectorHookDisplayAngle = vector<double>(3);
+	vector<double> myVectorWinchDisplayAngle = vector<double>(3);
 
 	vector<double> myVectorCargoDisplayOffset = vector<double>(3);
 	vector<double> myVectorHookDisplayOffset = vector<double>(3);

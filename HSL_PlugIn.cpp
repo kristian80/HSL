@@ -543,6 +543,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			myReplayDataPtr[myReplaySaveCounter].myVectorCargoPosition = myVectorZeroVector;
 			myReplayDataPtr[myReplaySaveCounter].myVectorCargoDisplayAngle = myVectorZeroVector;
 			myReplayDataPtr[myReplaySaveCounter].myVectorHookDisplayAngle = myVectorZeroVector;
+			myReplayDataPtr[myReplaySaveCounter].myVectorWinchDisplayAngle = myVectorZeroVector;
 			myReplayDataPtr[myReplaySaveCounter].myVectorCargoDisplayOffset = myVectorZeroVector;
 			myReplayDataPtr[myReplaySaveCounter].myVectorHookDisplayOffset = myVectorZeroVector;
 
@@ -579,6 +580,12 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 
 		ReadDataRefs();
 
+		vector<double> vectorAircraftRotation = vector<double>(3);
+
+		vectorAircraftRotation(1) = myCargoDataShared.myLfLocalPhi * 180.0 / M_PI;
+		vectorAircraftRotation(2) = myCargoDataShared.myLfLocalPsi * 180.0 / M_PI;
+		vectorAircraftRotation(0) = myCargoDataShared.myLfLocalTheta * 180.0 / M_PI;
+
 		int replayDataPosition = 0;
 
 		// Prepare Replay Storage
@@ -613,6 +620,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			myReplayDataPtr[myReplaySaveCounter].myVectorCargoPosition = myCargo.myVectorPosition;
 			myReplayDataPtr[myReplaySaveCounter].myVectorCargoDisplayAngle = myCargo.myVectorDisplayAngle;
 			myReplayDataPtr[myReplaySaveCounter].myVectorHookDisplayAngle = myHook.myVectorDisplayAngle;
+			myReplayDataPtr[myReplaySaveCounter].myVectorWinchDisplayAngle = vectorAircraftRotation;
 			myReplayDataPtr[myReplaySaveCounter].myVectorCargoDisplayOffset = myCargo.myVectorDisplayOffset;
 			myReplayDataPtr[myReplaySaveCounter].myVectorHookDisplayOffset = myHook.myVectorDisplayOffset;
 
@@ -649,11 +657,15 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 
 		vector<double> vectorWinchWorld = (myIsInReplay == 0) ? AdjustFrameMovement(myCargoDataShared.myVectorHelicopterPosition) : AdjustFrameMovementReplay(myReplayDataPtr[replayDataPosition].myVectorWinchPosition, myReplayDataPtr[replayDataPosition].myVectorLocalPosition);
 
+		//if (myIsInReplay != 0)
+		//	vectorAircraftRotation = myReplayDataPtr[replayDataPosition].myVectorWinchDisplayAngle;
+		
+
 		if (myIsInReplay == 0) myReplayDataPtr[myReplaySaveCounter].myVectorWinchPosition = vectorWinchWorld;
 
 		//vector<double> vectorWinchWorld = myVectorWinchPosition;
 		DrawInstanceCreate(myWinchInstanceRef, myWinchObjectRef);
-		DrawInstanceSetPosition(myWinchInstanceRef, myWinchObjectRef, vectorWinchWorld, true);
+		DrawInstanceSetPosition(myWinchInstanceRef, myWinchObjectRef, vectorWinchWorld, vectorAircraftRotation, true);
 
 		vector<double>  vectorFinalRope = myVectorZeroVector;
 		vector<double>  vectorFinalRopeStart = myVectorZeroVector;
@@ -2193,6 +2205,8 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 		}
 
 
+
+
 		//double lat1, lon1, alt;
 		//double x1, y1, z1;
 
@@ -2268,7 +2282,7 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 
 			if (myCargoDataShared.myRopeRuptureForce <= norm_2(myVectorHelicopterForceApplied))
 			{
-				HSLDebugString("Rope ruptured: " + std::to_string(norm_2(myVectorHelicopterForceApplied)));
+				HSLDebugString("Rope ruptured: " + std::to_string(norm_2(myVectorHelicopterForceApplied)) + "N, " + std::to_string(forceTime) + "s");
 				myCargoDataShared.myRopeRuptured = true;
 				myCargoDataShared.myRopeForceScalar = 0.0;
 				myCargoDataShared.myCurrentRopeLength = myCargoDataShared.myRopeLengthNormal;
@@ -2329,8 +2343,8 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 
 		// Debug for Air Force
 
-		myCargoDataShared.myDebugValue1 = norm_2(myCargo.myVectorForceAir);
-		myCargoDataShared.myDebugValue2 = norm_2(myCargo.myVectorForceAirNew);
+		//myCargoDataShared.myDebugValue1 = norm_2(myCargo.myVectorForceAir);
+		//myCargoDataShared.myDebugValue2 = norm_2(myCargo.myVectorForceAirNew);
 
 		vector<double>  myVectorFinalRope = myCargoDataShared.myVectorHelicopterPosition - myCargoDataShared.myVectorHookPosition;
 		vector<double> vectorRopeUnit = get_unit_vector(myVectorFinalRope);
@@ -2576,6 +2590,25 @@ void HSL_PlugIn::ReadDataRefs()
 	myCargoDataShared.myLdLocalX = XPLMGetDatad(myDrLocalX);
 	myCargoDataShared.myLdLocalY = XPLMGetDatad(myDrLocalY);
 	myCargoDataShared.myLdLocalZ = XPLMGetDatad(myDrLocalZ);
+
+	double lat, lon, alt;
+	XPLMLocalToWorld(myCargoDataShared.myLdLocalX, myCargoDataShared.myLdLocalY, myCargoDataShared.myLdLocalZ, &lat, &lon, &alt);
+	double x1, y1, z1;
+	XPLMWorldToLocal(lat, lon, alt, &x1, &y1, &z1);
+	double x2, y2, z2;
+	XPLMWorldToLocal(lat, lon, alt-100, &x2, &y2, &z2);
+
+	myCargoDataShared.myVectorDownDirection(0) = x1 - x2;
+	myCargoDataShared.myVectorDownDirection(1) = y1 - y2;
+	myCargoDataShared.myVectorDownDirection(2) = z1 - z2;
+
+	myCargoDataShared.myVectorDownDirection = get_unit_vector(myCargoDataShared.myVectorDownDirection);
+
+	myCargoDataShared.myDebugValue1 = myCargoDataShared.myVectorDownDirection(0);
+	myCargoDataShared.myDebugValue2 = myCargoDataShared.myVectorDownDirection(1);
+	myCargoDataShared.myDebugValue3 = myCargoDataShared.myVectorDownDirection(2);
+	myCargoDataShared.myDebugValue4 = myCargoDataShared.myVectorDownDirection(2);
+
 
 	myCargoDataShared.myVectorHelicopterVelocity(0) = myCargoDataShared.myLfLocalXv = XPLMGetDataf(myDrLocalXv);
 	myCargoDataShared.myVectorHelicopterVelocity(1) = myCargoDataShared.myLfLocalYv = XPLMGetDataf(myDrLocalYv);
