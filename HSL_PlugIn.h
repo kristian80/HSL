@@ -143,9 +143,11 @@ struct ReplayData
 	vector<double> myVectorWinchPosition = vector<double>(3);
 	vector<double> myVectorHookPosition = vector<double>(3);
 	vector<double> myVectorCargoPosition = vector<double>(3);
+	vector<double> myVectorBambiBucketReleasePosition = vector<double>(3);
 	bool myRopeRuptured = false;
 	bool myCargoDrawingEnabled = false;
 	bool myHookDrawingEnabled = false;
+	bool myBambiBucketReleasingWater = false;
 
 	vector<double> myVectorCargoDisplayAngle = vector<double>(3);
 	vector<double> myVectorHookDisplayAngle = vector<double>(3);
@@ -291,8 +293,10 @@ public:
 
 	//std::string myFireObjectPath = "lib/airport/Common_Elements/Miscellaneous/Tree.obj";
 	std::string myFireAircraftPath = "Fire_Aircraft\\fire_aircraft.acf";
+	std::string myWaterAircraftPath = "Water_Aircraft\\fire_aircraft.acf";
 	std::string myNoFireAircraftPath = "NoFire_Aircraft\\nofire_aircraft.acf";
 	XPLMObjectRef myFireObjectRef = NULL;
+	FireObject *mypWaterObject = NULL;
 
 	vector<double> myVectorFireEmitterOffset = vector<double>(3);
 	vector<double> myVectorBambiBucketReleasePosition = vector<double>(3);
@@ -413,6 +417,8 @@ public:
 	XPLMDataRef myDrAirDensity;
 	XPLMDataRef myDrGravitation;
 
+	XPLMDataRef myDrBambiBucketReleaseWorkaround = NULL;
+
 	///////////////////////////////////////////////////
 	// DataRefs X-Plane Local Copies
 
@@ -491,6 +497,7 @@ public:
 	void CargoPlaceCoordinates();
 	void FirePlaceOnGround();
 	void FirePlaceCoordinates();
+	void WaterPlaceCoordinates();
 	void BambiBucketRelease();
 	void FirePlaceAtCoordinates(vector<double> * pinVectorFireObjectPosition);
 

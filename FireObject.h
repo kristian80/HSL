@@ -61,6 +61,7 @@ public:
 	XPLMDataRef GetPlaneDataRef(std::string prefix, int planeIndex, std::string postfix);
 	void UpdateWorldCoordinates(void);
 	void SetPosition(void);
+	void SetPosition(vector<double> inVectorFireObjectPosition, vector<double> inVectorFireObjectVelocity);
 	void Remove(void);
 	bool CheckWaterDrop(vector<double> inDropPosition, double inWaterAmount);
 	bool operator == (const FireObject& s);

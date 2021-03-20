@@ -120,6 +120,30 @@ void FireObject::SetPosition(void)
 
 }
 
+void FireObject::SetPosition(vector<double> inVectorFireObjectPosition, vector<double> inVectorFireObjectVelocity)
+{
+	XPLMSetDataf(myDrXPos, (float)inVectorFireObjectPosition(0));
+	XPLMSetDataf(myDrYPos, (float)inVectorFireObjectPosition(1));
+	XPLMSetDataf(myDrZPos, (float)inVectorFireObjectPosition(2));
+
+	// Does not always work on first try, so we do it every time. 
+	XPLMSetDataf(myDrXV, (float)inVectorFireObjectVelocity(0));
+	XPLMSetDataf(myDrYV, (float)inVectorFireObjectVelocity(1));
+	XPLMSetDataf(myDrZV, (float)inVectorFireObjectVelocity(2));
+
+	XPLMSetDataf(myDrXA, 0);
+	XPLMSetDataf(myDrYA, 0);
+	XPLMSetDataf(myDrZA, 0);
+
+	XPLMSetDatai(myDrL1, 0);
+	XPLMSetDatai(myDrL2, 0);
+	XPLMSetDatai(myDrL3, 0);
+	XPLMSetDatai(myDrL4, 0);
+	XPLMSetDatai(myDrL5, 0);
+
+
+}
+
 void FireObject::Remove(void)
 {
 	XPLMSetDataf(myDrXPos, 0);

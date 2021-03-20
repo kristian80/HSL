@@ -107,6 +107,7 @@ void HSL_PlugIn::PluginStart()
 
 	myConfigPath = mySystemPath + "Resources" + myDS + "plugins" + myDS + "HSL" + myDS;
 	myFireAircraftPath = myConfigPath + myFireAircraftPath;
+	myWaterAircraftPath = myConfigPath + myWaterAircraftPath;
 	myNoFireAircraftPath = myConfigPath + myNoFireAircraftPath;
 
 	
@@ -358,6 +359,8 @@ void HSL_PlugIn::PluginStart()
 	myDrAirDensity = XPLMFindDataRef("sim/weather/rho");
 	myDrGravitation = XPLMFindDataRef("sim/weather/gravity_mss");
 
+	myDrBambiBucketReleaseWorkaround = XPLMFindDataRef("sim/cockpit2/weapons/gun_offset_heading_ratio");
+
 	HSLDebugString("Config Read");
 	ConfigRead(myConfigIniFile);
 	ReadProfiles();
@@ -546,6 +549,7 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			myReplayDataPtr[myReplaySaveCounter].myVectorWinchDisplayAngle = myVectorZeroVector;
 			myReplayDataPtr[myReplaySaveCounter].myVectorCargoDisplayOffset = myVectorZeroVector;
 			myReplayDataPtr[myReplaySaveCounter].myVectorHookDisplayOffset = myVectorZeroVector;
+			
 
 			myReplayDataPtr[myReplaySaveCounter].myVectorCargoHelicopterPositionDeviation = myVectorZeroVector;
 			myReplayDataPtr[myReplaySaveCounter].myVectorHookHelicopterPositionDeviation = myVectorZeroVector;
@@ -556,6 +560,8 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 
 			myReplayDataPtr[myReplaySaveCounter].myCargoDrawingEnabled = false;
 			myReplayDataPtr[myReplaySaveCounter].myHookDrawingEnabled = false;
+
+			myReplayDataPtr[myReplaySaveCounter].myVectorBambiBucketReleasePosition = myVectorZeroVector;
 
 			myReplaySaveCounter++;
 		}
@@ -634,6 +640,8 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			myReplayDataPtr[myReplaySaveCounter].myCargoDrawingEnabled = myCargo.myDrawingEnabled;
 			myReplayDataPtr[myReplaySaveCounter].myHookDrawingEnabled = myHook.myDrawingEnabled;
 
+			myReplayDataPtr[myReplaySaveCounter].myVectorBambiBucketReleasePosition = myVectorZeroVector;
+
 			myReplaySaveCounter++;
 		}
 		else
@@ -698,6 +706,8 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 
 			DrawInstanceCreate(myCargoInstanceRef, myCargoObjectRef);
 			DrawInstanceSetPosition(myCargoInstanceRef, myCargoObjectRef, vectorCargoPointOpenGL, cargoVectorDisplayAngle, true);
+
+			
 			
 			myVectorBambiBucketReleasePosition = vectorCargoPointOpenGL;
 			vector<double> vectorReleaseHeight = get_unit_vector(vectorFinalRope) * myCargo.myHeight;
@@ -706,10 +716,31 @@ int HSL_PlugIn::DrawCallback(XPLMDrawingPhase inPhase, int inIsBefore, void* inR
 			{
 				myCargo.myVectorDrawPosition = vectorCargoPointOpenGL;
 				myVectorEndOfRopePosition = vectorCargoPointOpenGL;
+				myReplayDataPtr[myReplaySaveCounter].myVectorBambiBucketReleasePosition = myVectorBambiBucketReleasePosition;
+				myReplayDataPtr[myReplaySaveCounter].myBambiBucketReleasingWater = myCargo.myBambiBucketRelease;
+
+			}
+
+			vector<double> vectorWaterReleasePosition = (myIsInReplay == 0) ? myVectorBambiBucketReleasePosition : myReplayDataPtr[replayDataPosition].myVectorBambiBucketReleasePosition;
+			bool releaseWater = (myIsInReplay == 0) ? myCargo.myBambiBucketRelease : myReplayDataPtr[replayDataPosition].myBambiBucketReleasingWater;
+
+			if (mypWaterObject != NULL)
+			{
+				if (releaseWater == true)
+				{
+					mypWaterObject->SetPosition(myVectorBambiBucketReleasePosition, myCargo.myVectorVelocity);
+				}
+				else
+				{
+					mypWaterObject->SetPosition(myVectorZeroVector, myVectorZeroVector);
+				}
 			}
 		}
 		else
 		{
+			if (mypWaterObject != NULL)
+				mypWaterObject->SetPosition(myVectorZeroVector, myVectorZeroVector);
+
 			DrawInstanceDestroy(myCargoInstanceRef);
 		}
 
@@ -1402,6 +1433,8 @@ void HSL_PlugIn::SlingConnect()
 	myHook.myRopeConnected = true;
 	myHook.myFollowOnly = true;
 	myHook.myDrawingEnabled = false;
+
+	WaterPlaceCoordinates();
 }
 
 void HSL_PlugIn::SlingRelease()
@@ -1792,6 +1825,64 @@ void HSL_PlugIn::FirePlaceCoordinates()
 	FirePlaceAtCoordinates(NULL);
 }
 
+void HSL_PlugIn::WaterPlaceCoordinates()
+{
+
+	if (mypWaterObject != NULL) return;
+	int planeTotalCount = 0;
+	int planeActiveCount = 0;
+	int aircraftAcquired = -1;
+	int planeIndex = -1;
+
+
+	char loadAircraftPath[2048];
+	char* pLoadAircraftPath[2];
+
+	pLoadAircraftPath[0] = loadAircraftPath;
+	pLoadAircraftPath[1] = NULL;
+
+	strcpy(loadAircraftPath, myWaterAircraftPath.c_str());
+
+	XPLMCountAircraft(&planeTotalCount, &planeActiveCount, 0);
+
+	for (int index = 1; index < planeTotalCount; index++)
+	{
+		bool isUsed = false;
+		for (auto pFire : myFires)
+		{
+			if (pFire->myPlaneIndex == index)
+				isUsed = true;
+		}
+
+		if (isUsed == false)
+		{
+			planeIndex = index;
+			index = planeTotalCount;
+		}
+
+	}
+
+	// If Aircraft was found
+	if (planeIndex > 0)
+	{
+		aircraftAcquired = XPLMAcquirePlanes(pLoadAircraftPath, NULL, NULL);
+		XPLMSetAircraftModel(planeIndex, loadAircraftPath);
+		aircraftAcquired = XPLMAcquirePlanes(pLoadAircraftPath, NULL, NULL);
+
+		XPLMDisableAIForPlane(planeIndex);
+
+		CARGO_SHM_SECTION_START
+		mypWaterObject = new FireObject(this, planeIndex, myCargo.myVectorPosition, true);
+
+
+		myFireCreateFailed = 0;
+	}
+	else
+	{
+		myFireCreateFailed = 1;
+	}
+}
+
 void HSL_PlugIn::BambiBucketRelease()
 {
 	CARGO_SHM_SECTION_START
@@ -1826,6 +1917,9 @@ void HSL_PlugIn::FirePlaceAtCoordinates(vector<double> * pinVectorFireObjectPosi
 			if (pFire->myPlaneIndex == index)
 				isUsed = true;
 		}
+
+		if ((mypWaterObject != NULL) && (mypWaterObject->myPlaneIndex == index))
+			isUsed = true;
 
 		if (isUsed == false)
 		{
@@ -2378,6 +2472,12 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 
 		if (myCargo.myBambiBucketWaterLevel <= 0.0) myCargo.myBambiBucketRelease = false;
 
+		if (myCargo.myBambiBucketRelease == true) XPLMSetDataf(myDrBambiBucketReleaseWorkaround, 1000.0);
+		else XPLMSetDataf(myDrBambiBucketReleaseWorkaround, 0);
+
+
+		
+
 		if ((myCargo.myBambiBucketRelease == true) && (myCargo.myBambiBucketWaterLevel > 0))
 		{
 			myRainReleaseTime += myCargoDataShared.myFrameTime;
@@ -2386,6 +2486,8 @@ float HSL_PlugIn::PluginFlightLoopCallback(double elapsedMe, double elapsedSim, 
 
 			vector<double> vectorWaterReleasePosition = myVectorBambiBucketReleasePosition; //myCargo.myVectorPosition + myCargo.myVectorHelicopterPositionDeviation - (myCargo.myHeight * vectorRopeUnit);
 
+			//if (mypWaterObject != NULL) mypWaterObject->SetPosition(vectorWaterReleasePosition, myCargo.myVectorVelocity);
+			
 			if (myRainReleaseTime >= myRainReleasePeriod)
 			{
 				myRainReleaseTime = 0;

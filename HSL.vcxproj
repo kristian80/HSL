@@ -49,7 +49,7 @@
     <TargetExt>.xpl</TargetExt>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>win</TargetName>
-    <IncludePath>E:\Docs\Games\X-Plane\Ivy\imgui_tabs;E:\Docs\Games\X-Plane\IvyGit\Client_CPP\Ivy\SDK\CHeaders\Wrappers;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include\;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include;E:\Docs\Games\X-Plane\Ivy\imgui;E:\Docs\Games\X-Plane\Ivy\xsb_public;E:\Docs\Games\X-Plane\Ivy\boost_1_55_0\boost_1_55_0\;$(IncludePath)</IncludePath>
+    <IncludePath>E:\Games\X-Plane\Ivy\imgui_tabs;E:\Games\X-Plane\IvyGit\Client_CPP\Ivy\SDK\CHeaders\Wrappers;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include\;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include;E:\Games\X-Plane\Ivy\imgui;E:\Games\X-Plane\Ivy\xsb_public;E:\Games\X-Plane\Ivy\boost_1_55_0\boost_1_55_0\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>.\Debug\plugins\$(TargetName)\64\</OutDir>
@@ -58,8 +58,8 @@
     <TargetExt>.xpl</TargetExt>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>win</TargetName>
-    <IncludePath>E:\Docs\Games\X-Plane\CPP\Libs\Opengl;E:\Docs\Games\X-Plane\CPP\Examples\glExamples\src\libs;E:\Docs\Games\X-Plane\CPP\Libs\glut-3.7.6-bin\glut-3.7.6-bin;E:\Docs\Games\X-Plane\CPP\Examples\glExamples\src\examples\common;E:\Docs\Games\X-Plane\Ivy\imgui_tabs;E:\Docs\Games\X-Plane\IvyGit\Client_CPP\Ivy\SDK\CHeaders\Wrappers;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include\;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include;E:\Docs\Games\X-Plane\Ivy\imgui;E:\Docs\Games\X-Plane\Ivy\xsb_public;E:\Docs\Games\X-Plane\Ivy\boost_1_55_0\boost_1_55_0\;E:\Docs\Games\X-Plane\CPP\Libs\glm;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\Docs\Games\X-Plane\CPP\Libs\glut-3.7.6-bin\glut-3.7.6-bin\glut32.lib;C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64;$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\Games\X-Plane\CPP\Libs\Opengl;E:\Games\X-Plane\CPP\Examples\glExamples\src\libs;E:Games\X-Plane\CPP\Libs\glut-3.7.6-bin\glut-3.7.6-bin;E:\Games\X-Plane\CPP\Examples\glExamples\src\examples\common;E:\Games\X-Plane\Ivy\imgui_tabs;E:\Games\X-Plane\IvyGit\Client_CPP\Ivy\SDK\CHeaders\Wrappers;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include\;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include;E:\Games\X-Plane\Ivy\imgui;E:\Games\X-Plane\Ivy\xsb_public;E:\Games\X-Plane\Ivy\boost_1_55_0\boost_1_55_0\;E:\Games\X-Plane\CPP\Libs\glm;$(IncludePath)</IncludePath>
+    <LibraryPath>E:Games\X-Plane\CPP\Libs\glut-3.7.6-bin\glut-3.7.6-bin\glut32.lib;C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -152,14 +152,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Ivy\imgui\imgui.cpp" />
+    <ClCompile Include="..\..\Ivy\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\..\Ivy\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\..\Ivy\imgui\misc\cpp\imgui_stdlib.cpp" />
+    <ClCompile Include="..\..\Ivy\xsb_public\ImgWindow.cpp" />
     <ClCompile Include="CargoObject.cpp" />
     <ClCompile Include="DropObject.cpp" />
     <ClCompile Include="DropThread.cpp" />
-    <ClCompile Include="E:\Docs\Games\X-Plane\Ivy\imgui\imgui.cpp" />
-    <ClCompile Include="E:\Docs\Games\X-Plane\Ivy\imgui\imgui_draw.cpp" />
-    <ClCompile Include="E:\Docs\Games\X-Plane\Ivy\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="E:\Docs\Games\X-Plane\Ivy\imgui\misc\cpp\imgui_stdlib.cpp" />
-    <ClCompile Include="E:\Docs\Games\X-Plane\Ivy\xsb_public\ImgWindow.cpp" />
     <ClCompile Include="FireObject.cpp" />
     <ClCompile Include="HSLImguiWidget.cpp" />
     <ClCompile Include="HSL_main.cpp" />
